@@ -2513,48 +2513,80 @@ function mInitData() {
         $('#m-hero-photo-img').attr('src', thumb);
       }
       
-      // 3. Terapkan Form Options & News
+      // 3. Terapkan Form Options
       mFormOptions = res.formOptions || { sections: [], atasanList: [], sites: [] };
-      mNewsList = res.news || [];
+      
+      // 4. Reset & Render loading states for lists
+      mNewsList = [];
       mRenderNews();
       
-      // Birthdays today
-      let birthdays = (res.extraData && res.extraData.birthdays) ? res.extraData.birthdays : [];
-      mRenderBirthdays(birthdays);
+      mRenderBirthdays([]);
+      mRenderEventDevelopment([]);
       
-      // Event development
-      let events = (res.eventDev && res.eventDev.success) ? res.eventDev.events : [];
-      mRenderEventDevelopment(events);
+      mHistoryList = [];
+      mRenderHistoryList();
       
-      // 4. Terapkan History & Approval
-      mHistoryList = res.submissions || [];
-      mApprovalList = res.approvals || [];
+      mApprovalList = [];
+      mRenderApprovalList();
       
       mUpdateHeroStats();
-      mRenderHistoryList();
-      mRenderApprovalList();
 
-      let cnt = mApprovalList.length;
-      $('#m-user-pending').toggle(cnt > 0);
-      $('#m-nav-approval-badge').text(cnt).toggle(cnt > 0);
+      // 5. Trigger Background Asynchronous Parallel Fetches
+      mLoadNews(true);
+      mLoadBirthdays();
+      mLoadEventDevelopment();
+      mLoadHistory(false);
+      
+      let role = String(mUser.role || '').toUpperCase().trim();
+      if (M_APPROVER_ROLES.includes(role)) {
+        mLoadApproval(false);
+      }
     } else {
       Swal.fire('Gagal', res.message || 'Gagal memuat data awal', 'error');
     }
   }).withFailureHandler(err => {
     mShow(false);
     Swal.fire('Error', err.message || 'Koneksi ke server terputus', 'error');
-  }).getInitialMobileData(mUser.username, mUser.role, mUser.nama, mUser.nrp);
+  }).getMobileEssentials(mUser.username, mUser.role, mUser.nama, mUser.nrp);
 }
 
 // ============== NEWS SLIDER ==============
 function mLoadNews(force) {
   if (mNewsList.length > 0 && !force) { mRenderNews(); return; }
+  let $sl = $('#m-slider');
+  $sl.html('<div class="m-slide m-slide-loading"><div class="m-slide-content"><i class="fas fa-spinner fa-spin"></i><p style="font-size:0.85em; margin-top:6px;">Memuat info...</p></div></div>');
   google.script.run.withSuccessHandler(list => {
     mNewsList = list || [];
     mRenderNews();
   }).withFailureHandler(() => {
+    mNewsList = [];
     mRenderNews();
   }).getMobileNews();
+}
+
+function mLoadBirthdays() {
+  let $section = $('#m-birthday-section');
+  let $container = $('#m-birthday-container');
+  // Tampilkan section sementara untuk spinner
+  $section.show();
+  $container.html('<div style="text-align:center; padding:15px; width:100%; color:#94a3b8;"><i class="fas fa-spinner fa-spin"></i><p style="font-size:0.8em; margin-top:5px;">Memuat data ulang tahun...</p></div>');
+  google.script.run.withSuccessHandler(res => {
+    let birthdays = (res && res.birthdays) ? res.birthdays : [];
+    mRenderBirthdays(birthdays);
+  }).withFailureHandler(() => {
+    $section.hide();
+  }).getDashboardExtraData();
+}
+
+function mLoadEventDevelopment() {
+  let $container = $('#m-eventdev-container');
+  $container.html('<div style="text-align:center; padding:15px; width:100%; color:#94a3b8;"><i class="fas fa-spinner fa-spin"></i><p style="font-size:0.8em; margin-top:5px;">Memuat event...</p></div>');
+  google.script.run.withSuccessHandler(res => {
+    let events = (res && res.success) ? res.events : [];
+    mRenderEventDevelopment(events);
+  }).withFailureHandler(() => {
+    $container.html('<div class="m-eventdev-empty"><i class="fas fa-exclamation-triangle"></i> Gagal memuat event.</div>');
+  }).getMobileEventDevelopment(mUser.username, mUser.nrp);
 }
 
 function mRenderNews() {
@@ -4187,7 +4219,7 @@ function mLoadHistory(force) {
     mRenderHistoryList();
   }).withFailureHandler(() => {
     $('#m-history-list').html('<div class="m-empty"><i class="fas fa-exclamation-triangle"></i><p>Gagal memuat</p></div>');
-  }).getMySubmissionList(mUser.nama, mUser.nrp, true);
+  }).getMySubmissionList(mUser.nama, mUser.nrp, force === true);
 }
 
 function mUpdateHeroStats() {
@@ -4254,7 +4286,7 @@ function mLoadApproval(force) {
     mUpdateHeroStats();
   }).withFailureHandler(() => {
     $('#m-approval-list').html('<div class="m-empty"><i class="fas fa-exclamation-triangle"></i><p>Gagal memuat</p></div>');
-  }).getUserApprovalList(mUser.nama);
+  }).getUserApprovalList(mUser.nama, force === true);
 }
 
 function mRenderApprovalList() {
