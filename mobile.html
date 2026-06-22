@@ -1255,6 +1255,18 @@ button { font-family: inherit; cursor: pointer; }
   color: #64748b;
   font-size: 0.82em;
   font-weight: 500;
+  width: 100%;
+}
+.m-birthday-empty {
+  background: #fff5f5;
+  border: 1px dashed #ffd8e2;
+  border-radius: 12px;
+  padding: 20px 10px;
+  text-align: center;
+  color: #db2777;
+  font-size: 0.82em;
+  font-weight: 500;
+  width: 100%;
 }
 
 /* ===== BIRTHDAY SECTION ===== */
@@ -5690,7 +5702,8 @@ function mRenderBirthdays(list) {
   mBirthdayIdx = 0;
 
   if (!list || list.length === 0) {
-    $section.hide();
+    $container.html('<div class="m-birthday-empty"><i class="fas fa-cake-candles mr-1"></i> Tidak ada karyawan yang ulang tahun hari ini.</div>');
+    $section.show();
     return;
   }
   
