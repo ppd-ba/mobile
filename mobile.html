@@ -319,6 +319,12 @@ button { font-family: inherit; cursor: pointer; }
   border-radius: 12px;
   padding: 8px 10px;
   backdrop-filter: blur(6px);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.m-hero-stat:active {
+  transform: scale(0.97);
+  background: rgba(255,255,255,0.22);
 }
 .m-hs-label {
   font-size: 0.62em; font-weight: 700;
@@ -1547,14 +1553,14 @@ button { font-family: inherit; cursor: pointer; }
 
       <!-- Stat boxes di bawah hero card -->
       <div class="m-hero-stats">
-        <div class="m-hero-stat">
+        <div class="m-hero-stat" onclick="mShowMyPendingSubmissions()">
           <div class="m-hs-label">PENGAJUAN SAYA</div>
           <div class="m-hs-value">
             <span id="m-stat-mypending">0</span>
             <small>menunggu approval</small>
           </div>
         </div>
-        <div class="m-hero-stat m-hero-stat-approver" id="m-hero-stat-approver" style="display:none;">
+        <div class="m-hero-stat m-hero-stat-approver" id="m-hero-stat-approver" style="display:none;" onclick="mSwitchTab('approval')">
           <div class="m-hs-label">APPROVAL ANDA</div>
           <div class="m-hs-value">
             <span id="m-stat-mypproval">0</span>
@@ -2114,6 +2120,7 @@ const M_AUTO_LOGOUT_TIME = 120 * 60 * 1000; // 120 menit
 let mApprovalList = [];
 let mHistoryList = [];
 let mHistoryLimit = 15;
+let mHistoryStatusFilter = '';
 let mFormOptions = { sections: [], atasanList: [], sites: [] };
 let mNewsList = [];
 let mSliderTimer = null;
@@ -2499,9 +2506,12 @@ function mShowApp() {
   }
 
   // Filter pills history
-  $('#m-history-filter .m-pill').off('click').on('click', function() {
+  $('#m-history-filter').off('click', '.m-pill').on('click', '.m-pill', function() {
+    if (this.id === 'm-pill-pending-temp') return;
     $('#m-history-filter .m-pill').removeClass('m-pill-active');
     $(this).addClass('m-pill-active');
+    mHistoryStatusFilter = '';
+    $('#m-pill-pending-temp').remove();
     mRenderHistoryList();
   });
 }
@@ -2940,6 +2950,14 @@ function mSwitchTabFromSubmenu(tab, filter) {
     $('#m-history-filter .m-pill[data-f="'+filter+'"]').addClass('m-pill-active');
   }
   mSwitchTab(tab);
+}
+
+function mShowMyPendingSubmissions() {
+  mHistoryStatusFilter = 'PENDING';
+  $('#m-history-filter .m-pill').removeClass('m-pill-active');
+  $('#m-pill-pending-temp').remove();
+  $('#m-history-filter').append('<button class="m-pill m-pill-active" id="m-pill-pending-temp" data-f="">Menunggu Approval</button>');
+  mSwitchTab('history');
 }
 
 // ============== FORM ==============
@@ -4256,8 +4274,15 @@ function mRenderHistoryList(loadMore) {
   if (!loadMore) mHistoryLimit = 15;
   let f = $('#m-history-filter .m-pill-active').data('f') || '';
   let filtered = f ? mHistoryList.filter(x => x.sheetName === f) : mHistoryList;
+  if (typeof mHistoryStatusFilter !== 'undefined' && mHistoryStatusFilter === 'PENDING') {
+    filtered = filtered.filter(it => {
+      let s = String(it.status || '').toUpperCase();
+      return s.indexOf('WAIT') !== -1 || s.indexOf('PROSES') !== -1 || s === 'OPEN' || s === '' || s === '(BELUM ADA STATUS)';
+    });
+  }
   if (filtered.length === 0) {
-    $('#m-history-list').html('<div class="m-empty"><i class="fas fa-folder-open"></i><p>Tidak ada pengajuan'+(f?' di kategori ini':'')+'.</p></div>');
+    let emptyMsg = f ? 'Tidak ada pengajuan di kategori ini.' : (mHistoryStatusFilter === 'PENDING' ? 'Tidak ada pengajuan yang menunggu approval.' : 'Tidak ada pengajuan.');
+    $('#m-history-list').html('<div class="m-empty"><i class="fas fa-folder-open"></i><p>' + emptyMsg + '</p></div>');
     return;
   }
   let sliced = filtered.slice(0, mHistoryLimit);
