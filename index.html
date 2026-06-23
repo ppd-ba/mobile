@@ -3483,7 +3483,7 @@ $(document).on('click keypress touchstart', function() {
       }
   });
 
-  // Trigger saat user ubah rentang tanggal (Save ke Memori) — pakai event delegation
+  // Trigger saat user ubah rentang tanggal (Save ke Memori) - pakai event delegation
   // supaya tetap jalan walau input #tableStartDate/#tableEndDate di-rebuild oleh mph-toolbar
   $(document).on('changeDate clearDate', '#tableStartDate, #tableEndDate', function() {
        if(typeof tableInstance !== 'undefined' && tableInstance) {
@@ -3960,7 +3960,7 @@ function updateGreetingBanner() {
         let leftContent = isClear ? 
             `<div class="greet-bell-icon mr-3 mb-2 mb-md-0" style="background: rgba(255, 255, 255, 0.2);"><i class="fas fa-check-double text-white"></i></div>
              <div>
-                 <p class="mb-0 text-white font-weight-bold" style="font-size: 1.1em;">All Clear! 👍</p>
+                 <p class="mb-0 text-white font-weight-bold" style="font-size: 1.1em;">All Clear! \uD83D\uDC4D</p>
                  <p class="mb-0 text-white" style="font-size: 0.9em; opacity: 0.9;">Tidak ada pengajuan yang menunggu approval Anda saat ini.</p>
              </div>` 
             :
@@ -4036,12 +4036,12 @@ function loadNotifications() {
       html += '<div class="notif-item ' + (isUnread ? 'unread' : '') + '" onclick="goToApproval()">' +
                 '<div class="notif-icon warn"><i class="fas fa-file-signature"></i></div>' +
                 '<div class="notif-body"><div class="notif-title">' + (item.formName || item.sheetName) + '</div>' +
-                '<div class="notif-sub">' + nama + ' • ' + (item.nrp || '-') + '</div></div>' +
+                '<div class="notif-sub">' + nama + ' - ' + (item.nrp || '-') + '</div></div>' +
               '</div>';
     });
     if (pending.length > 5) {
       html += '<div class="notif-item" style="justify-content:center;" onclick="goToApproval()">' +
-              '<small class="text-primary">+' + (pending.length - 5) + ' lainnya — Lihat semua</small></div>';
+              '<small class="text-primary">+' + (pending.length - 5) + ' lainnya - Lihat semua</small></div>';
     }
     html += '</div>';
   }
@@ -4053,7 +4053,7 @@ function loadNotifications() {
     birthdays.slice(0, 5).forEach(p => {
       html += '<div class="notif-item ' + (isUnread ? 'unread' : '') + '">' +
                 '<div class="notif-icon success"><i class="fas fa-cake-candles"></i></div>' +
-                '<div class="notif-body"><div class="notif-title">🎉 ' + (p.nama || '-') + '</div>' +
+                '<div class="notif-body"><div class="notif-title">\uD83C\uDF89 ' + (p.nama || '-') + '</div>' +
                 '<div class="notif-sub">' + (p.jabatan || '-') + ' | ' + (p.section || '-') + '</div></div>' +
               '</div>';
     });
@@ -4073,7 +4073,7 @@ function loadNotifications() {
     });
     if (expired.length > 5) {
       html += '<div class="notif-item" style="justify-content:center;" onclick="goToDashboard()">' +
-              '<small class="text-primary">+' + (expired.length - 5) + ' lainnya — Lihat dashboard</small></div>';
+              '<small class="text-primary">+' + (expired.length - 5) + ' lainnya - Lihat dashboard</small></div>';
     }
     html += '</div>';
   }
@@ -5013,7 +5013,7 @@ if(!list||list.length===0){$(containerId).html('<div class="text-center text-mut
 const renderItems=(items)=>{
 let html="";items.forEach(p=>{
 let borderClass=(type==='birthday')?'border-yellow':'border-red';
-let badgeHtml=(type==='birthday')?'<span class="badge-custom bg-light-green">🎉 Birthday</span>':'<span class="badge-custom bg-light-yellow">Exp: '+p.tglExpired+'</span><span class="badge-custom '+getStatusBadgeColor(p.status)+'">'+p.status+'</span>';
+let badgeHtml=(type==='birthday')?'<span class="badge-custom bg-light-green">\uD83C\uDF89 Birthday</span>':'<span class="badge-custom bg-light-yellow">Exp: '+p.tglExpired+'</span><span class="badge-custom '+getStatusBadgeColor(p.status)+'">'+p.status+'</span>';
 html+='<div class="person-card '+borderClass+' animate-fade-up"><div class="person-img-wrapper"><img src="'+p.foto+'" class="person-img" loading="lazy" onerror="this.src=\'https://cdn-icons-png.flaticon.com/512/3135/3135715.png\';"></div><div class="person-details"><div class="person-name">'+p.nama+'</div><div class="person-sub" style="font-size:0.8em">'+p.jabatan+' | '+p.section+'</div><div>'+badgeHtml+'</div></div></div>';
 });return html;
 };
@@ -5543,7 +5543,7 @@ function renderTable(res) {
     }).join('') + certChkFilter + '</tr>';
     
     if (dataRows.length > 0) {
-        // Sorting logic — daftar sheet yg cukup di-reverse (baris terbawah di sheet -> atas tabel)
+        // Sorting logic - daftar sheet yg cukup di-reverse (baris terbawah di sheet -> atas tabel)
         const REVERSE_ORDER_SHEETS = ['CUTI', 'IZIN NON RESMI', 'BA TIKET', 'RESCHEDULE & REFUND', 'SURAT PERINTAH LEMBUR', 'ALL', 'CERTIFICATE', 'DATABASE TA', 'MMPR', 'NILAI'];
 
         if (currentSheetName === 'DATABASE MP SIB' || currentSheetName === 'MONITORING') {
@@ -5771,7 +5771,7 @@ function renderTable(res) {
                 });
                 if (stuckRows.length > 0) {
                     const Toast = Swal.mixin({toast:true,position:'top-end',showConfirmButton:false,timer:4000});
-                    Toast.fire({icon:'info',title:'🔔 Menemukan ' + stuckRows.length + ' sertifikat dalam antrean. Memproses ulang otomatis...'});
+                    Toast.fire({icon:'info',title:'\uD83D\uDD14 Menemukan ' + stuckRows.length + ' sertifikat dalam antrean. Memproses ulang otomatis...'});
                     startCertProcessing(stuckRows);
                 }
             }
@@ -5849,7 +5849,7 @@ function loadApprovalBadge(){
         if(newCount>oldCount){
           let selisih=newCount-oldCount;
           const Toast=Swal.mixin({toast:true,position:'top-end',showConfirmButton:false,timer:6000});
-          Toast.fire({icon:'info',title:'🔔 Ada '+selisih+' Pengajuan Baru!'});
+          Toast.fire({icon:'info',title:'\uD83D\uDD14 Ada '+selisih+' Pengajuan Baru!'});
           if($('#view-approval').is(':visible')){renderApprovalList(list);}
         }
       }).getUserApprovalList(currentUser.nama);
@@ -5866,9 +5866,9 @@ const MPH_CONFIG = {
   'RESCHEDULE & REFUND':   { title:'RESCHEDULE & REFUND',    subtitle:'Perubahan jadwal & pengembalian dana tiket',              icon:'fa-rotate',                gradient:'linear-gradient(135deg, #14b8a6 0%, #0d9488 50%, #115e59 100%)', ornaments:['fa-money-bill-transfer','fa-calendar-xmark','fa-arrows-rotate','fa-clock-rotate-left'] },
   'SURAT PERINTAH LEMBUR': { title:'SURAT PERINTAH LEMBUR',  subtitle:'Pengajuan jam lembur kerja karyawan',                     icon:'fa-file-contract',         gradient:'linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #991b1b 100%)', ornaments:['fa-clock','fa-business-time','fa-stopwatch','fa-moon'] },
   'DATABASE MP SIB':       { title:'DATABASE MP SIB',        subtitle:'Master data karyawan & manpower lokasi',                  icon:'fa-id-card',               gradient:'linear-gradient(135deg, #6366f1 0%, #4f46e5 50%, #3730a3 100%)', ornaments:['fa-users','fa-id-badge','fa-fingerprint','fa-address-card'] },
-  'ALL':                   { title:'PLANOVA — Summary',      subtitle:'Daftar pengajuan ide improvement & inovasi',              icon:'fa-brain',                 gradient:'linear-gradient(135deg, #06b6d4 0%, #0891b2 50%, #155e75 100%)', ornaments:['fa-lightbulb','fa-rocket','fa-bolt','fa-puzzle-piece'] },
-  'SUGESTION SYSTEM':      { title:'PLANOVA — Summary',      subtitle:'Daftar pengajuan ide improvement & inovasi',              icon:'fa-brain',                 gradient:'linear-gradient(135deg, #06b6d4 0%, #0891b2 50%, #155e75 100%)', ornaments:['fa-lightbulb','fa-rocket','fa-bolt','fa-puzzle-piece'] },
-  'NILAI':                 { title:'PLANOVA — Penilaian',    subtitle:'Scoring & evaluasi proposal improvement',                 icon:'fa-star-half-stroke',      gradient:'linear-gradient(135deg, #06b6d4 0%, #0891b2 50%, #155e75 100%)', ornaments:['fa-trophy','fa-medal','fa-chart-line','fa-award'] },
+  'ALL':                   { title:'PLANOVA - Summary',      subtitle:'Daftar pengajuan ide improvement & inovasi',              icon:'fa-brain',                 gradient:'linear-gradient(135deg, #06b6d4 0%, #0891b2 50%, #155e75 100%)', ornaments:['fa-lightbulb','fa-rocket','fa-bolt','fa-puzzle-piece'] },
+  'SUGESTION SYSTEM':      { title:'PLANOVA - Summary',      subtitle:'Daftar pengajuan ide improvement & inovasi',              icon:'fa-brain',                 gradient:'linear-gradient(135deg, #06b6d4 0%, #0891b2 50%, #155e75 100%)', ornaments:['fa-lightbulb','fa-rocket','fa-bolt','fa-puzzle-piece'] },
+  'NILAI':                 { title:'PLANOVA - Penilaian',    subtitle:'Scoring & evaluasi proposal improvement',                 icon:'fa-star-half-stroke',      gradient:'linear-gradient(135deg, #06b6d4 0%, #0891b2 50%, #155e75 100%)', ornaments:['fa-trophy','fa-medal','fa-chart-line','fa-award'] },
   'DATABASE TA':           { title:'DATABASE TA',            subtitle:'Technical Analysis report karyawan',                      icon:'fa-file-lines',            gradient:'linear-gradient(135deg, #0ea5e9 0%, #0284c7 50%, #075985 100%)', ornaments:['fa-screwdriver-wrench','fa-gears','fa-magnifying-glass-chart','fa-clipboard-list'] },
   'MONITORING':            { title:'MONITORING',             subtitle:'Monitoring kompetensi mekanik / helper / welder',         icon:'fa-chart-bar',             gradient:'linear-gradient(135deg, #0ea5e9 0%, #0284c7 50%, #075985 100%)', ornaments:['fa-chart-line','fa-eye','fa-list-check','fa-display'] },
   'MMPR':                  { title:'EVALUASI MMPR',          subtitle:'Penilaian bulanan karyawan oleh atasan langsung',         icon:'fa-user-pen',              gradient:'linear-gradient(135deg, #d946ef 0%, #c026d3 50%, #86198f 100%)', ornaments:['fa-clipboard-check','fa-pen-ruler','fa-square-poll-vertical','fa-ranking-star'] },
@@ -5920,7 +5920,7 @@ function buildTableToolbarHtml() {
     + '<div id="table-right-actions" class="mph-tb-right">'
     +   '<span id="table-date-info" class="mph-date-info" style="display:none;"></span>'
     +   '<input type="text" class="date-picker mph-input" id="tableStartDate" placeholder="dd/mm/yyyy" autocomplete="off">'
-    +   '<span class="mph-divider">—</span>'
+    +   '<span class="mph-divider">-</span>'
     +   '<input type="text" class="date-picker mph-input" id="tableEndDate" placeholder="dd/mm/yyyy" autocomplete="off">'
     +   '<button id="mph-date-filter-btn" class="mph-btn-icon" onclick="tableFilterDraw()" title="Filter Tanggal"><i class="fas fa-filter"></i></button>'
     +   '<button class="mph-btn-icon" onclick="resetFilter()" title="Reset"><i class="fas fa-rotate-left"></i></button>'
@@ -6030,13 +6030,13 @@ function createCertificates() {
     $('#cert-progress-widget').removeClass('cpw-done');
     $('.cpw-title').text('Membuat Sertifikat');
     updateCertProgressWidget(rows.length, 0, 0);
-    $('#cpw-sub').html('Menyiapkan…');
+    $('#cpw-sub').html('Menyiapkan...');
     try {
       google.script.run.withSuccessHandler(r => {
         if (!r || !r.success) { closeCertProgressWidget(); Swal.fire('Gagal', (r && r.message) ? r.message : 'Gagal memulai.', 'error'); return; }
         certSelected = new Set();
         if (typeof syncCertChecks === 'function') syncCertChecks(); // reset checkbox + tombol ke (0)
-        $('#cpw-sub').html('Berjalan di background — boleh pindah menu.');
+        $('#cpw-sub').html('Berjalan di background - boleh pindah menu.');
         let toProcess = (r.rows && r.rows.length) ? r.rows : rows;
         startCertProcessing(toProcess);
       }).withFailureHandler(err => {
@@ -6057,9 +6057,9 @@ function ensureCertProgressWidget() {
     '<div class="cpw-head"><i class="fas fa-stamp mr-2"></i><span class="cpw-title">Membuat Sertifikat</span>' +
     '<button class="cpw-close" onclick="closeCertProgressWidget()" title="Tutup">&times;</button></div>' +
     '<div class="cpw-body">' +
-      '<div class="cpw-text" id="cpw-text">Menyiapkan…</div>' +
+      '<div class="cpw-text" id="cpw-text">Menyiapkan...</div>' +
       '<div class="cpw-bar-wrap"><div class="cpw-bar" id="cpw-bar" style="width:0%"></div></div>' +
-      '<div class="cpw-sub" id="cpw-sub">Berjalan di background — boleh pindah menu.</div>' +
+      '<div class="cpw-sub" id="cpw-sub">Berjalan di background - boleh pindah menu.</div>' +
     '</div></div>';
   $('body').append(html);
 }
@@ -6067,7 +6067,7 @@ function updateCertProgressWidget(target, done, error) {
   done = done || 0; error = error || 0;
   let finished = Math.min(target, done + error);
   let pct = target > 0 ? Math.round(finished / target * 100) : 0;
-  $('#cpw-text').html('<b>' + done + ' / ' + target + '</b> selesai' + (error ? ' · <span style="color:#dc3545">gagal ' + error + '</span>' : '') + ' (' + pct + '%)');
+  $('#cpw-text').html('<b>' + done + ' / ' + target + '</b> selesai' + (error ? ' - <span style="color:#dc3545">gagal ' + error + '</span>' : '') + ' (' + pct + '%)');
   $('#cpw-bar').css('width', pct + '%');
 }
 function closeCertProgressWidget() {
@@ -6100,7 +6100,7 @@ function startCertProcessing(rows) {
   $('#cert-progress-widget').removeClass('cpw-done');
   $('.cpw-title').text('Membuat Sertifikat');
   updateCertProgressWidget(total, 0, 0);
-  $('#cpw-sub').html('Memulai pemrosesan paralel…');
+  $('#cpw-sub').html('Memulai pemrosesan paralel...');
 
   if (certPollTimer) { clearInterval(certPollTimer); certPollTimer = null; }
   if (certPump) { clearInterval(certPump); certPump = null; }
@@ -6125,7 +6125,7 @@ function startCertProcessing(rows) {
       let r = pendingQueue.shift();
       activeCount++;
       
-      $('#cpw-sub').html('Memproses ' + activeCount + ' sertifikat secara paralel…');
+      $('#cpw-sub').html('Memproses ' + activeCount + ' sertifikat secara paralel...');
 
       google.script.run.withSuccessHandler(res => {
         activeCount--;
@@ -6147,7 +6147,7 @@ function startCertProcessing(rows) {
         // Tandai baris bermasalah ini sebagai ERROR secara background
         google.script.run.withSuccessHandler(() => {}).withFailureHandler(() => {}).setRowStatusToError(r, "Timeout / Gagal Konversi");
         
-        $('#cpw-sub').html('<span style="color:#ffe0b2">⚠ Baris ke-' + r + ' gagal/timeout. Melanjutkan sisa…</span>');
+        $('#cpw-sub').html('<span style="color:#ffe0b2">\u26A0 Baris ke-' + r + ' gagal/timeout. Melanjutkan sisa...</span>');
         runNext();
       }).processCertBatch([r], currentUser.username);
     }
@@ -6275,7 +6275,7 @@ if(res.success){Swal.fire('Sukses','ZIP berhasil dibuat.','success').then(()=>{l
 });
 }
 function openColSettings(){
-  console.log('[ColSettings] Click → fetching server data...');
+  console.log('[ColSettings] Click -> fetching server data...');
   showLoading(true);
   google.script.run
     .withSuccessHandler(res => {
@@ -7065,7 +7065,7 @@ function submitMMPR() {
                     }
                     Swal.fire('Gagal', 'Server menolak: ' + res.message, 'error');
                 } else if (res.backgroundPdf) {
-                    // Semua atasan sudah CLOSED → generate PDF di background
+                    // Semua atasan sudah CLOSED -> generate PDF di background
                     const ToastInfo = Swal.mixin({toast:true,position:'top-end',showConfirmButton:false,timer:3000});
                     ToastInfo.fire({icon:'info', title:'Membuat PDF MMPR di background...'});
                     google.script.run.withSuccessHandler(pdfRes => {
@@ -7213,7 +7213,7 @@ function populateLeaveCalendarFilters() {
   let $sec = $('#lc-section-filter');
   let curr = $sec.val();
   let secs = [...new Set(lcAllEvents.map(e => String(e.section || '').trim()).filter(s => s && s !== '-'))].sort();
-  $sec.empty().append('<option value="">— Semua Section —</option>');
+  $sec.empty().append('<option value="">- Semua Section -</option>');
   secs.forEach(s => $sec.append('<option value="'+s+'">'+s+'</option>'));
   if (curr) $sec.val(curr);
 }
@@ -7240,7 +7240,7 @@ function filterLeaveCalendar() {
   let view = lcInstance.view;
   if (view) updateLeaveCalendarStats(view.currentStart, view.currentEnd);
 
-  // === AGGREGATE: per (tanggal, section, type) — block hanya menampilkan SECTION (n) ===
+  // === AGGREGATE: per (tanggal, section, type) - block hanya menampilkan SECTION (n) ===
   // Setiap karyawan multi-hari di-expand jadi event per hari, lalu group.
   let grouped = {}; // key: dateStr|section|type
   filtered.forEach(e => {
@@ -7358,10 +7358,10 @@ function openLeaveCalendarDetail(p) {
     let total = p.sectionTotal || 0;
     let pctText = total > 0 ? (' (' + Math.round((n / total) * 100) + '%)') : '';
     let summaryText = total > 0
-      ? ('<b>Section ' + p.section + '</b> — <b>' + n + '</b> dari total <b>' + total + '</b> orang' + pctText + ' tidak hadir karena ' + p.subType)
-      : ('<b>Section ' + p.section + '</b> — <b>' + n + '</b> orang ' + p.subType);
+      ? ('<b>Section ' + p.section + '</b> - <b>' + n + '</b> dari total <b>' + total + '</b> orang' + pctText + ' tidak hadir karena ' + p.subType)
+      : ('<b>Section ' + p.section + '</b> - <b>' + n + '</b> orang ' + p.subType);
 
-    $('#lcModalTitle').text(p.section + ' — ' + n + (total>0?'/'+total:'') + ' orang ' + p.subType);
+    $('#lcModalTitle').text(p.section + ' - ' + n + (total>0?'/'+total:'') + ' orang ' + p.subType);
 
     let rows = p.employees.map((e, i) => {
       // Alasan/uraian: untuk INR pakai field alasan; untuk CUTI pakai jenis cuti (Lapangan/Tahunan)
@@ -7401,7 +7401,7 @@ function openLeaveCalendarDetail(p) {
   }
 
   // ========== SINGLE event (legacy/fallback) ==========
-  $('#lcModalTitle').text(p.subType + ' — ' + p.nama);
+  $('#lcModalTitle').text(p.subType + ' - ' + p.nama);
 
   let extra = '';
   if (isCUTI) {
@@ -7569,7 +7569,7 @@ function renderMyHistory() {
 
 // === NOTIFICATION CENTER (bell icon) ===
 function openMyHistoryDetail(sheetName, rowIndex, linkPdf, displayName) {
-  $('#myHistoryDetailTitle').text((displayName || sheetName) + ' — Baris ' + rowIndex);
+  $('#myHistoryDetailTitle').text((displayName || sheetName) + ' - Baris ' + rowIndex);
   $('#myHistoryDetailTable tbody').empty();
   $('#myHistoryDetailLoading').show();
   if (linkPdf && linkPdf.startsWith('http')) {
@@ -7609,7 +7609,7 @@ function openMyHistoryDetail(sheetName, rowIndex, linkPdf, displayName) {
 }
 
 // =====================================================================
-// ===== RAPORT KARYAWAN — list + detail (refactored: string concat) =====
+// ===== RAPORT KARYAWAN - list + detail (refactored: string concat) =====
 // =====================================================================
 
 function parseDateStrLocal(s) {
@@ -7732,7 +7732,7 @@ function renderRaportDetail() {
   var pm = r.permit || {};
   var fbPhoto = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
 
-  $('#rpModalTitle').text('Raport Karyawan — ' + (p["NAMA KARYAWAN"] || '-'));
+  $('#rpModalTitle').text('Raport Karyawan - ' + (p["NAMA KARYAWAN"] || '-'));
 
   // ===== BOX 1: Profile =====
   var profileFields = [
@@ -7872,7 +7872,7 @@ function renderRaportDetail() {
       }).join('');
 
   var box3 = '<div class="rp-box">' +
-    '<div class="rp-box-title"><i class="fas fa-list-check mr-2"></i>Detail Aktivitas — ' + monthLabel + '</div>' +
+    '<div class="rp-box-title"><i class="fas fa-list-check mr-2"></i>Detail Aktivitas - ' + monthLabel + '</div>' +
     '<div class="rp-section-title rp-st-train"><i class="fas fa-graduation-cap mr-1"></i>Training (' + trainingsThisMonth.length + ')</div>' +
     trainingHtml +
     '<div class="rp-section-title rp-st-cuti mt-2"><i class="fas fa-plane-up mr-1"></i>Cuti (' + cutiThisMonth.length + ')</div>' +
@@ -7943,7 +7943,7 @@ function renderRaportDetail() {
   }).join('');
 
   var box5 = '<div class="rp-box">' +
-    '<div class="rp-box-title"><i class="fas fa-chart-simple mr-2"></i>Performance — PLANOVA & Technical Analysis</div>' +
+    '<div class="rp-box-title"><i class="fas fa-chart-simple mr-2"></i>Performance - PLANOVA & Technical Analysis</div>' +
     '<div class="rp-stats-row">' +
       '<div class="rp-stat-pill rp-stat-planova"><i class="fas fa-lightbulb"></i><span><b>' + (r.planovaTotal || 0) + '</b> PLANOVA</span></div>' +
       '<div class="rp-stat-pill rp-stat-ta"><i class="fas fa-screwdriver-wrench"></i><span><b>' + (r.taTotal || 0) + '</b> TA Total</span></div>' +
@@ -7965,7 +7965,7 @@ function renderRaportDetail() {
   );
 }
 
-/* OLD VERSION (template literal) — disabled
+/* OLD VERSION (template literal) - disabled
 function loadRaport_FULL(el, forceRefresh = false) {
   if (!checkRestrictedMenuAccess(false)) return;
   $('.nav-link').removeClass('active');
@@ -8064,7 +8064,7 @@ function renderRaportDetail() {
   const p = r.personal || {};
   const pm = r.permit || {};
 
-  $('#rpModalTitle').text('Raport Karyawan — ' + (p["NAMA KARYAWAN"] || '-'));
+  $('#rpModalTitle').text('Raport Karyawan - ' + (p["NAMA KARYAWAN"] || '-'));
 
   // ----- BOX 1: Profile -----
   const fbPhoto = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
@@ -8172,7 +8172,7 @@ function renderRaportDetail() {
           <div class="rp-evt-title">${t.event || '-'}</div>
           <div class="rp-evt-meta">
             <span><b>BED:</b> ${t.noBed || '-'}</span>
-            <span><b>Tgl:</b> ${t.start || '-'} → ${t.end || '-'}</span>
+            <span><b>Tgl:</b> ${t.start || '-'} -> ${t.end || '-'}</span>
             <span><b>Durasi:</b> ${t.durasi || '-'}</span>
             <span><b>Instr:</b> ${t.instruktur || '-'}</span>
             <span><b>Lokasi:</b> ${t.lokasi || '-'}</span>
@@ -8193,7 +8193,7 @@ function renderRaportDetail() {
         <div class="rp-evt rp-evt-cuti">
           <div class="rp-evt-title">${c.subType || c.jenis || 'Cuti'}</div>
           <div class="rp-evt-meta">
-            <span><b>Tgl:</b> ${c.start} → ${c.end}</span>
+            <span><b>Tgl:</b> ${c.start} -> ${c.end}</span>
             ${statBadge(c.status)}
           </div>
         </div>`).join('');
@@ -8204,7 +8204,7 @@ function renderRaportDetail() {
         <div class="rp-evt rp-evt-inr">
           <div class="rp-evt-title">Izin Non Resmi</div>
           <div class="rp-evt-meta">
-            <span><b>Tgl:</b> ${i.start} → ${i.end}</span>
+            <span><b>Tgl:</b> ${i.start} -> ${i.end}</span>
             ${statBadge(i.status)}
           </div>
           <div class="rp-evt-alasan">${i.alasan || ''}</div>
@@ -8212,7 +8212,7 @@ function renderRaportDetail() {
 
   let box3 = `
     <div class="rp-box">
-      <div class="rp-box-title"><i class="fas fa-list-check mr-2"></i>Detail Aktivitas — ${monthLabel}</div>
+      <div class="rp-box-title"><i class="fas fa-list-check mr-2"></i>Detail Aktivitas - ${monthLabel}</div>
       <div class="rp-section-title rp-st-train"><i class="fas fa-graduation-cap mr-1"></i>Training (${trainingsThisMonth.length})</div>
       ${trainingHtml}
       <div class="rp-section-title rp-st-cuti mt-2"><i class="fas fa-plane-up mr-1"></i>Cuti (${cutiThisMonth.length})</div>
@@ -8276,7 +8276,7 @@ function renderRaportDetail() {
 
   let box5 = `
     <div class="rp-box">
-      <div class="rp-box-title"><i class="fas fa-chart-simple mr-2"></i>Performance — PLANOVA & Technical Analysis</div>
+      <div class="rp-box-title"><i class="fas fa-chart-simple mr-2"></i>Performance - PLANOVA & Technical Analysis</div>
       <div class="rp-stats-row">
         <div class="rp-stat-pill rp-stat-planova"><i class="fas fa-lightbulb"></i><span><b>${r.planovaTotal || 0}</b> PLANOVA</span></div>
         <div class="rp-stat-pill rp-stat-ta"><i class="fas fa-screwdriver-wrench"></i><span><b>${r.taTotal || 0}</b> TA Total</span></div>
@@ -8299,7 +8299,7 @@ function renderRaportDetail() {
   `);
 }
 
-// Helper untuk parse "DD/MM/YYYY" atau "YYYY-MM-DD" jadi Date local — versi original (di dalam comment)
+// Helper untuk parse "DD/MM/YYYY" atau "YYYY-MM-DD" jadi Date local - versi original (di dalam comment)
 function parseDateStrLocal_ORIG(s) {
   if (!s) return null;
   if (s instanceof Date) return s;

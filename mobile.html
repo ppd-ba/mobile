@@ -2310,7 +2310,7 @@ function mHandleBack() {
     return;
   }
 
-  // Sudah di home & gak ada overlay → confirm exit
+  // Sudah di home & gak ada overlay -> confirm exit
   if ($('#m-view-app').is(':visible')) {
     Swal.fire({
       title: 'Keluar aplikasi?',
@@ -2321,7 +2321,7 @@ function mHandleBack() {
       confirmButtonColor: '#05244d'
     }).then(r => {
       if (r.isConfirmed) {
-        // Biarkan back native — pop history sekali lagi
+        // Biarkan back native - pop history sekali lagi
         try { window.history.go(-2); } catch(e) {}
       }
     });
@@ -2505,7 +2505,7 @@ function mShowApp() {
 
   // Fill user info
   $('#m-user-name').text(mUser.nama || mUser.username);
-  $('#m-user-job').text((mUser.jabatan || '-') + ' · ' + (mUser.section || '-'));
+  $('#m-user-job').text((mUser.jabatan || '-') + ' - ' + (mUser.section || '-'));
 
   // Profile tab
   $('#m-profile-name').text(mUser.nama || '-');
@@ -2740,7 +2740,7 @@ function mOpenNewsForm() {
       + '<div style="text-align:left; margin: 14px 3px 0 3px;">'
       + '  <label style="font-size:0.85em; font-weight:600; color:#475569; display:block; margin-bottom:6px;">Upload Gambar (PNG/JPG):</label>'
       + '  <input id="mn-file" type="file" accept="image/*" style="font-size:0.85em; width:100%; border: 1.5px solid #e2e8f0; padding: 8px; border-radius: 8px;">'
-      + '  <div style="font-size:0.75em; text-align:center; color:#94a3b8; margin: 8px 0;">— ATAU MASUKKAN LINK DRIVE —</div>'
+      + '  <div style="font-size:0.75em; text-align:center; color:#94a3b8; margin: 8px 0;">- ATAU MASUKKAN LINK DRIVE -</div>'
       + '</div>'
       + '<input id="mn-img" class="swal2-input" style="margin-top:0;" placeholder="Link gambar Drive (opsional)">'
       + '<p style="font-size:0.78em; color:#64748b; margin-top:6px;">Upload file foto atau paste url link Drive share "Anyone with link" di atas.</p>',
@@ -2815,7 +2815,7 @@ function mOpenNewsEditForm(idx) {
       + '<div style="text-align:left; margin: 14px 3px 0 3px;">'
       + '  <label style="font-size:0.85em; font-weight:600; color:#475569; display:block; margin-bottom:6px;">Ganti Gambar (PNG/JPG):</label>'
       + '  <input id="mne-file" type="file" accept="image/*" style="font-size:0.85em; width:100%; border: 1.5px solid #e2e8f0; padding: 8px; border-radius: 8px;">'
-      + '  <div style="font-size:0.75em; text-align:center; color:#94a3b8; margin: 8px 0;">— ATAU MASUKKAN LINK DRIVE —</div>'
+      + '  <div style="font-size:0.75em; text-align:center; color:#94a3b8; margin: 8px 0;">- ATAU MASUKKAN LINK DRIVE -</div>'
       + '</div>'
       + '<input id="mne-img" class="swal2-input" style="margin-top:0;" placeholder="Link gambar Drive (opsional)" value="' + imgUrl.replace(/"/g, '&quot;') + '">',
     confirmButtonText: 'Simpan', confirmButtonColor: '#05244d', showCancelButton: true,
@@ -3395,7 +3395,7 @@ function mfDate(key, label, value, opts) {
 }
 function mfDropdown(key, label, options, opts) {
   opts = opts || {};
-  let opts_html = '<option value="">— Pilih —</option>' + options.map(o => '<option value="'+o+'">'+o+'</option>').join('');
+  let opts_html = '<option value="">- Pilih -</option>' + options.map(o => '<option value="'+o+'">'+o+'</option>').join('');
   return '<div class="m-form-group"><label class="m-form-label '+(opts.req?'req':'')+'">'+label+'</label><select class="m-form-select" data-fkey="'+key+'" '+(opts.req?'required':'')+'>'+opts_html+'</select></div>';
 }
 function mfBtnGroup(key, label, options, opts) {
@@ -3412,7 +3412,7 @@ function mfStepper(key, label, value, opts) {
   let onCh = opts.onChange ? ' data-onchange="'+opts.onChange+'"' : '';
   return '<div class="m-form-group"><label class="m-form-label '+(opts.req?'req':'')+'">'+label+'</label>'
        + '<div class="m-stepper" data-min="'+mn+'" data-max="'+mx+'"'+onCh+'>'
-       +   '<button type="button" class="m-step-btn" onclick="mfStepperChange(this, -1)">−</button>'
+       +   '<button type="button" class="m-step-btn" onclick="mfStepperChange(this, -1)">-</button>'
        +   '<input class="m-step-val" type="number" data-fkey="'+key+'" value="'+v+'" min="'+mn+'" max="'+mx+'" oninput="mfStepperClamp(this)" '+(opts.req?'required':'')+'>'
        +   '<button type="button" class="m-step-btn" onclick="mfStepperChange(this, 1)">+</button>'
        + '</div></div>';
@@ -3545,9 +3545,9 @@ function mCutiOnChange() {
     let bjs = $('input[data-fkey="BERANGKAT DARI JOBSITE"]').val();
     let kjs = $('input[data-fkey="KEMBALI KE JOBSITE"]').val();
 
-    // Sync TANGGAL KEBERANGKATAN P1 ← BERANGKAT JOBSITE (always)
+    // Sync TANGGAL KEBERANGKATAN P1 <- BERANGKAT JOBSITE (always)
     safeVal("TANGGAL KEBERANGKATAN PENUMPANG 1", bjs || "");
-    // Sync TANGGAL KEMBALI P2 ← KEMBALI JOBSITE (always)
+    // Sync TANGGAL KEMBALI P2 <- KEMBALI JOBSITE (always)
     safeVal("TANGGAL KEMBALI PENUMPANG 2", kjs || "");
     if (mustValidateDay) {
       let invalidFound = false;
@@ -3595,7 +3595,7 @@ function mCutiOnChange() {
   }
 }
 
-// Validasi hari saat user pilih tanggal BJS/KJS — kalau NON LOKAL & jabatan non-exempt
+// Validasi hari saat user pilih tanggal BJS/KJS - kalau NON LOKAL & jabatan non-exempt
 function mCutiValidateDay(inpEl) {
   let lokal = $('input[data-fkey="CUTI LOKAL/NON LOKAL"]').val();
   let jab = String(mUser.jabatan || '').toUpperCase().trim();
@@ -3618,7 +3618,7 @@ function mCutiValidateDay(inpEl) {
   }
 }
 
-// Sync Bandara P2 (asal/tujuan terbalik dari P1) — dipanggil oninput field P1
+// Sync Bandara P2 (asal/tujuan terbalik dari P1) - dipanggil oninput field P1
 function mCutiSyncBandara() {
   let baP1 = $('input[data-fkey="BANDARA ASAL PENUMPANG 1"]').val();
   let btP1 = $('input[data-fkey="BANDARA TUJUAN PENUMPANG 1"]').val();
@@ -3754,7 +3754,7 @@ function mSubmitCutiForm() {
   }
 
   if (missing.length > 0) {
-    return Swal.fire('Lengkapi','Field belum lengkap:\n• ' + missing.slice(0,5).join('\n• ') + (missing.length>5?'\n• ...':''),'warning');
+    return Swal.fire('Lengkapi','Field belum lengkap:\n- ' + missing.slice(0,5).join('\n- ') + (missing.length>5?'\n- ...':''),'warning');
   }
 
   // Validate passenger flight ticket departure and return dates
@@ -3780,7 +3780,7 @@ function mSubmitCutiForm() {
   let confHtml = '<div style="text-align:left; font-size:0.88em;">';
   confHtml += '<p style="font-size:0.85em; color:#64748b; margin-bottom:10px;">Mohon periksa kembali data pengajuan Anda:</p>';
   confKeys.forEach(([k, l]) => {
-    let v = data[k] || '<span style="color:#94a3b8;">—</span>';
+    let v = data[k] || '<span style="color:#94a3b8;">-</span>';
     confHtml += '<div style="display:flex; justify-content:space-between; gap:10px; padding:6px 0; border-bottom:1px dashed #e2e8f0;">'
               + '<span style="color:#64748b; font-weight:600; flex-shrink:0; max-width:50%;">' + l + '</span>'
               + '<span style="color:#0f172a; text-align:right; word-break:break-word; font-weight:500;">' + v + '</span>'
@@ -3933,7 +3933,7 @@ function mGetFormConfig(formType) {
       { key:'ALASAN/URAIAN', label:'Alasan / Uraian', type:'textarea', req:true }
     ];
   } else if (formType === 'PLANOVA') {
-    title = 'PLANOVA — Plant Innovation';
+    title = 'PLANOVA - Plant Innovation';
     userFields = [
       { key:'NAMA KARYAWAN', label:'Nama Karyawan', type:'text', value: mUser.nama, req:true, readonly:true },
       { key:'NRP KARYAWAN', label:'NRP Karyawan', type:'text', value: mUser.nrp, req:true, readonly:true },
@@ -4020,7 +4020,7 @@ function mBuildField(f) {
     let mn = f.min === undefined ? 1 : f.min;
     let mx = f.max === undefined ? 99 : f.max;
     html += '<div class="m-stepper" data-min="'+mn+'" data-max="'+mx+'">'
-         +   '<button type="button" class="m-step-btn" onclick="mfStepperChange(this, -1)">−</button>'
+         +   '<button type="button" class="m-step-btn" onclick="mfStepperChange(this, -1)">-</button>'
          +   '<input class="m-step-val" type="number" data-fkey="'+f.key+'" value="'+val+'" min="'+mn+'" max="'+mx+'" oninput="mfStepperClamp(this)" '+(f.req?'required':'')+'>'
          +   '<button type="button" class="m-step-btn" onclick="mfStepperChange(this, 1)">+</button>'
          + '</div>';
@@ -4117,7 +4117,7 @@ function mSubmitForm(formType) {
   let confHtml = '<div style="text-align:left; font-size:0.88em;">';
   confHtml += '<p style="font-size:0.85em; color:#64748b; margin-bottom:10px;">Mohon periksa kembali data pengajuan Anda:</p>';
   fieldsToShow.forEach(f => {
-    let v = data[f.key] || '<span style="color:#94a3b8;">—</span>';
+    let v = data[f.key] || '<span style="color:#94a3b8;">-</span>';
     v = String(v).replace(/\n/g, '<br>');
     confHtml += '<div style="display:flex; justify-content:space-between; gap:10px; padding:6px 0; border-bottom:1px dashed #e2e8f0;">'
               + '<span style="color:#64748b; font-weight:600; flex-shrink:0; max-width:50%;">' + f.label + '</span>'
@@ -6031,13 +6031,13 @@ function mRenderBirthdays(list) {
       <div class="m-birthday-card" data-idx="${i}">
         <div class="m-birthday-avatar-wrap">
           <img src="${p.foto}" class="m-birthday-avatar" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png';">
-          <span class="m-birthday-hat">👑</span>
+          <span class="m-birthday-hat">\uD83D\uDC51</span>
         </div>
         <div class="m-birthday-name">${p.nama}</div>
         <div class="m-birthday-job">${p.jabatan}</div>
         <div class="m-birthday-sec">${p.section}</div>
         <div class="m-birthday-wish">
-          <span>🎂 Selamat Ulang Tahun! 🎉</span>
+          <span>\uD83C\uDF82 Selamat Ulang Tahun! \uD83C\uDF89</span>
         </div>
       </div>
     `;
