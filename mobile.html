@@ -1859,6 +1859,15 @@ button { font-family: inherit; cursor: pointer; }
   <div id="m-approval-detail-content" class="m-sub-content"></div>
 </div>
 
+<!-- ============ HISTORY DETAIL OVERLAY ============ -->
+<div id="m-history-overlay" class="m-submenu-overlay" style="display:none;">
+  <header class="m-sub-header">
+    <button class="m-back-btn" onclick="mCloseHistoryDetail()"><i class="fas fa-arrow-left"></i></button>
+    <h2 id="m-history-detail-title">Detail Pengajuan</h2>
+  </header>
+  <div id="m-history-detail-content" class="m-sub-content"></div>
+</div>
+
 <!-- ============ PHOTO CROP OVERLAY ============ -->
 <div id="m-photo-crop-overlay" class="m-submenu-overlay" style="display:none; z-index: 300;">
   <header class="m-sub-header">
@@ -2271,6 +2280,8 @@ function mHandleBack() {
   if ($('#m-quick-sheet').is(':visible')) { mCloseQuickActions(); return; }
   if ($('#m-form-overlay').is(':visible')) { mCloseForm(); return; }
   if ($('#m-submenu-overlay').is(':visible')) { mCloseSubmenu(); return; }
+  if ($('#m-approval-overlay').is(':visible')) { mCloseApprovalDetail(); return; }
+  if ($('#m-history-overlay').is(':visible')) { mCloseHistoryDetail(); return; }
 
   // Cek nav stack
   if (mNavStack.length > 0) {
@@ -4287,11 +4298,11 @@ function mRenderHistoryList(loadMore) {
   }
   let sliced = filtered.slice(0, mHistoryLimit);
   let bdMap = { 'CUTI':'bd-cuti', 'IZIN NON RESMI':'bd-inr', 'BA TIKET':'bd-bapt', 'RESCHEDULE & REFUND':'bd-rsc', 'SURAT PERINTAH LEMBUR':'bd-spl', 'ALL':'bd-pl', 'SUGESTION SYSTEM':'bd-pl' };
-  let html = sliced.map(item => {
+  let html = sliced.map((item, idx) => {
     let stClass = 'm-st-' + (item.statusColor === 'success' ? 'green' : item.statusColor === 'danger' ? 'red' : item.statusColor === 'warning' ? 'yellow' : 'grey');
     let bd = bdMap[item.sheetName] || '';
-    let pdfBtn = (item.linkPdf && item.linkPdf.startsWith('http')) ? '<a href="'+item.linkPdf+'" target="_blank" style="color:#c10f19;"><i class="fas fa-file-pdf"></i> PDF</a>' : '';
-    return '<div class="m-list-item '+bd+'">'
+    let pdfBtn = (item.linkPdf && item.linkPdf.startsWith('http')) ? '<a href="'+item.linkPdf+'" target="_blank" style="color:#c10f19;" onclick="event.stopPropagation();"><i class="fas fa-file-pdf"></i> PDF</a>' : '';
+    return '<div class="m-list-item '+bd+'" onclick="mOpenHistoryDetail('+idx+')">'
          +   '<div class="m-li-row1"><span class="m-li-form">'+item.displayName+'</span><span class="m-li-status '+stClass+'">'+item.status+'</span></div>'
          +   '<div class="m-li-title">'+(item.judul||item.code||'-')+'</div>'
          +   '<div class="m-li-meta"><span><i class="far fa-calendar mr-1"></i>'+(item.tanggal||'-')+'</span>'+pdfBtn+'</div>'
@@ -4344,6 +4355,67 @@ function mRenderApprovalList() {
 }
 
 let mCurrentAppIdx = null;
+
+function mBuildHistoryPhotoBanner(item) {
+  const fallback = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+  let src = item.photoUrl || fallback;
+  return '<div style="display:flex; align-items:center; gap:12px; padding:12px; margin-bottom:12px; ' +
+         'background:linear-gradient(135deg,#fff 0%,#f1f5f9 100%); border-radius:12px; ' +
+         'border:1px solid #e2e8f0; box-shadow:0 1px 3px rgba(0,0,0,0.05);">' +
+         '<img src="' + src + '" onerror="this.onerror=null;this.src=\'' + fallback + '\';" ' +
+         'style="width:56px; height:56px; border-radius:50%; object-fit:cover; object-position:center top; flex-shrink:0; ' +
+         'border:3px solid #fff; box-shadow:0 2px 5px rgba(0,0,0,0.1);">' +
+         '<div style="flex:1; min-width:0;">' +
+         '<div style="font-weight:700; font-size:0.95em; color:#0f172a; line-height:1.2; ' +
+         'white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + (mUser.nama || '-') + '</div>' +
+         '<div style="font-size:0.8em; color:#64748b; margin-top:2px;"><i class="fas fa-id-badge mr-1"></i>' + (mUser.nrp || '-') + '</div>' +
+         '<div style="font-size:0.75em; color:#475569; margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><i class="fas fa-user-tie mr-1"></i>' + (item.jabatan || '-') + ' | ' + (item.section || '-') + '</div>' +
+         '</div></div>';
+}
+
+function mOpenHistoryDetail(idx) {
+  let f = $('#m-history-filter .m-pill-active').data('f') || '';
+  let filtered = f ? mHistoryList.filter(x => x.sheetName === f) : mHistoryList;
+  if (typeof mHistoryStatusFilter !== 'undefined' && mHistoryStatusFilter === 'PENDING') {
+    filtered = filtered.filter(it => {
+      let s = String(it.status || '').toUpperCase();
+      return s.indexOf('WAIT') !== -1 || s.indexOf('PROSES') !== -1 || s === 'OPEN' || s === '' || s === '(BELUM ADA STATUS)';
+    });
+  }
+  const item = filtered[idx];
+  if (!item) return;
+
+  $('#m-history-detail-title').text('Detail: ' + item.displayName);
+
+  let hasPdf = item.linkPdf && item.linkPdf.startsWith('http');
+  let pdfBtnHtml = hasPdf ? `<a href="${item.linkPdf}" target="_blank" class="m-btn-pdf" style="margin-bottom:12px; text-decoration:none;"><i class="fas fa-file-pdf"></i> BUKA FILE PDF</a>` : '';
+
+  let html = mBuildHistoryPhotoBanner(item) + pdfBtnHtml;
+
+  // Render detail fields
+  html += '<div class="m-app-details-box">';
+  
+  // Status is always at the top
+  let stClass = 'm-st-' + (item.statusColor === 'success' ? 'green' : item.statusColor === 'danger' ? 'red' : item.statusColor === 'warning' ? 'yellow' : 'grey');
+  html += `<div class="m-app-info-item"><b>STATUS PENGAJUAN</b><span class="m-li-status ${stClass}">${item.status}</span></div>`;
+
+  if (item.details && item.details.length > 0) {
+    item.details.forEach(d => {
+      let lblUp = String(d.label).toUpperCase().trim();
+      if (["NAMA", "NRP", "NIK", "JABATAN", "SECTION", "BAGIAN", "STATUS", "STATUS FORM", "STATUS PENGAJUAN"].includes(lblUp)) return;
+      html += `<div class="m-app-info-item"><b>${d.label}</b><span>${d.value || '-'}</span></div>`;
+    });
+  }
+  html += '</div>';
+
+  $('#m-history-detail-content').html(html);
+  $('#m-history-overlay').show();
+  mPushNav('overlay', 'history-detail');
+}
+
+function mCloseHistoryDetail() {
+  $('#m-history-overlay').hide();
+}
 
 function mBuildPhotoBanner(item) {
   const fallback = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
