@@ -4447,25 +4447,41 @@ function mCloseHistoryDetail() {
 function mConvertToDirectDownload(url) {
   if (!url) return '';
   let str = String(url).trim();
-  if (str.includes("docs.google.com/document/d/")) {
-    let m = str.match(/\/d\/([^\/]+)/);
-    if (m) return "https://docs.google.com/document/d/" + m[1] + "/export?format=docx";
+  
+  if (str.indexOf("docs.google.com/document/d/") !== -1) {
+    let parts = str.split("/d/");
+    if (parts.length > 1) {
+      let id = parts[1].split("/")[0];
+      return "https://docs.google.com/document/d/" + id + "/export?format=docx";
+    }
   }
-  if (str.includes("docs.google.com/presentation/d/")) {
-    let m = str.match(/\/d\/([^\/]+)/);
-    if (m) return "https://docs.google.com/presentation/d/" + m[1] + "/export/pptx";
+  if (str.indexOf("docs.google.com/presentation/d/") !== -1) {
+    let parts = str.split("/d/");
+    if (parts.length > 1) {
+      let id = parts[1].split("/")[0];
+      return "https://docs.google.com/presentation/d/" + id + "/export/pptx";
+    }
   }
-  if (str.includes("docs.google.com/spreadsheets/d/")) {
-    let m = str.match(/\/d\/([^\/]+)/);
-    if (m) return "https://docs.google.com/spreadsheets/d/" + m[1] + "/export?format=xlsx";
+  if (str.indexOf("docs.google.com/spreadsheets/d/") !== -1) {
+    let parts = str.split("/d/");
+    if (parts.length > 1) {
+      let id = parts[1].split("/")[0];
+      return "https://docs.google.com/spreadsheets/d/" + id + "/export?format=xlsx";
+    }
   }
-  if (str.includes("drive.google.com/file/d/")) {
-    let m = str.match(/\/d\/([^\/]+)/);
-    if (m) return "https://docs.google.com/uc?export=download&id=" + m[1];
+  if (str.indexOf("drive.google.com/file/d/") !== -1) {
+    let parts = str.split("/d/");
+    if (parts.length > 1) {
+      let id = parts[1].split("/")[0];
+      return "https://docs.google.com/uc?export=download&id=" + id;
+    }
   }
-  if (str.includes("drive.google.com/open?id=")) {
-    let m = str.match(/id=([^&]+)/);
-    if (m) return "https://docs.google.com/uc?export=download&id=" + m[1];
+  if (str.indexOf("drive.google.com/open?id=") !== -1) {
+    let parts = str.split("id=");
+    if (parts.length > 1) {
+      let id = parts[1].split("&")[0];
+      return "https://docs.google.com/uc?export=download&id=" + id;
+    }
   }
   return str;
 }
