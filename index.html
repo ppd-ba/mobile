@@ -2478,7 +2478,7 @@
               </a>
               <ul class="nav nav-treeview">
                 <li class="nav-item" id="sub-pl-sum"><a href="#" class="nav-link"
-                    onclick="loadSheet('ALL', this)"><i class="fa-solid fa-circle-dot fa-xl nav-icon"></i>
+                    onclick="loadSheet('SUGESTION SYSTEM', this)"><i class="fa-solid fa-circle-dot fa-xl nav-icon"></i>
                     <p>SUMMARY INOVASI</p>
                   </a></li>
                 <li class="nav-item" id="sub-pl-nilai"><a href="#" class="nav-link"
@@ -6247,7 +6247,7 @@ if(a&&a.href&&a.href.startsWith('http')){
 let url=a.href,menu=currentSheetName,headerName=h[cI]||"File",fN="File_Baris_"+(rowIdx+1);
 if(menu==="DATABASE MP SIB"){fN=headerName+" - "+getV(r,"NAMA KARYAWAN")+" - "+(getV(r,"NRP")||getV(r,"NIK"));}
 else if(["CUTI","IZIN NON RESMI","BA TIKET","RESCHEDULE & REFUND","SURAT PERINTAH LEMBUR"].includes(menu)){fN=getV(r,"CODE")+" - "+getV(r,"NAMA KARYAWAN")+" - "+cleanDateStr(getV(r,"TANGGAL")||getV(r,"BERANGKAT"));}
-else if(["PLANOVA SUMMARY","ALL"].includes(menu)){fN=getV(r,"NO. IMPROVEMENT")+" - "+(getV(r,"NAMA KARYAWAN")||getV(r,"NAMA PEMBUAT"))+" - "+cleanDateStr(getV(r,"TANGGAL")||getV(r,"TANGGAL TEXT"));}
+else if(["PLANOVA SUMMARY","ALL","SUGESTION SYSTEM"].includes(menu)){fN=getV(r,"NO. IMPROVEMENT")+" - "+(getV(r,"NAMA KARYAWAN")||getV(r,"NAMA PEMBUAT"))+" - "+cleanDateStr(getV(r,"TANGGAL")||getV(r,"TANGGAL TEXT"));}
 else if(menu==="DATABASE TA"){fN=getV(r,"Nomor TA")+" - "+getV(r,"Nama")+" - "+cleanDateStr(getV(r,"Timestamp"));}
 else if(menu==="CERTIFICATE"){fN="USE_ORIGINAL";} 
 else if(menu==="DOCO"){
