@@ -1387,6 +1387,9 @@ button { font-family: inherit; cursor: pointer; }
 </style>
 
 
+
+
+
 <script>
 
   // Google Apps Script client API polyfill for static hosting
@@ -2127,6 +2130,7 @@ button { font-family: inherit; cursor: pointer; }
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>window.Swal || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/11.7.12/sweetalert2.all.min.js"><\/script>')</script>
 <script>
+
 let mUser = null;
 let mIdleInterval;
 const M_AUTO_LOGOUT_TIME = 120 * 60 * 1000; // 120 menit
@@ -2300,7 +2304,7 @@ function mHandleBack() {
     return;
   }
 
-  // Sudah di home & gak ada overlay -> confirm exit
+  // Sudah di home & gak ada overlay → confirm exit
   if ($('#m-view-app').is(':visible')) {
     Swal.fire({
       title: 'Keluar aplikasi?',
@@ -2311,7 +2315,7 @@ function mHandleBack() {
       confirmButtonColor: '#05244d'
     }).then(r => {
       if (r.isConfirmed) {
-        // Biarkan back native - pop history sekali lagi
+        // Biarkan back native — pop history sekali lagi
         try { window.history.go(-2); } catch(e) {}
       }
     });
@@ -2495,7 +2499,7 @@ function mShowApp() {
 
   // Fill user info
   $('#m-user-name').text(mUser.nama || mUser.username);
-  $('#m-user-job').text((mUser.jabatan || '-') + ' - ' + (mUser.section || '-'));
+  $('#m-user-job').text((mUser.jabatan || '-') + ' · ' + (mUser.section || '-'));
 
   // Profile tab
   $('#m-profile-name').text(mUser.nama || '-');
@@ -2543,7 +2547,7 @@ function mInitData() {
       
       // 2. Terapkan Profile Photo
       if (res.photoUrl) {
-        let fileId = (res.photoUrl ? (res.photoUrl.match(new RegExp("[\\?&]id=([^&#]*)")) || res.photoUrl.match(new RegExp("/d/([-\\w]+)")) || res.photoUrl.match(new RegExp("id=([^&]+)"))) : null);
+        let fileId = (res.photoUrl.match(/[\?&]id=([^&#]*)/) || res.photoUrl.match(/\/d\/([-\w]+)/) || res.photoUrl.match(/id=([^&]+)/));
         let thumb = (fileId && fileId[1]) ? "https://drive.google.com/thumbnail?id=" + fileId[1] + "&sz=s200" : res.photoUrl;
         $('#m-user-photo').attr('src', thumb);
         $('#m-profile-photo').attr('src', thumb);
@@ -2730,7 +2734,7 @@ function mOpenNewsForm() {
       + '<div style="text-align:left; margin: 14px 3px 0 3px;">'
       + '  <label style="font-size:0.85em; font-weight:600; color:#475569; display:block; margin-bottom:6px;">Upload Gambar (PNG/JPG):</label>'
       + '  <input id="mn-file" type="file" accept="image/*" style="font-size:0.85em; width:100%; border: 1.5px solid #e2e8f0; padding: 8px; border-radius: 8px;">'
-      + '  <div style="font-size:0.75em; text-align:center; color:#94a3b8; margin: 8px 0;">- ATAU MASUKKAN LINK DRIVE -</div>'
+      + '  <div style="font-size:0.75em; text-align:center; color:#94a3b8; margin: 8px 0;">— ATAU MASUKKAN LINK DRIVE —</div>'
       + '</div>'
       + '<input id="mn-img" class="swal2-input" style="margin-top:0;" placeholder="Link gambar Drive (opsional)">'
       + '<p style="font-size:0.78em; color:#64748b; margin-top:6px;">Upload file foto atau paste url link Drive share "Anyone with link" di atas.</p>',
@@ -2805,7 +2809,7 @@ function mOpenNewsEditForm(idx) {
       + '<div style="text-align:left; margin: 14px 3px 0 3px;">'
       + '  <label style="font-size:0.85em; font-weight:600; color:#475569; display:block; margin-bottom:6px;">Ganti Gambar (PNG/JPG):</label>'
       + '  <input id="mne-file" type="file" accept="image/*" style="font-size:0.85em; width:100%; border: 1.5px solid #e2e8f0; padding: 8px; border-radius: 8px;">'
-      + '  <div style="font-size:0.75em; text-align:center; color:#94a3b8; margin: 8px 0;">- ATAU MASUKKAN LINK DRIVE -</div>'
+      + '  <div style="font-size:0.75em; text-align:center; color:#94a3b8; margin: 8px 0;">— ATAU MASUKKAN LINK DRIVE —</div>'
       + '</div>'
       + '<input id="mne-img" class="swal2-input" style="margin-top:0;" placeholder="Link gambar Drive (opsional)" value="' + imgUrl.replace(/"/g, '&quot;') + '">',
     confirmButtonText: 'Simpan', confirmButtonColor: '#05244d', showCancelButton: true,
@@ -3379,7 +3383,7 @@ function mfDate(key, label, value, opts) {
 }
 function mfDropdown(key, label, options, opts) {
   opts = opts || {};
-  let opts_html = '<option value="">- Pilih -</option>' + options.map(o => '<option value="'+o+'">'+o+'</option>').join('');
+  let opts_html = '<option value="">— Pilih —</option>' + options.map(o => '<option value="'+o+'">'+o+'</option>').join('');
   return '<div class="m-form-group"><label class="m-form-label '+(opts.req?'req':'')+'">'+label+'</label><select class="m-form-select" data-fkey="'+key+'" '+(opts.req?'required':'')+'>'+opts_html+'</select></div>';
 }
 function mfBtnGroup(key, label, options, opts) {
@@ -3396,7 +3400,7 @@ function mfStepper(key, label, value, opts) {
   let onCh = opts.onChange ? ' data-onchange="'+opts.onChange+'"' : '';
   return '<div class="m-form-group"><label class="m-form-label '+(opts.req?'req':'')+'">'+label+'</label>'
        + '<div class="m-stepper" data-min="'+mn+'" data-max="'+mx+'"'+onCh+'>'
-       +   '<button type="button" class="m-step-btn" onclick="mfStepperChange(this, -1)">-</button>'
+       +   '<button type="button" class="m-step-btn" onclick="mfStepperChange(this, -1)">−</button>'
        +   '<input class="m-step-val" type="number" data-fkey="'+key+'" value="'+v+'" min="'+mn+'" max="'+mx+'" oninput="mfStepperClamp(this)" '+(opts.req?'required':'')+'>'
        +   '<button type="button" class="m-step-btn" onclick="mfStepperChange(this, 1)">+</button>'
        + '</div></div>';
@@ -3529,9 +3533,9 @@ function mCutiOnChange() {
     let bjs = $('input[data-fkey="BERANGKAT DARI JOBSITE"]').val();
     let kjs = $('input[data-fkey="KEMBALI KE JOBSITE"]').val();
 
-    // Sync TANGGAL KEBERANGKATAN P1 <- BERANGKAT JOBSITE (always)
+    // Sync TANGGAL KEBERANGKATAN P1 ← BERANGKAT JOBSITE (always)
     safeVal("TANGGAL KEBERANGKATAN PENUMPANG 1", bjs || "");
-    // Sync TANGGAL KEMBALI P2 <- KEMBALI JOBSITE (always)
+    // Sync TANGGAL KEMBALI P2 ← KEMBALI JOBSITE (always)
     safeVal("TANGGAL KEMBALI PENUMPANG 2", kjs || "");
     if (mustValidateDay) {
       let invalidFound = false;
@@ -3579,7 +3583,7 @@ function mCutiOnChange() {
   }
 }
 
-// Validasi hari saat user pilih tanggal BJS/KJS - kalau NON LOKAL & jabatan non-exempt
+// Validasi hari saat user pilih tanggal BJS/KJS — kalau NON LOKAL & jabatan non-exempt
 function mCutiValidateDay(inpEl) {
   let lokal = $('input[data-fkey="CUTI LOKAL/NON LOKAL"]').val();
   let jab = String(mUser.jabatan || '').toUpperCase().trim();
@@ -3602,7 +3606,7 @@ function mCutiValidateDay(inpEl) {
   }
 }
 
-// Sync Bandara P2 (asal/tujuan terbalik dari P1) - dipanggil oninput field P1
+// Sync Bandara P2 (asal/tujuan terbalik dari P1) — dipanggil oninput field P1
 function mCutiSyncBandara() {
   let baP1 = $('input[data-fkey="BANDARA ASAL PENUMPANG 1"]').val();
   let btP1 = $('input[data-fkey="BANDARA TUJUAN PENUMPANG 1"]').val();
@@ -3738,7 +3742,7 @@ function mSubmitCutiForm() {
   }
 
   if (missing.length > 0) {
-    return Swal.fire('Lengkapi','Field belum lengkap:\n- ' + missing.slice(0,5).join('\n- ') + (missing.length>5?'\n- ...':''),'warning');
+    return Swal.fire('Lengkapi','Field belum lengkap:\n• ' + missing.slice(0,5).join('\n• ') + (missing.length>5?'\n• ...':''),'warning');
   }
 
   // Validate passenger flight ticket departure and return dates
@@ -3764,7 +3768,7 @@ function mSubmitCutiForm() {
   let confHtml = '<div style="text-align:left; font-size:0.88em;">';
   confHtml += '<p style="font-size:0.85em; color:#64748b; margin-bottom:10px;">Mohon periksa kembali data pengajuan Anda:</p>';
   confKeys.forEach(([k, l]) => {
-    let v = data[k] || '<span style="color:#94a3b8;">-</span>';
+    let v = data[k] || '<span style="color:#94a3b8;">—</span>';
     confHtml += '<div style="display:flex; justify-content:space-between; gap:10px; padding:6px 0; border-bottom:1px dashed #e2e8f0;">'
               + '<span style="color:#64748b; font-weight:600; flex-shrink:0; max-width:50%;">' + l + '</span>'
               + '<span style="color:#0f172a; text-align:right; word-break:break-word; font-weight:500;">' + v + '</span>'
@@ -3917,7 +3921,7 @@ function mGetFormConfig(formType) {
       { key:'ALASAN/URAIAN', label:'Alasan / Uraian', type:'textarea', req:true }
     ];
   } else if (formType === 'PLANOVA') {
-    title = 'PLANOVA - Plant Innovation';
+    title = 'PLANOVA — Plant Innovation';
     userFields = [
       { key:'NAMA KARYAWAN', label:'Nama Karyawan', type:'text', value: mUser.nama, req:true, readonly:true },
       { key:'NRP KARYAWAN', label:'NRP Karyawan', type:'text', value: mUser.nrp, req:true, readonly:true },
@@ -4004,7 +4008,7 @@ function mBuildField(f) {
     let mn = f.min === undefined ? 1 : f.min;
     let mx = f.max === undefined ? 99 : f.max;
     html += '<div class="m-stepper" data-min="'+mn+'" data-max="'+mx+'">'
-         +   '<button type="button" class="m-step-btn" onclick="mfStepperChange(this, -1)">-</button>'
+         +   '<button type="button" class="m-step-btn" onclick="mfStepperChange(this, -1)">−</button>'
          +   '<input class="m-step-val" type="number" data-fkey="'+f.key+'" value="'+val+'" min="'+mn+'" max="'+mx+'" oninput="mfStepperClamp(this)" '+(f.req?'required':'')+'>'
          +   '<button type="button" class="m-step-btn" onclick="mfStepperChange(this, 1)">+</button>'
          + '</div>';
@@ -4101,8 +4105,8 @@ function mSubmitForm(formType) {
   let confHtml = '<div style="text-align:left; font-size:0.88em;">';
   confHtml += '<p style="font-size:0.85em; color:#64748b; margin-bottom:10px;">Mohon periksa kembali data pengajuan Anda:</p>';
   fieldsToShow.forEach(f => {
-    let v = data[f.key] || '<span style="color:#94a3b8;">-</span>';
-    v = String(v).split('\n').join('<br>');
+    let v = data[f.key] || '<span style="color:#94a3b8;">—</span>';
+    v = String(v).replace(/\n/g, '<br>');
     confHtml += '<div style="display:flex; justify-content:space-between; gap:10px; padding:6px 0; border-bottom:1px dashed #e2e8f0;">'
               + '<span style="color:#64748b; font-weight:600; flex-shrink:0; max-width:50%;">' + f.label + '</span>'
               + '<span style="color:#0f172a; text-align:right; word-break:break-word; font-weight:500;">' + v + '</span>'
@@ -4148,7 +4152,7 @@ function mSubmitForm(formType) {
               const isImage = file.type.startsWith('image/');
 
               const proceedUpload = (base64, finalMime, finalExt) => {
-                let filename = `${item.key.replace(new RegExp('[^a-zA-Z0-9]', 'g'), '_')}_${mUser.nrp}_${Date.now()}.${finalExt}`;
+                let filename = `${item.key.replace(/[^a-zA-Z0-9]/g, '_')}_${mUser.nrp}_${Date.now()}.${finalExt}`;
                 google.script.run.withSuccessHandler(res => {
                   if (res.success) {
                     data[item.key] = res.url;
@@ -4538,7 +4542,7 @@ function mOpenApprovalDetail(idx) {
   else if (item.type === "MMPR_SCORING") {
     let aIdx = parseInt(item.atasanIndex);
     if (!aIdx || isNaN(aIdx)) {
-      let m = String(item.formName || "").match(new RegExp('Atasan\\\\s+(\\\\d+)', 'i'));
+      let m = String(item.formName || "").match(/Atasan\s+(\d+)/i);
       if (m) aIdx = parseInt(m[1]);
     }
     if (!aIdx) aIdx = 1;
@@ -4780,7 +4784,7 @@ function mSubmitMMPR() {
 
   let atasanIdx = parseInt(item.atasanIndex);
   if (!atasanIdx || isNaN(atasanIdx)) {
-    let m = String(item.formName || "").match(new RegExp('Atasan\\\\s+(\\\\d+)', 'i'));
+    let m = String(item.formName || "").match(/Atasan\s+(\d+)/i);
     if (m) atasanIdx = parseInt(m[1]);
   }
   if (!atasanIdx || isNaN(atasanIdx) || atasanIdx < 1 || atasanIdx > 7) {
@@ -5669,7 +5673,7 @@ function mOpenForgotPassForm() {
       if (!value) {
         return 'NRP wajib diisi!';
       }
-      if (!new RegExp('^\\d+$').test(value.trim())) {
+      if (!/^\d+$/.test(value.trim())) {
         return 'NRP harus berupa angka!';
       }
     }
@@ -5855,193 +5859,7 @@ function mRenderBirthdays(list) {
     }
   }
 }
-</script>
-).test(value.trim())) {
-        return 'NRP harus berupa angka!';
-      }
-    }
-  }).then(result => {
-    if (result.isConfirmed && result.value) {
-      const nrp = result.value.trim();
-      mShow(true);
-      google.script.run.withSuccessHandler(res => {
-        mShow(false);
-        if (res.success) {
-          Swal.fire('Sukses', res.message, 'success');
-        } else {
-          Swal.fire('Gagal', res.message, 'error');
-        }
-      }).withFailureHandler(err => {
-        mShow(false);
-        Swal.fire('Error', err.message || 'Server error', 'error');
-      }).recoverCredentialsByNrp(nrp);
-    }
-  });
-}
 
-function mApplyTheme(t) {
-  if (!t) return;
-  let r = document.documentElement.style;
-  
-  // Render background icons on mobile login
-  let bgArr = (t.bgIcons || '').split(',').map(i=>i.trim());
-  let bgC = $('#m-login-bg-icons').empty();
-  let pos = [
-    {top:'0%', left:'19%', width:'220px'},
-    {top:'0%', right:'0%', width:'200px'},
-    {bottom:'0%', left:'0%', width:'200px'}
-  ];
-  bgArr.forEach((url, idx) => { 
-    if (url && url.startsWith('http')) { 
-      let p = pos[idx % pos.length]; 
-      let styleStr = '';
-      if (p.top !== undefined) styleStr += 'top:' + p.top + ';';
-      if (p.left !== undefined) styleStr += 'left:' + p.left + ';';
-      if (p.right !== undefined) styleStr += 'right:' + p.right + ';';
-      if (p.bottom !== undefined) styleStr += 'bottom:' + p.bottom + ';';
-      styleStr += 'width:' + p.width + ';';
-      bgC.append('<img src="' + url + '" class="m-login-bg-icon" style="' + styleStr + '">'); 
-    }
-  });
-  if (t.primaryColor) {
-    r.setProperty('--primary-color', t.primaryColor);
-  }
-  if (t.headerLogoUrl || t.logoUrl) {
-    $('#m-login-logo-img').attr('src', t.headerLogoUrl || t.logoUrl).show();
-  }
-  if (t.headerLogoUrl || t.logoUrl) {
-    $('#m-h2-logo').attr('src', t.headerLogoUrl || t.logoUrl).show();
-  }
-  
-  // Render bottom combination icons on login
-  let btArr = (t.bottomIcons || '').split(',').map(i=>i.trim());
-  let btC = $('#m-login-bottom-icons-row').empty();
-  btArr.forEach(url=>{ 
-    if(url && url.startsWith('http')) {
-      btC.append('<div class="m-login-bottom-icon"><img src="'+url+'"></div>'); 
-    }
-  });
-}
-
-function mRenderEventDevelopment(list) {
-  let $container = $('#m-eventdev-container');
-  if (mEventDevTimer) { clearInterval(mEventDevTimer); mEventDevTimer = null; }
-  mEventDevIdx = 0;
-
-  if (!list || list.length === 0) {
-    $container.html('<div class="m-eventdev-empty"><i class="fas fa-calendar-times mr-1"></i> Tidak ada Event Development untuk anda pada bulan ini.</div>');
-    return;
-  }
-  
-  $container.empty();
-  list.forEach((p, i) => {
-    let dateStr = (p.start && p.end) ? `${p.start} s/d ${p.end}` : (p.start || p.end || "-");
-    let cardHtml = `
-      <div class="m-eventdev-card" data-idx="${i}">
-        <div class="m-eventdev-title">
-          <i class="fas fa-award"></i>
-          <span>${p.namaEvent}</span>
-        </div>
-        <div class="m-eventdev-details">
-          <div class="m-eventdev-item">
-            <i class="fas fa-barcode"></i>
-            <span class="label">NO. BED:</span>
-            <span class="val">${p.noBed}</span>
-          </div>
-          <div class="m-eventdev-item">
-            <i class="fas fa-user-tie"></i>
-            <span class="label">Instruktur:</span>
-            <span class="val">${p.instruktur}</span>
-          </div>
-          <div class="m-eventdev-item">
-            <i class="fas fa-map-marker-alt"></i>
-            <span class="label">Lokasi:</span>
-            <span class="val">${p.lokasi}</span>
-          </div>
-          <div class="m-eventdev-item">
-            <i class="fas fa-clock"></i>
-            <span class="label">Waktu:</span>
-            <span class="val">${dateStr}</span>
-          </div>
-        </div>
-      </div>
-    `;
-    $container.append(cardHtml);
-  });
-
-  // Auto-play timer if multiple events
-  if (list.length > 1) {
-    let containerEl = document.getElementById('m-eventdev-container');
-    if (containerEl) {
-      containerEl.onscroll = function() {
-        let w = containerEl.clientWidth;
-        if (w > 0) {
-          mEventDevIdx = Math.round(containerEl.scrollLeft / w);
-        }
-      };
-
-      mEventDevTimer = setInterval(function() {
-        if (!containerEl) return;
-        mEventDevIdx = (mEventDevIdx + 1) % list.length;
-        let w = containerEl.clientWidth + 12; // clientWidth + gap 12px
-        containerEl.scrollTo({ left: mEventDevIdx * w, behavior: 'smooth' });
-      }, 4500);
-    }
-  }
-}
-
-function mRenderBirthdays(list) {
-  let $container = $('#m-birthday-container');
-  let $section = $('#m-birthday-section');
-  if (mBirthdayTimer) { clearInterval(mBirthdayTimer); mBirthdayTimer = null; }
-  mBirthdayIdx = 0;
-
-  if (!list || list.length === 0) {
-    $container.html('<div class="m-birthday-empty"><i class="fas fa-cake-candles mr-1"></i> Tidak ada karyawan yang ulang tahun hari ini.</div>');
-    $section.show();
-    return;
-  }
-  
-  $container.empty();
-  list.forEach((p, i) => {
-    let cardHtml = `
-      <div class="m-birthday-card" data-idx="${i}">
-        <div class="m-birthday-avatar-wrap">
-          <img src="${p.foto}" class="m-birthday-avatar" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png';">
-          <span class="m-birthday-hat">👑</span>
-        </div>
-        <div class="m-birthday-name">${p.nama}</div>
-        <div class="m-birthday-job">${p.jabatan}</div>
-        <div class="m-birthday-sec">${p.section}</div>
-        <div class="m-birthday-wish">
-          <span>🎂 Selamat Ulang Tahun! 🎉</span>
-        </div>
-      </div>
-    `;
-    $container.append(cardHtml);
-  });
-  $section.show();
-
-  // Auto-play timer if multiple birthdays
-  if (list.length > 1) {
-    let containerEl = document.getElementById('m-birthday-container');
-    if (containerEl) {
-      containerEl.onscroll = function() {
-        let w = containerEl.clientWidth;
-        if (w > 0) {
-          mBirthdayIdx = Math.round(containerEl.scrollLeft / w);
-        }
-      };
-
-      mBirthdayTimer = setInterval(function() {
-        if (!containerEl) return;
-        mBirthdayIdx = (mBirthdayIdx + 1) % list.length;
-        let w = containerEl.clientWidth + 12; // clientWidth + gap 12px
-        containerEl.scrollTo({ left: mBirthdayIdx * w, behavior: 'smooth' });
-      }, 4000);
-    }
-  }
-}
 </script>
 
 </body>
