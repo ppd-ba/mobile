@@ -1872,15 +1872,6 @@ button { font-family: inherit; cursor: pointer; }
   <div id="m-history-detail-content" class="m-sub-content"></div>
 </div>
 
-<!-- ============ TEMPLATES OVERLAY ============ -->
-<div id="m-templates-overlay" class="m-submenu-overlay" style="display:none; z-index: 250;">
-  <header class="m-sub-header">
-    <button class="m-back-btn" onclick="mClosePlanovaTemplates()"><i class="fas fa-arrow-left"></i></button>
-    <h2>Form & Contoh SS/QCC/QCP</h2>
-  </header>
-  <div id="m-templates-content" class="m-sub-content" style="padding: 16px;"></div>
-</div>
-
 <!-- ============ PHOTO CROP OVERLAY ============ -->
 <div id="m-photo-crop-overlay" class="m-submenu-overlay" style="display:none; z-index: 300;">
   <header class="m-sub-header">
@@ -2295,7 +2286,6 @@ function mHandleBack() {
   if ($('#m-submenu-overlay').is(':visible')) { mCloseSubmenu(); return; }
   if ($('#m-approval-overlay').is(':visible')) { mCloseApprovalDetail(); return; }
   if ($('#m-history-overlay').is(':visible')) { mCloseHistoryDetail(); return; }
-  if ($('#m-templates-overlay').is(':visible')) { mClosePlanovaTemplates(); return; }
 
   // Cek nav stack
   if (mNavStack.length > 0) {
@@ -3059,13 +3049,7 @@ function mRenderGenericForm(formType) {
     }
   }
 
-  let planovaHelpBtn = '';
-  if (formType === 'PLANOVA') {
-    planovaHelpBtn = '<button type="button" class="m-btn-secondary m-btn-block mb-3" style="background:linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color:#ffffff; border:none; font-weight:700; box-shadow:0 3px 6px rgba(217, 119, 6, 0.25);" onclick="mShowPlanovaTemplates()"><i class="fas fa-file-download mr-1"></i> Download Form & Contoh SS/QCC/QCP</button>';
-  }
-
-  let html = planovaHelpBtn
-           + '<div class="m-form-section">'
+  let html = '<div class="m-form-section">'
            + '<div class="m-form-section-title"><i class="fas fa-user mr-1"></i> Data Pemohon</div>'
            + cfg.userFields.map(f => mBuildField(f)).join('')
            + '</div>'
@@ -4442,200 +4426,6 @@ function mOpenHistoryDetail(idx) {
 
 function mCloseHistoryDetail() {
   $('#m-history-overlay').hide();
-}
-
-function mConvertToDirectDownload(url) {
-  if (!url) return '';
-  let str = String(url).trim();
-  
-  if (str.indexOf("docs.google.com/document/d/") !== -1) {
-    let parts = str.split("/d/");
-    if (parts.length > 1) {
-      let id = parts[1].split("/")[0];
-      return "https://docs.google.com/document/d/" + id + "/export?format=docx";
-    }
-  }
-  if (str.indexOf("docs.google.com/presentation/d/") !== -1) {
-    let parts = str.split("/d/");
-    if (parts.length > 1) {
-      let id = parts[1].split("/")[0];
-      return "https://docs.google.com/presentation/d/" + id + "/export/pptx";
-    }
-  }
-  if (str.indexOf("docs.google.com/spreadsheets/d/") !== -1) {
-    let parts = str.split("/d/");
-    if (parts.length > 1) {
-      let id = parts[1].split("/")[0];
-      return "https://docs.google.com/spreadsheets/d/" + id + "/export?format=xlsx";
-    }
-  }
-  if (str.indexOf("drive.google.com/file/d/") !== -1) {
-    let parts = str.split("/d/");
-    if (parts.length > 1) {
-      let id = parts[1].split("/")[0];
-      return "https://docs.google.com/uc?export=download&id=" + id;
-    }
-  }
-  if (str.indexOf("drive.google.com/open?id=") !== -1) {
-    let parts = str.split("id=");
-    if (parts.length > 1) {
-      let id = parts[1].split("&")[0];
-      return "https://docs.google.com/uc?export=download&id=" + id;
-    }
-  }
-  return str;
-}
-
-function mShowPlanovaTemplates() {
-  $('#m-templates-content').html(
-    '<div class="text-center py-5"><i class="fas fa-spinner fa-spin fa-2x text-primary mb-2"></i><p class="text-muted">Memuat daftar file...</p></div>'
-  );
-  $('#m-templates-overlay').show();
-  mPushNav('overlay', 'templates');
-
-  google.script.run.withSuccessHandler(res => {
-    if (!res || !res.success) {
-      $('#m-templates-content').html('<div class="alert alert-danger">Gagal memuat: ' + (res ? res.message : 'Unknown error') + '</div>');
-      return;
-    }
-    mRenderTemplatesList(res.sheets);
-  }).withFailureHandler(err => {
-    $('#m-templates-content').html('<div class="alert alert-danger">Gagal memuat: ' + (err.message || err) + '</div>');
-  }).getPlanovaTemplates();
-}
-
-function mClosePlanovaTemplates() {
-  $('#m-templates-overlay').hide();
-}
-
-function mRenderTemplatesList(sheets) {
-  let keys = Object.keys(sheets);
-  if (keys.length === 0) {
-    $('#m-templates-content').html('<div class="m-empty"><i class="fas fa-folder-open"></i><p>Tidak ada template atau contoh yang tersedia saat ini.</p></div>');
-    return;
-  }
-
-  let html = '';
-  keys.forEach(sheetName => {
-    let rows = sheets[sheetName];
-    if (rows.length <= 1) return; // Empty or only headers
-
-    let headers = rows[0].map(h => String(h).toUpperCase().trim());
-    
-    // Find index of title/name
-    let nameIdx = headers.findIndex(h => h.includes("NAMA") || h.includes("JUDUL") || h.includes("TEMPLATE") || h.includes("FILE"));
-    if (nameIdx === -1) nameIdx = 0; // Default to first column
-    
-    // Build items list
-    let itemsHtml = '';
-    for (let r = 1; r < rows.length; r++) {
-      let row = rows[r];
-      if (!row.join("").trim()) continue; // Skip empty row
-      
-      let nameVal = String(row[nameIdx] || "").trim();
-      if (!nameVal) continue;
-      
-      // If the row name matches "Download Form SS & Template QCC" (case-insensitive, trim)
-      if (nameVal.toUpperCase().includes("DOWNLOAD FORM SS & TEMPLATE QCC") || nameVal.toUpperCase().includes("DOWNLOAD FORM SS") && nameVal.toUpperCase().includes("TEMPLATE QCC")) {
-        // Inject 2 separate items!
-        let itemsToInject = [
-          {
-            name: "Form Suggestion System (SS)",
-            link: "https://docs.google.com/document/d/18Jh_Hp7K7ObqZCQyf1sCx9Sp0HNsKAWb/edit?usp=drive_link&ouid=110023569379865659423&rtpof=true&sd=true"
-          },
-          {
-            name: "Template Quality Control Circle/Project (QCC/QCP)",
-            link: "https://docs.google.com/presentation/d/14CEnohqXcsbz0QgPs8cBUt7Hcw3WlRix/edit?usp=drive_link&ouid=110023569379865659423&rtpof=true&sd=true"
-          }
-        ];
-        
-        itemsToInject.forEach(inj => {
-          let directDl = mConvertToDirectDownload(inj.link);
-          let icon = inj.name.includes("Suggestion System") ? "fa-file-word text-primary" : "fa-file-powerpoint text-warning";
-          itemsHtml += `
-            <a href="${directDl}" target="_blank" download class="m-template-item" style="display:flex; align-items:center; gap:12px; padding:12px; margin-bottom:8px; background:#fff; border-radius:8px; border:1px solid #e2e8f0; text-decoration:none; color:inherit; box-shadow:0 1px 2px rgba(0,0,0,0.02); transition:transform 0.1s;">
-              <div style="width:36px; height:36px; border-radius:8px; background:#f1f5f9; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                <i class="fas ${icon} fa-lg"></i>
-              </div>
-              <div style="flex:1; min-width:0;">
-                <div style="font-weight:600; font-size:0.88em; color:#1e293b; line-height:1.3; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${inj.name}</div>
-                <div style="font-size:0.75em; color:#64748b; margin-top:2px;">Klik untuk unduh langsung berkas</div>
-              </div>
-              <div style="color:#0284c7; width:30px; height:30px; border-radius:50%; background:#f0f9ff; display:flex; align-items:center; justify-content:center;"><i class="fas fa-download"></i></div>
-            </a>
-          `;
-        });
-        continue;
-      }
-
-      // Find link URL
-      let linkVal = "";
-      for (let c = 0; c < row.length; c++) {
-        let cell = String(row[c] || "").trim();
-        if (cell.startsWith("http://") || cell.startsWith("https://")) {
-          linkVal = cell;
-          break;
-        }
-      }
-      
-      if (!linkVal) continue; // Skip if no link
-      
-      let directDl = mConvertToDirectDownload(linkVal);
-      
-      // Check file extension to render appropriate icon
-      let icon = "fa-file-alt";
-      let linkLower = linkVal.toLowerCase();
-      if (linkLower.includes(".pdf") || linkLower.includes("/open?id=") || linkLower.includes("/file/d/") || linkLower.includes("drive.google")) {
-        icon = "fa-file-pdf text-danger";
-      }
-      if (linkLower.includes(".ppt") || linkLower.includes(".pptx") || linkLower.includes("presentation")) {
-        icon = "fa-file-powerpoint text-warning";
-      }
-      if (linkLower.includes(".doc") || linkLower.includes(".docx") || linkLower.includes("document")) {
-        icon = "fa-file-word text-primary";
-      }
-      if (linkLower.includes(".xls") || linkLower.includes(".xlsx") || linkLower.includes("spreadsheets")) {
-        icon = "fa-file-excel text-success";
-      }
-      
-      itemsHtml += `
-        <a href="${directDl}" target="_blank" download class="m-template-item" style="display:flex; align-items:center; gap:12px; padding:12px; margin-bottom:8px; background:#fff; border-radius:8px; border:1px solid #e2e8f0; text-decoration:none; color:inherit; box-shadow:0 1px 2px rgba(0,0,0,0.02); transition:transform 0.1s;">
-          <div style="width:36px; height:36px; border-radius:8px; background:#f1f5f9; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-            <i class="fas ${icon} fa-lg"></i>
-          </div>
-          <div style="flex:1; min-width:0;">
-            <div style="font-weight:600; font-size:0.88em; color:#1e293b; line-height:1.3; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${nameVal}</div>
-            <div style="font-size:0.75em; color:#64748b; margin-top:2px;">Klik untuk unduh langsung berkas</div>
-          </div>
-          <div style="color:#0284c7; width:30px; height:30px; border-radius:50%; background:#f0f9ff; display:flex; align-items:center; justify-content:center;"><i class="fas fa-download"></i></div>
-        </a>
-      `;
-    }
-
-    if (!itemsHtml) return; // Skip sheet if no files found
-
-    html += `
-      <div class="m-template-section" style="margin-bottom:20px;">
-        <div style="font-size:0.85em; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:10px; display:flex; align-items:center; gap:6px;">
-          <i class="fas fa-folder-open text-primary"></i> ${sheetName}
-        </div>
-        ${itemsHtml}
-      </div>
-    `;
-  });
-
-  if (!html) {
-    $('#m-templates-content').html('<div class="m-empty"><i class="fas fa-folder-open"></i><p>Tidak ada tautan file yang ditemukan.</p></div>');
-    return;
-  }
-
-  html += `
-    <div style="padding: 10px 0 28px 0;">
-      <button class="m-btn-secondary m-btn-block" onclick="mClosePlanovaTemplates()"><i class="fas fa-arrow-left mr-1"></i> KEMBALI</button>
-    </div>
-  `;
-
-  $('#m-templates-content').html(html);
 }
 
 function mBuildPhotoBanner(item) {
@@ -6031,13 +5821,13 @@ function mRenderBirthdays(list) {
       <div class="m-birthday-card" data-idx="${i}">
         <div class="m-birthday-avatar-wrap">
           <img src="${p.foto}" class="m-birthday-avatar" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png';">
-          <span class="m-birthday-hat">\uD83D\uDC51</span>
+          <span class="m-birthday-hat">👑</span>
         </div>
         <div class="m-birthday-name">${p.nama}</div>
         <div class="m-birthday-job">${p.jabatan}</div>
         <div class="m-birthday-sec">${p.section}</div>
         <div class="m-birthday-wish">
-          <span>\uD83C\uDF82 Selamat Ulang Tahun! \uD83C\uDF89</span>
+          <span>🎂 Selamat Ulang Tahun! 🎉</span>
         </div>
       </div>
     `;
@@ -6218,13 +6008,13 @@ function mRenderBirthdays(list) {
       <div class="m-birthday-card" data-idx="${i}">
         <div class="m-birthday-avatar-wrap">
           <img src="${p.foto}" class="m-birthday-avatar" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png';">
-          <span class="m-birthday-hat">\uD83D\uDC51</span>
+          <span class="m-birthday-hat">👑</span>
         </div>
         <div class="m-birthday-name">${p.nama}</div>
         <div class="m-birthday-job">${p.jabatan}</div>
         <div class="m-birthday-sec">${p.section}</div>
         <div class="m-birthday-wish">
-          <span>\uD83C\uDF82 Selamat Ulang Tahun! \uD83C\uDF89</span>
+          <span>🎂 Selamat Ulang Tahun! 🎉</span>
         </div>
       </div>
     `;
