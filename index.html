@@ -5626,7 +5626,8 @@ function renderTable(res) {
                       'RESCHEDULE & REFUND': 'RSC', 
                       'SURAT PERINTAH LEMBUR': 'SPL', 
                       'MMPR': 'MMPR',
-                      'ALL': 'ALL'
+                      'ALL': 'ALL',
+                      'SUGESTION SYSTEM': 'SUGESTION_SYSTEM'
                     };
                     let colUp = col.name.toUpperCase();
                     let isPdfCol = (colUp.includes("LINK") || colUp.includes("FILE") || colUp.includes("PDF")) && !colUp.includes("ID");
@@ -5635,7 +5636,7 @@ function renderTable(res) {
                         let pdfLinkHtml = isLink ? '<a href="' + val + '" target="_blank" class="action-icon c-pdf" title="Buka PDF"><i class="fas fa-file-pdf"></i></a>' : '<span class="text-muted mr-2" style="font-size:0.8em; font-style:italic;">Kosong</span>';
                         
                         let showRegen = canRegen;
-                        if (currentSheetName === 'ALL') {
+                        if (currentSheetName === 'ALL' || currentSheetName === 'SUGESTION SYSTEM') {
                             let userRole = (currentUser && currentUser.role) ? String(currentUser.role).toUpperCase().trim() : '';
                             showRegen = userRole.includes("PPD") || userRole === "MASTER";
                         }
@@ -5866,6 +5867,7 @@ const MPH_CONFIG = {
   'SURAT PERINTAH LEMBUR': { title:'SURAT PERINTAH LEMBUR',  subtitle:'Pengajuan jam lembur kerja karyawan',                     icon:'fa-file-contract',         gradient:'linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #991b1b 100%)', ornaments:['fa-clock','fa-business-time','fa-stopwatch','fa-moon'] },
   'DATABASE MP SIB':       { title:'DATABASE MP SIB',        subtitle:'Master data karyawan & manpower lokasi',                  icon:'fa-id-card',               gradient:'linear-gradient(135deg, #6366f1 0%, #4f46e5 50%, #3730a3 100%)', ornaments:['fa-users','fa-id-badge','fa-fingerprint','fa-address-card'] },
   'ALL':                   { title:'PLANOVA — Summary',      subtitle:'Daftar pengajuan ide improvement & inovasi',              icon:'fa-brain',                 gradient:'linear-gradient(135deg, #06b6d4 0%, #0891b2 50%, #155e75 100%)', ornaments:['fa-lightbulb','fa-rocket','fa-bolt','fa-puzzle-piece'] },
+  'SUGESTION SYSTEM':      { title:'PLANOVA — Summary',      subtitle:'Daftar pengajuan ide improvement & inovasi',              icon:'fa-brain',                 gradient:'linear-gradient(135deg, #06b6d4 0%, #0891b2 50%, #155e75 100%)', ornaments:['fa-lightbulb','fa-rocket','fa-bolt','fa-puzzle-piece'] },
   'NILAI':                 { title:'PLANOVA — Penilaian',    subtitle:'Scoring & evaluasi proposal improvement',                 icon:'fa-star-half-stroke',      gradient:'linear-gradient(135deg, #06b6d4 0%, #0891b2 50%, #155e75 100%)', ornaments:['fa-trophy','fa-medal','fa-chart-line','fa-award'] },
   'DATABASE TA':           { title:'DATABASE TA',            subtitle:'Technical Analysis report karyawan',                      icon:'fa-file-lines',            gradient:'linear-gradient(135deg, #0ea5e9 0%, #0284c7 50%, #075985 100%)', ornaments:['fa-screwdriver-wrench','fa-gears','fa-magnifying-glass-chart','fa-clipboard-list'] },
   'MONITORING':            { title:'MONITORING',             subtitle:'Monitoring kompetensi mekanik / helper / welder',         icon:'fa-chart-bar',             gradient:'linear-gradient(135deg, #0ea5e9 0%, #0284c7 50%, #075985 100%)', ornaments:['fa-chart-line','fa-eye','fa-list-check','fa-display'] },
@@ -6387,7 +6389,7 @@ function editLink(el){if(!currentUser.permissions.upload)return Swal.fire('Ditol
 function sDD(td,r,c,v){showLoading(true);td.css('background','#fff3cd');google.script.run.withSuccessHandler(res=>{showLoading(false);if(res.success){tableInstance.cell(td).data('<div class="d-flex align-items-center justify-content-center"><a href="'+v+'" target="_blank" class="action-icon c-pdf"><i class="fas fa-file-pdf"></i></a> '+(currentUser.permissions.upload?'<span class="action-icon c-upload" onclick="editLink(this)" data-row="'+r+'" data-col="'+c+'" data-val="'+v+'"><i class="fas fa-file-upload"></i></span>':'')+'</div>').draw(false);td.css('background','#d4edda');setTimeout(()=>td.css('background',''),1000);if(sheetCache[currentSheetName])delete sheetCache[currentSheetName];}else{td.css('background','#f8d7da');Swal.fire('Gagal',res.message,'error');}}).updateSheetData(currentSheetName,r,c,v,currentUser.username);}
 function regeneratePdf(el,type){
   let userRole = (currentUser && currentUser.role) ? String(currentUser.role).toUpperCase().trim() : '';
-  let isPlanovaSummaryRegen = (type === 'ALL' && (userRole.includes("PPD") || userRole === "MASTER"));
+  let isPlanovaSummaryRegen = ((type === 'ALL' || type === 'SUGESTION_SYSTEM') && (userRole.includes("PPD") || userRole === "MASTER"));
   if(!currentUser.permissions.regenerate && !isPlanovaSummaryRegen)return Swal.fire('Ditolak','Izin tidak ada.','warning');
   let r=$(el).data('row');
   Swal.fire({title:'Generate PDF?',icon:'question',showCancelButton:true}).then((res)=>{
@@ -6400,6 +6402,7 @@ function regeneratePdf(el,type){
              type==='MMPR'?'processSingleRowMMPR':
              type==='NILAI'?'processSingleRowNILAI':
              type==='ALL'?'processSingleRowALL':
+             type==='SUGESTION_SYSTEM'?'processSingleRowSUGESTIONSYSTEM':
              'processSingleRowINR';
       google.script.run.withSuccessHandler(rD=>{
         showLoading(false);
