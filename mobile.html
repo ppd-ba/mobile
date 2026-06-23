@@ -4408,6 +4408,13 @@ function mOpenHistoryDetail(idx) {
   }
   html += '</div>';
 
+  // Tambahkan tombol kembali di paling bawah
+  html += `
+    <div style="padding: 10px 14px 28px 14px;">
+      <button class="m-btn-secondary m-btn-block" onclick="mCloseHistoryDetail()"><i class="fas fa-arrow-left mr-1"></i> KEMBALI</button>
+    </div>
+  `;
+
   $('#m-history-detail-content').html(html);
   $('#m-history-overlay').show();
   mPushNav('overlay', 'history-detail');
