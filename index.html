@@ -3579,8 +3579,17 @@ function handleLogin(){
   let p = $('#password').val();
   showLoading(true);
   
+  let isTimedOut = false;
+  const timeoutId = setTimeout(() => {
+    isTimedOut = true;
+    showLoading(false);
+    Swal.fire('Koneksi Lambat/Gagal', 'Gagal terhubung ke server. Silakan periksa koneksi internet Anda dan coba lagi.', 'error');
+  }, 15000);
+  
   // 3. Kirim ke server
   google.script.run.withSuccessHandler(res => {
+    if (isTimedOut) return;
+    clearTimeout(timeoutId);
     if (res.success) {
       const ALLOWED_WEB_ROLES = ["MASTER", "PPD", "COO", "SH", "DH", "GL"];
       const userRole = String(res.user.role || '').toUpperCase().trim();
@@ -3596,6 +3605,11 @@ function handleLogin(){
       showLoading(false);
       Swal.fire('Gagal', res.message, 'error');
     }
+  }).withFailureHandler(err => {
+    if (isTimedOut) return;
+    clearTimeout(timeoutId);
+    showLoading(false);
+    Swal.fire('Error', err.message || 'Server error', 'error');
   }).doLogin(u, p);
 }
 
@@ -3647,8 +3661,18 @@ function loadInitialServerData(){
     }
   } catch(e) {}
 
+  let isTimedOut = false;
+  const timeoutId = setTimeout(() => {
+    if (renderedFromCache) return;
+    isTimedOut = true;
+    showLoading(false);
+    Swal.fire('Koneksi Lambat', 'Gagal memuat data dari server. Silakan muat ulang halaman ini.', 'warning');
+  }, 15000);
+
   // 2. FETCH fresh data di background (override cache kalau ada perubahan)
   google.script.run.withSuccessHandler(res=>{
+    if (isTimedOut) return;
+    clearTimeout(timeoutId);
     if (!renderedFromCache) showLoading(false);
 
     if(res.success){
@@ -3660,6 +3684,8 @@ function loadInitialServerData(){
       }
     }
   }).withFailureHandler(err=>{
+    if (isTimedOut) return;
+    clearTimeout(timeoutId);
     if (!renderedFromCache) {
       showLoading(false);
       Swal.fire('Gagal Memuat', err.message || 'Periksa koneksi internet.', 'error');

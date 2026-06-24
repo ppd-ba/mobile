@@ -2369,7 +2369,17 @@ function mLogin() {
   let p = $('#m-password').val();
   if (!u || !p) return Swal.fire('Lengkapi','Username & Password wajib diisi','warning');
   mShow(true);
+  
+  let isTimedOut = false;
+  const timeoutId = setTimeout(() => {
+    isTimedOut = true;
+    mShow(false);
+    Swal.fire('Koneksi Lambat/Gagal', 'Gagal terhubung ke server. Silakan periksa koneksi internet Anda dan coba lagi.', 'error');
+  }, 15000);
+
   google.script.run.withSuccessHandler(res => {
+    if (isTimedOut) return;
+    clearTimeout(timeoutId);
     mShow(false);
     if (res.success) {
       mUser = res.user;
@@ -2381,6 +2391,8 @@ function mLogin() {
       Swal.fire('Gagal', res.message || 'Login gagal', 'error');
     }
   }).withFailureHandler(err => {
+    if (isTimedOut) return;
+    clearTimeout(timeoutId);
     mShow(false);
     Swal.fire('Error', err.message || 'Server error', 'error');
   }).doLogin(u, p);
@@ -2555,7 +2567,17 @@ function mShowApp() {
 
 function mInitData() {
   mShow(true);
+  
+  let isTimedOut = false;
+  const timeoutId = setTimeout(() => {
+    isTimedOut = true;
+    mShow(false);
+    Swal.fire('Koneksi Lambat', 'Gagal memuat data awal dari server. Silakan muat ulang halaman ini.', 'warning');
+  }, 15000);
+
   google.script.run.withSuccessHandler(res => {
+    if (isTimedOut) return;
+    clearTimeout(timeoutId);
     mShow(false);
     if (res.success) {
       // 1. Terapkan Theme Logo
@@ -2604,6 +2626,8 @@ function mInitData() {
       Swal.fire('Gagal', res.message || 'Gagal memuat data awal', 'error');
     }
   }).withFailureHandler(err => {
+    if (isTimedOut) return;
+    clearTimeout(timeoutId);
     mShow(false);
     Swal.fire('Error', err.message || 'Koneksi ke server terputus', 'error');
   }).getMobileEssentials(mUser.username, mUser.role, mUser.nama, mUser.nrp);
