@@ -2367,7 +2367,7 @@ function mShow(s, msg) {
         $('#m-loader').hide();
         Swal.fire('Koneksi Gagal', 'Proses memakan waktu terlalu lama atau koneksi internet terputus. Silakan coba lagi.', 'warning');
       }
-    }, 15000);
+    }, 30000);
   } else {
     $('#m-loader').hide();
     if (mLoaderTimeoutId) {
@@ -2395,7 +2395,7 @@ function mLogin() {
     isTimedOut = true;
     mShow(false);
     Swal.fire('Koneksi Lambat/Gagal', 'Gagal terhubung ke server. Silakan periksa koneksi internet Anda dan coba lagi.', 'error');
-  }, 15000);
+  }, 30000);
 
   google.script.run.withSuccessHandler(res => {
     if (isTimedOut) return;
@@ -2593,7 +2593,7 @@ function mInitData() {
     isTimedOut = true;
     mShow(false);
     Swal.fire('Koneksi Lambat', 'Gagal memuat data awal dari server. Silakan muat ulang halaman ini.', 'warning');
-  }, 15000);
+  }, 30000);
 
   google.script.run.withSuccessHandler(res => {
     if (isTimedOut) return;
