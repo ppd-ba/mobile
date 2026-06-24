@@ -3960,7 +3960,27 @@ function getStatusClass(val){
     return 'st-grey';
 }
 function updateSelectColor(el){$(el).removeClass('st-green st-red st-yellow st-grey').addClass(getStatusClass($(el).val()));}
-function showLoading(show){show?$('#loader').css('display','flex'):$('#loader').hide();}
+let loaderTimeoutId = null;
+function showLoading(show, message) {
+  if (show) {
+    $('#loader').css('display', 'flex');
+    let msg = message || "Memuat Data...";
+    $('#loader').find('div:last-child').text(msg);
+    if (loaderTimeoutId) clearTimeout(loaderTimeoutId);
+    loaderTimeoutId = setTimeout(() => {
+      if ($('#loader').is(':visible')) {
+        $('#loader').hide();
+        Swal.fire('Koneksi Gagal', 'Proses memakan waktu terlalu lama atau koneksi internet terputus. Silakan coba lagi.', 'warning');
+      }
+    }, 15000);
+  } else {
+    $('#loader').hide();
+    if (loaderTimeoutId) {
+      clearTimeout(loaderTimeoutId);
+      loaderTimeoutId = null;
+    }
+  }
+}
 function startClock(){setInterval(()=>{let d=new Date();$('#clock-display').html('<span>'+d.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+' | '+d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit',second:'2-digit'})+' WIB</span>');},1000);}
 function togglePassVisibility(){const p=document.getElementById("password"),i=document.getElementById("togglePassIcon");if(p.type==="password"){p.type="text";i.classList.replace("fa-eye","fa-eye-slash");}else{p.type="password";i.classList.replace("fa-eye-slash","fa-eye");}}
 

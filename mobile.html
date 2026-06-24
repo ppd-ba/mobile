@@ -2355,7 +2355,27 @@ function mStartClock() {
   setInterval(tick, 1000);
 }
 
-function mShow(s) { $('#m-loader')[s ? 'show' : 'hide'](); }
+let mLoaderTimeoutId = null;
+function mShow(s, msg) {
+  if (s) {
+    $('#m-loader').show();
+    let txt = msg || 'Memuat Data...';
+    $('#m-loader').find('div:last-child').text(txt);
+    if (mLoaderTimeoutId) clearTimeout(mLoaderTimeoutId);
+    mLoaderTimeoutId = setTimeout(() => {
+      if ($('#m-loader').is(':visible')) {
+        $('#m-loader').hide();
+        Swal.fire('Koneksi Gagal', 'Proses memakan waktu terlalu lama atau koneksi internet terputus. Silakan coba lagi.', 'warning');
+      }
+    }, 15000);
+  } else {
+    $('#m-loader').hide();
+    if (mLoaderTimeoutId) {
+      clearTimeout(mLoaderTimeoutId);
+      mLoaderTimeoutId = null;
+    }
+  }
+}
 
 function mTogglePass() {
   let p = $('#m-password'); let i = $('#m-pass-eye');
