@@ -6279,6 +6279,37 @@ function downloadExcel() {
     XLSX.writeFile(wb, 'Export_' + currentSheetName + '.xlsx');
 }
 function cleanDateStr(d){if(!d)return "";return d.replace(/[\/\\:]/g,'-');}
+function formatDateToDdMmmYyyy(s) {
+  if (!s) return "";
+  let d = null;
+  let parts = s.split(/[\/\-\.]/);
+  if (parts.length === 3) {
+    if (parts[2].length === 4) {
+      let day = parseInt(parts[0], 10);
+      let month = parseInt(parts[1], 10) - 1;
+      let year = parseInt(parts[2], 10);
+      d = new Date(year, month, day);
+    } else if (parts[0].length === 4) {
+      let year = parseInt(parts[0], 10);
+      let month = parseInt(parts[1], 10) - 1;
+      let day = parseInt(parts[2], 10);
+      d = new Date(year, month, day);
+    }
+  } else {
+    let parsed = Date.parse(s);
+    if (!isNaN(parsed)) {
+      d = new Date(parsed);
+    }
+  }
+  if (!d || isNaN(d.getTime())) {
+    return s.replace(/[\/\\?%*:|"<>]/g, '-').trim();
+  }
+  const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+  let day = String(d.getDate()).padStart(2, '0');
+  let mmm = months[d.getMonth()];
+  let year = d.getFullYear();
+  return day + " " + mmm + " " + year;
+}
 function downloadBulkFiles(){
 if(!currentUser.permissions.upload && currentSheetName !== 'CERTIFICATE'){return Swal.fire('Akses Ditolak','Anda tidak memiliki izin download.','warning');}
 if(!tableInstance)return;
@@ -6295,7 +6326,13 @@ if(a&&a.href&&a.href.startsWith('http')){
 let url=a.href,menu=currentSheetName,headerName=h[cI]||"File",fN="File_Baris_"+(rowIdx+1);
 if(menu==="DATABASE MP SIB"){fN=headerName+" - "+getV(r,"NAMA KARYAWAN")+" - "+(getV(r,"NRP")||getV(r,"NIK"));}
 else if(["CUTI","IZIN NON RESMI","BA TIKET","RESCHEDULE & REFUND","SURAT PERINTAH LEMBUR"].includes(menu)){fN=getV(r,"CODE")+" - "+getV(r,"NAMA KARYAWAN")+" - "+cleanDateStr(getV(r,"TANGGAL")||getV(r,"BERANGKAT"));}
-else if(["PLANOVA SUMMARY","ALL","SUGESTION SYSTEM"].includes(menu)){fN=getV(r,"NO. IMPROVEMENT")+" - "+(getV(r,"NAMA KARYAWAN")||getV(r,"NAMA PEMBUAT"))+" - "+cleanDateStr(getV(r,"TANGGAL")||getV(r,"TANGGAL TEXT"));}
+else if(["PLANOVA SUMMARY","ALL","SUGESTION SYSTEM"].includes(menu)){
+  let noImp = getV(r,"NO. IMPROVEMENT") || "NEW";
+  if (noImp.trim() === "" || noImp.trim() === "-") noImp = "NEW";
+  let nama = getV(r,"NAMA KARYAWAN") || getV(r,"NAMA PEMBUAT") || "Doc";
+  let tgl = getV(r,"TANGGAL") || getV(r,"TANGGAL TEXT") || "";
+  fN = "PLANOVA - " + noImp.replace(/[\/\\?%*:|"<>]/g, '-') + " - " + nama + " - " + formatDateToDdMmmYyyy(tgl);
+}
 else if(menu==="DATABASE TA"){fN=getV(r,"Nomor TA")+" - "+getV(r,"Nama")+" - "+cleanDateStr(getV(r,"Timestamp"));}
 else if(menu==="CERTIFICATE"){fN="USE_ORIGINAL";} 
 else if(menu==="DOCO"){
