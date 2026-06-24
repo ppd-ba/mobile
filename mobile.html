@@ -4558,38 +4558,7 @@ function mRenderTemplatesList(sheets) {
       let nameVal = String(row[nameIdx] || "").trim();
       if (!nameVal) continue;
       
-      // If the row name matches "Download Form SS & Template QCC" (case-insensitive, trim)
-      if (nameVal.toUpperCase().includes("DOWNLOAD FORM SS & TEMPLATE QCC") || nameVal.toUpperCase().includes("DOWNLOAD FORM SS") && nameVal.toUpperCase().includes("TEMPLATE QCC")) {
-        // Inject 2 separate items!
-        let itemsToInject = [
-          {
-            name: "Form Suggestion System (SS)",
-            link: "https://docs.google.com/document/d/18Jh_Hp7K7ObqZCQyf1sCx9Sp0HNsKAWb/edit?usp=drive_link&ouid=110023569379865659423&rtpof=true&sd=true"
-          },
-          {
-            name: "Template Quality Control Circle/Project (QCC/QCP)",
-            link: "https://docs.google.com/presentation/d/14CEnohqXcsbz0QgPs8cBUt7Hcw3WlRix/edit?usp=drive_link&ouid=110023569379865659423&rtpof=true&sd=true"
-          }
-        ];
-        
-        itemsToInject.forEach(inj => {
-          let icon = inj.name.includes("Suggestion System") ? "fa-file-word text-primary" : "fa-file-powerpoint text-warning";
-          itemsHtml += `
-            <a href="${inj.link}" target="_blank" class="m-template-item" style="display:flex; align-items:center; gap:12px; padding:12px; margin-bottom:8px; background:#fff; border-radius:8px; border:1px solid #e2e8f0; text-decoration:none; color:inherit; box-shadow:0 1px 2px rgba(0,0,0,0.02); transition:transform 0.1s;">
-              <div style="width:36px; height:36px; border-radius:8px; background:#f1f5f9; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                <i class="fas ${icon} fa-lg"></i>
-              </div>
-              <div style="flex:1; min-width:0;">
-                <div style="font-weight:600; font-size:0.88em; color:#1e293b; line-height:1.3; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${inj.name}</div>
-                <div style="font-size:0.75em; color:#64748b; margin-top:2px;">Klik untuk buka berkas</div>
-              </div>
-              <div style="color:#94a3b8;"><i class="fas fa-chevron-right"></i></div>
-            </a>
-          `;
-        });
-        continue;
-      }
-
+      
       // Find link URL
       let linkVal = "";
       for (let c = 0; c < row.length; c++) {
