@@ -3007,9 +3007,44 @@ function mOpenForm(formType) {
   // SPL pakai builder khusus untuk pre-load data profile
   if (formType === 'SURAT PERINTAH LEMBUR') return mOpenSplForm();
 
-  // Pre-load MP SIB data for INR, BA TIKET, and RESCHEDULE & REFUND forms
+    // Pre-load MP SIB data for INR, BA TIKET, and RESCHEDULE & REFUND forms
   if (['IZIN NON RESMI', 'BA TIKET', 'RESCHEDULE & REFUND', 'PLANOVA'].includes(formType)) {
     $('#m-form-title').text(mGetFormConfig(formType).title);
+    
+    // Check localStorage cache first (max age: 1 hour)
+    let cachedMp = null;
+    try {
+      const stored = localStorage.getItem('PPDMobileMpData_' + mUser.nrp);
+      if (stored) {
+        const cacheObj = JSON.parse(stored);
+        if (Date.now() - cacheObj.timestamp < 3600000) {
+          cachedMp = cacheObj.data;
+        }
+      }
+    } catch(e) {}
+
+    if (cachedMp) {
+      mFormCurrent = { type: formType, mp: cachedMp, state: {} };
+      mRenderGenericForm(formType);
+      $('#m-form-overlay').show();
+      mPushNav('overlay', 'form');
+      
+      // Update cache in the background silently
+      google.script.run.withSuccessHandler(mp => {
+        if (mp && Object.keys(mp).length > 0) {
+          try {
+            localStorage.setItem('PPDMobileMpData_' + mUser.nrp, JSON.stringify({
+              timestamp: Date.now(),
+              data: mp
+            }));
+          } catch(e) {}
+        }
+      }).getMobileMpDataByNrp(mUser.nrp);
+      
+      return;
+    }
+
+    // Default loader fallback if no cache
     $('#m-form-content').html(
       '<div class="m-form-loader">' +
       '  <div class="m-form-loader-spinner">' +
@@ -3026,6 +3061,14 @@ function mOpenForm(formType) {
     mPushNav('overlay', 'form');
 
     google.script.run.withSuccessHandler(mp => {
+      if (mp && Object.keys(mp).length > 0) {
+        try {
+          localStorage.setItem('PPDMobileMpData_' + mUser.nrp, JSON.stringify({
+            timestamp: Date.now(),
+            data: mp
+          }));
+        } catch(e) {}
+      }
       mFormCurrent = { type: formType, mp: mp || {}, state: {} };
       mRenderGenericForm(formType);
     }).withFailureHandler(err => {
