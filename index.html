@@ -7014,7 +7014,9 @@ function submitScoring(){
             if(res.success){
                 $('#modalApprovalAction').modal('hide');
                 Swal.fire('Berhasil','Penilaian tersimpan.','success');
-                
+                if (res.backgroundPdf) {
+                    google.script.run.triggerRegenWrapper(res.sheetTarget, res.rowTarget, currentUser.username);
+                }
                 // --> Hilangkan data seketika tanpa refresh server <--
                 currentApprovalList.splice(currentAppIdx, 1);
                 renderApprovalList(currentApprovalList);
