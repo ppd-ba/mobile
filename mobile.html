@@ -1589,18 +1589,18 @@ button { font-family: inherit; cursor: pointer; }
       <div class="m-hero-stats">
         <div class="m-hero-stat" onclick="mShowMyPendingSubmissions()">
           <div class="m-hs-label">PENGAJUAN SAYA</div>
-          <div class="m-hs-value" style="display: flex; align-items: center; justify-content: flex-start; gap: 6px;">
+          <div class="m-hs-value">
             <span id="m-stat-mypending">0</span>
-            <i id="m-stat-mypending-loading" class="fas fa-circle-notch fa-spin" style="display:none; font-size: 0.5em; color: rgba(255,255,255,0.85);"></i>
-            <small style="margin-left: auto;">menunggu approval</small>
+            <i id="m-stat-mypending-loading" class="fas fa-circle-notch fa-spin" style="display:none; font-size: 1.1em; color: rgba(255,255,255,0.9); margin-top: 1px;"></i>
+            <small>menunggu approval</small>
           </div>
         </div>
         <div class="m-hero-stat m-hero-stat-approver" id="m-hero-stat-approver" style="display:none;" onclick="mSwitchTab('approval')">
           <div class="m-hs-label">APPROVAL ANDA</div>
-          <div class="m-hs-value" style="display: flex; align-items: center; justify-content: flex-start; gap: 6px;">
+          <div class="m-hs-value">
             <span id="m-stat-mypproval">0</span>
-            <i id="m-stat-mypproval-loading" class="fas fa-circle-notch fa-spin" style="display:none; font-size: 0.5em; color: rgba(255,255,255,0.85);"></i>
-            <small style="margin-left: auto;">perlu di-approve</small>
+            <i id="m-stat-mypproval-loading" class="fas fa-circle-notch fa-spin" style="display:none; font-size: 1.1em; color: rgba(255,255,255,0.9); margin-top: 1px;"></i>
+            <small>perlu di-approve</small>
           </div>
         </div>
       </div>
@@ -4648,17 +4648,20 @@ function mLoadHistory(force) {
     $('#m-history-list').html('<div class="m-empty"><i class="fas fa-spinner fa-spin"></i><p>Memuat...</p></div>');
   }
 
-  // Show spinner on dashboard count
+  // Show spinner and hide number on dashboard count
+  $('#m-stat-mypending').hide();
   $('#m-stat-mypending-loading').show();
 
   google.script.run.withSuccessHandler(list => {
     mHistoryList = list || [];
     try { localStorage.setItem('PPDMobileHistory_' + mUser.nrp, JSON.stringify(mHistoryList)); } catch(e){}
     $('#m-stat-mypending-loading').hide();
+    $('#m-stat-mypending').show();
     mUpdateHeroStats();
     mRenderHistoryList();
   }).withFailureHandler(() => {
     $('#m-stat-mypending-loading').hide();
+    $('#m-stat-mypending').show();
     if (mHistoryList.length === 0) {
       $('#m-history-list').html('<div class="m-empty"><i class="fas fa-exclamation-triangle"></i><p>Gagal memuat</p></div>');
     }
@@ -4736,13 +4739,15 @@ function mLoadApproval(force) {
     $('#m-approval-list').html('<div class="m-empty"><i class="fas fa-spinner fa-spin"></i><p>Memuat...</p></div>');
   }
 
-  // Show spinner on dashboard count
+  // Show spinner and hide number on dashboard count
+  $('#m-stat-mypproval').hide();
   $('#m-stat-mypproval-loading').show();
 
   google.script.run.withSuccessHandler(list => {
     mApprovalList = list || [];
     try { localStorage.setItem('PPDMobileApproval_' + mUser.nrp, JSON.stringify(mApprovalList)); } catch(e){}
     $('#m-stat-mypproval-loading').hide();
+    $('#m-stat-mypproval').show();
     mRenderApprovalList();
     let cnt = mApprovalList.length;
     $('#m-user-pending').toggle(cnt > 0);
@@ -4750,6 +4755,7 @@ function mLoadApproval(force) {
     mUpdateHeroStats();
   }).withFailureHandler(() => {
     $('#m-stat-mypproval-loading').hide();
+    $('#m-stat-mypproval').show();
     if (mApprovalList.length === 0) {
       $('#m-approval-list').html('<div class="m-empty"><i class="fas fa-exclamation-triangle"></i><p>Gagal memuat</p></div>');
     }
