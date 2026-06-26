@@ -5004,22 +5004,22 @@ function mOpenApprovalDetail(idx) {
       <form id="m-formScoring">
         <div class="m-scoring-section">
           <div class="m-scoring-header"><i class="fas fa-lightbulb"></i> ASPEK : IDE</div>
-          <div class="m-score-row"><label>Kreativitas</label><input type="number" class="m-score-input m-score-val" min="0" max="100" oninput="mCalcFinalScore()" required></div>
+          <div class="m-score-row"><label>Kreativitas <br><small style="font-style: italic; color: #64748b; font-weight: normal; display: block; margin-top: 2px; font-size: 0.8em; line-height: 1.2;">Persiapan khusus yang dilakukan (Design, Estetika, Bukan ide dari orang lain).</small></label><input type="number" class="m-score-input m-score-val" min="0" max="100" oninput="mCalcFinalScore()" required></div>
         </div>
         <div class="m-scoring-section">
           <div class="m-scoring-header"><i class="fas fa-hammer"></i> ASPEK : USAHA</div>
-          <div class="m-score-row"><label>Efektivitas Waktu</label><input type="number" class="m-score-input m-score-val" min="0" max="100" oninput="mCalcFinalScore()" required></div>
-          <div class="m-score-row"><label>Duplikasi Ide</label><input type="number" class="m-score-input m-score-val" min="0" max="100" oninput="mCalcFinalScore()" required></div>
+          <div class="m-score-row"><label>Efektivitas Waktu <br><small style="font-style: italic; color: #64748b; font-weight: normal; display: block; margin-top: 2px; font-size: 0.8em; line-height: 1.2;">Mengurangi waktu proses tertentu (Mempercepat atau Mempermudah pekerjaan).</small></label><input type="number" class="m-score-input m-score-val" min="0" max="100" oninput="mCalcFinalScore()" required></div>
+          <div class="m-score-row"><label>Duplikasi Ide <br><small style="font-style: italic; color: #64748b; font-weight: normal; display: block; margin-top: 2px; font-size: 0.8em; line-height: 1.2;">Tingkat kemudahan untuk diduplikasi ke unit atau bagian lain.</small></label><input type="number" class="m-score-input m-score-val" min="0" max="100" oninput="mCalcFinalScore()" required></div>
           <div class="m-score-row"><label>5R</label><input type="number" class="m-score-input m-score-val" min="0" max="100" oninput="mCalcFinalScore()" required></div>
-          <div class="m-score-row"><label>Standarisasi</label><input type="number" class="m-score-input m-score-val" min="0" max="100" oninput="mCalcFinalScore()" required></div>
+          <div class="m-score-row"><label>Standarisasi <br><small style="font-style: italic; color: #64748b; font-weight: normal; display: block; margin-top: 2px; font-size: 0.8em; line-height: 1.2;">Terdapat standarisasi jika ide dipakai atau diterapkan.</small></label><input type="number" class="m-score-input m-score-val" min="0" max="100" oninput="mCalcFinalScore()" required></div>
         </div>
         <div class="m-scoring-section">
           <div class="m-scoring-header"><i class="fas fa-square-poll-vertical"></i> ASPEK : HASIL</div>
-          <div class="m-score-row"><label>Quality (Q)</label><input type="number" class="m-score-input m-score-val" min="0" max="100" oninput="mCalcFinalScore()" required></div>
-          <div class="m-score-row"><label>Cost (C)</label><input type="number" class="m-score-input m-score-val" min="0" max="100" oninput="mCalcFinalScore()" required></div>
-          <div class="m-score-row"><label>Delivery (D)</label><input type="number" class="m-score-input m-score-val" min="0" max="100" oninput="mCalcFinalScore()" required></div>
-          <div class="m-score-row"><label>Safety, Healty & Environment (S)</label><input type="number" class="m-score-input m-score-val" min="0" max="100" oninput="mCalcFinalScore()" required></div>
-          <div class="m-score-row"><label>Morale (M)</label><input type="number" class="m-score-input m-score-val" min="0" max="100" oninput="mCalcFinalScore()" required></div>
+          <div class="m-score-row"><label>Quality (Q) <br><small style="font-style: italic; color: #64748b; font-weight: normal; display: block; margin-top: 2px; font-size: 0.8em; line-height: 1.2;">Dampak terhadap kualitas pekerjaan, kualitas pembuatan Ide.</small></label><input type="number" class="m-score-input m-score-val" min="0" max="100" oninput="mCalcFinalScore()" required></div>
+          <div class="m-score-row"><label>Cost (C) <br><small style="font-style: italic; color: #64748b; font-weight: normal; display: block; margin-top: 2px; font-size: 0.8em; line-height: 1.2;">Tingkat Cost yang didapat atau direduce.</small></label><input type="number" class="m-score-input m-score-val" min="0" max="100" oninput="mCalcFinalScore()" required></div>
+          <div class="m-score-row"><label>Delivery (D) <br><small style="font-style: italic; color: #64748b; font-weight: normal; display: block; margin-top: 2px; font-size: 0.8em; line-height: 1.2;">Dampak terhadap Delivery (lead time proses, Pengiriman).</small></label><input type="number" class="m-score-input m-score-val" min="0" max="100" oninput="mCalcFinalScore()" required></div>
+          <div class="m-score-row"><label>Safety, Healty & Environment (S) <br><small style="font-style: italic; color: #64748b; font-weight: normal; display: block; margin-top: 2px; font-size: 0.8em; line-height: 1.2;">Dampak terhadap aspek K3LH.</small></label><input type="number" class="m-score-input m-score-val" min="0" max="100" oninput="mCalcFinalScore()" required></div>
+          <div class="m-score-row"><label>Morale (M) <br><small style="font-style: italic; color: #64748b; font-weight: normal; display: block; margin-top: 2px; font-size: 0.8em; line-height: 1.2;">Dampak terhadap Budaya kerja, Semangat kerja, Behaviour.</small></label><input type="number" class="m-score-input m-score-val" min="0" max="100" oninput="mCalcFinalScore()" required></div>
         </div>
         <div class="m-scoring-section">
           <div class="m-scoring-header"><i class="fas fa-comment-dots"></i> Catatan / Masukan</div>
