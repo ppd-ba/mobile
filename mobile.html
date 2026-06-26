@@ -635,6 +635,7 @@ button { font-family: inherit; cursor: pointer; }
 /* ===== QUICK ACTIONS BOTTOM SHEET ===== */
 .m-quick-sheet {
   position: fixed; inset: 0; z-index: 250;
+  overflow: hidden;
 }
 .m-quick-backdrop {
   position: absolute; inset: 0;
@@ -682,6 +683,7 @@ button { font-family: inherit; cursor: pointer; }
   display: flex; flex-direction: column;
   animation: slideInRight 0.25s ease-out;
   overscroll-behavior: contain;
+  overflow: hidden;
 }
 @keyframes slideInRight {
   from { transform: translateX(100%); }
@@ -2329,18 +2331,32 @@ function mToggleBodyScroll(lock) {
   };
 })(jQuery);
 
+// Direct check helper to see if any overlay is currently open
+function mIsOverlayVisible() {
+  return $('#m-form-overlay').is(':visible') || 
+         $('#m-submenu-overlay').is(':visible') || 
+         $('#m-approval-overlay').is(':visible') || 
+         $('#m-history-overlay').is(':visible') || 
+         $('#m-templates-overlay').is(':visible') || 
+         $('#m-quick-sheet').is(':visible') ||
+         $('#m-photo-crop-overlay').is(':visible') ||
+         $('#m-register-overlay').is(':visible');
+}
+
 // Bulletproof Touch Event Listener to prevent native pull-to-refresh inside active overlays
 let mTouchStartPageY = 0;
 document.addEventListener('touchstart', function(e) {
-  if (document.body.classList.contains('m-no-scroll')) {
+  if (mIsOverlayVisible()) {
     mTouchStartPageY = e.touches[0].pageY;
   }
 }, { passive: true });
 
 document.addEventListener('touchmove', function(e) {
-  if (document.body.classList.contains('m-no-scroll')) {
+  if (mIsOverlayVisible()) {
     // Find if the touch is inside any scrollable overlay container
     const scrollable = $(e.target).closest('.m-sub-content, .m-quick-content, .swal2-html-container');
+    
+    // If touched the static header or backdrop instead of scrollable container, prevent default
     if (scrollable.length === 0) {
       if (e.cancelable) e.preventDefault();
       return;
@@ -2352,19 +2368,19 @@ document.addEventListener('touchmove', function(e) {
     const clientHeight = el.clientHeight;
 
     const currentY = e.touches[0].pageY;
-    const deltaY = currentY - mTouchStartPageY; // deltaY > 0 is pulling down (scrolling up)
+    const deltaY = currentY - mTouchStartPageY; // deltaY > 0 is swiping down (scrolling content up/back towards top)
 
-    // If the element has no scrollable range, prevent default scrolling
-    if (scrollHeight <= clientHeight) {
+    // If the element has no scrollable range (entire form fits screen), prevent all scrolling to avoid pull-to-refresh
+    if (scrollHeight <= clientHeight + 1) {
       if (e.cancelable) e.preventDefault();
       return;
     }
 
-    // Prevent default browser behavior ONLY at the boundaries (top/bottom)
+    // Prevent default browser behavior (like pull-to-refresh) ONLY at the boundaries (top/bottom)
     if (scrollTop <= 0 && deltaY > 0) {
       // Swiping down at the very top of container -> prevent pull-to-refresh
       if (e.cancelable) e.preventDefault();
-    } else if (scrollTop + clientHeight >= scrollHeight && deltaY < 0) {
+    } else if (scrollTop + clientHeight >= scrollHeight - 1 && deltaY < 0) {
       // Swiping up at the very bottom of container -> prevent elastic bouncing
       if (e.cancelable) e.preventDefault();
     }
