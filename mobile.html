@@ -2348,66 +2348,61 @@ function mOnOverlayClose() {
   };
 })(jQuery);
 
-// ============== BACK BUTTON HANDLER ==============
-// Tangani tombol back HP supaya kembali ke screen sebelumnya, bukan close tab.
-// Pakai history API: setiap navigasi push state, popstate handler tangani.
-let mNavStack = []; // stack of { type: 'tab'|'overlay', value }
+// ============== BACK BUTTON HANDLER (NATIVE ROUTING) ==============
 let mBackInited = false;
 
 function mInitBackHandler() {
   if (mBackInited) return;
   mBackInited = true;
-  // Push initial state supaya popstate fire saat back pertama
-  try { window.history.pushState({ppd:'init'}, '', ''); } catch(e) {}
+  // Replace current state with dashboard
+  try { window.history.replaceState({ ppd: 'dashboard' }, '', ''); } catch(e) {}
+  
   window.addEventListener('popstate', function(e) {
-    mHandleBack();
-    // Re-push agar popstate selalu siap menangkap back berikutnya
-    try { window.history.pushState({ppd:'guard'}, '', ''); } catch(e2) {}
+    mHandleBackState(e.state);
   });
 }
 
 function mPushNav(type, value) {
-  mNavStack.push({ type: type, value: value });
-  try { window.history.pushState({ppd: type+':'+value}, '', ''); } catch(e) {}
+  try { window.history.pushState({ ppd: type + ':' + value }, '', ''); } catch(e) {}
 }
 
-function mHandleBack() {
-  if ($('#m-templates-overlay').is(':visible')) { mClosePlanovaTemplates(); return; }
-  // Cek overlay yang terbuka
-  if ($('#m-quick-sheet').is(':visible')) { mCloseQuickActions(); return; }
-  if ($('#m-form-overlay').is(':visible')) { mCloseForm(); return; }
-  if ($('#m-submenu-overlay').is(':visible')) { mCloseSubmenu(); return; }
-  if ($('#m-approval-overlay').is(':visible')) { mCloseApprovalDetail(); return; }
-  if ($('#m-history-overlay').is(':visible')) { mCloseHistoryDetail(); return; }
+function mHandleBackState(state) {
+  const ppdState = (state && state.ppd) ? state.ppd : 'dashboard';
+  
+  // Hide all overlays
+  $('#m-quick-sheet').hide();
+  $('#m-form-overlay').hide();
+  $('#m-submenu-overlay').hide();
+  $('#m-approval-overlay').hide();
+  $('#m-history-overlay').hide();
+  $('#m-templates-overlay').hide();
+  $('#m-photo-crop-overlay').hide();
+  $('#m-register-overlay').hide();
 
-  // Cek nav stack
-  if (mNavStack.length > 0) {
-    let last = mNavStack.pop();
-    // Pop ke screen sebelumnya
-    let prev = mNavStack.length > 0 ? mNavStack[mNavStack.length - 1] : null;
-    if (prev && prev.type === 'tab') {
-      mSwitchTab(prev.value, true);
-    } else {
-      mSwitchTab('home', true);
-    }
-    return;
-  }
-
-  // Sudah di home & gak ada overlay → confirm exit
-  if ($('#m-view-app').is(':visible')) {
-    Swal.fire({
-      title: 'Keluar aplikasi?',
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonText: 'Ya',
-      cancelButtonText: 'Batal',
-      confirmButtonColor: '#05244d'
-    }).then(r => {
-      if (r.isConfirmed) {
-        // Biarkan back native — pop history sekali lagi
-        try { window.history.go(-2); } catch(e) {}
-      }
-    });
+  if (ppdState === 'overlay:submenu') {
+    $('#m-submenu-overlay').show();
+  } else if (ppdState === 'overlay:form') {
+    $('#m-submenu-overlay').show();
+    $('#m-form-overlay').show();
+  } else if (ppdState === 'overlay:history-detail') {
+    $('#m-history-overlay').show();
+  } else if (ppdState === 'overlay:approval-detail') {
+    $('#m-approval-overlay').show();
+  } else if (ppdState === 'overlay:planova-templates') {
+    $('#m-submenu-overlay').show();
+    $('#m-form-overlay').show();
+    $('#m-templates-overlay').show();
+  } else if (ppdState === 'overlay:quick') {
+    $('#m-quick-sheet').show();
+  } else if (ppdState === 'overlay:crop-photo') {
+    $('#m-submenu-overlay').show();
+    $('#m-form-overlay').show();
+    $('#m-photo-crop-overlay').show();
+  } else if (ppdState === 'overlay:register-new-emp') {
+    $('#m-register-overlay').show();
+  } else if (ppdState.startsWith('tab:')) {
+    const tabName = ppdState.split(':')[1];
+    mSwitchTab(tabName, true);
   }
 }
 
@@ -3134,9 +3129,10 @@ function mOpenQuickActions() {
   mPushNav('overlay', 'quick');
 }
 function mCloseQuickActions() {
-  $('#m-quick-sheet').hide();
   if (window.history.state && window.history.state.ppd === 'overlay:quick') {
     window.history.back();
+  } else {
+    $('#m-quick-sheet').hide();
   }
 }
 
@@ -3203,9 +3199,10 @@ function mShowSubmenu(menu) {
 }
 
 function mCloseSubmenu() {
-  $('#m-submenu-overlay').hide();
   if (window.history.state && window.history.state.ppd === 'overlay:submenu') {
     window.history.back();
+  } else {
+    $('#m-submenu-overlay').hide();
   }
 }
 
@@ -4168,11 +4165,12 @@ function mSubmitCutiForm() {
 }
 
 function mCloseForm() {
-  $('#m-form-overlay').hide();
-  mCloseSubmenu();
-  mLoadHistory(true);
   if (window.history.state && window.history.state.ppd === 'overlay:form') {
     window.history.back();
+  } else {
+    $('#m-form-overlay').hide();
+    mCloseSubmenu();
+    mLoadHistory(true);
   }
 }
 
@@ -4795,9 +4793,10 @@ function mOpenHistoryDetail(idx) {
 }
 
 function mCloseHistoryDetail() {
-  $('#m-history-overlay').hide();
   if (window.history.state && window.history.state.ppd === 'overlay:history-detail') {
     window.history.back();
+  } else {
+    $('#m-history-overlay').hide();
   }
 }
 
@@ -4830,9 +4829,10 @@ function mShowPlanovaTemplates() {
 }
 
 function mClosePlanovaTemplates() {
-  $('#m-templates-overlay').hide();
   if (window.history.state && window.history.state.ppd === 'overlay:planova-templates') {
     window.history.back();
+  } else {
+    $('#m-templates-overlay').hide();
   }
 }
 
@@ -5134,9 +5134,10 @@ function mOpenApprovalDetail(idx) {
 }
 
 function mCloseApprovalDetail() {
-  $('#m-approval-overlay').hide();
   if (window.history.state && window.history.state.ppd === 'overlay:approval-detail') {
     window.history.back();
+  } else {
+    $('#m-approval-overlay').hide();
   }
 }
 
