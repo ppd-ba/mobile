@@ -1397,6 +1397,10 @@ button { font-family: inherit; cursor: pointer; }
   background: #f8fafc !important;
   transform: scale(0.97) !important;
 }
+html.m-no-scroll, body.m-no-scroll {
+  overflow: hidden !important;
+  height: 100% !important;
+}
 </style>
 
 
@@ -2288,6 +2292,40 @@ $(document).ready(function() {
     }
   });
 });
+
+// Helper to toggle body scroll when overlays/bottom sheets are open
+function mToggleBodyScroll(lock) {
+  if (lock) {
+    $('html, body').addClass('m-no-scroll');
+  } else {
+    // Only unlock if no overlays/quick sheets are currently visible
+    const anyOverlayVisible = $('.m-submenu-overlay:visible, .m-quick-sheet:visible').length > 0;
+    if (!anyOverlayVisible) {
+      $('html, body').removeClass('m-no-scroll');
+    }
+  }
+}
+
+// Hook into jQuery show/hide to automatically lock/unlock body scroll for overlays/quick-sheet
+(function($) {
+  const originalShow = $.fn.show;
+  $.fn.show = function() {
+    const result = originalShow.apply(this, arguments);
+    if (this.hasClass('m-submenu-overlay') || this.hasClass('m-quick-sheet')) {
+      mToggleBodyScroll(true);
+    }
+    return result;
+  };
+
+  const originalHide = $.fn.hide;
+  $.fn.hide = function() {
+    const result = originalHide.apply(this, arguments);
+    if (this.hasClass('m-submenu-overlay') || this.hasClass('m-quick-sheet')) {
+      mToggleBodyScroll(false);
+    }
+    return result;
+  };
+})(jQuery);
 
 // ============== BACK BUTTON HANDLER ==============
 // Tangani tombol back HP supaya kembali ke screen sebelumnya, bukan close tab.
