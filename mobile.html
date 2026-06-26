@@ -2348,26 +2348,28 @@ function mOnOverlayClose() {
   };
 })(jQuery);
 
-// ============== BACK BUTTON HANDLER (NATIVE ROUTING) ==============
+// ============== BACK BUTTON HANDLER (NATIVE ROUTING VIA LOCATION HASH) ==============
 let mBackInited = false;
 
 function mInitBackHandler() {
   if (mBackInited) return;
   mBackInited = true;
-  // Replace current state with dashboard
-  try { window.history.replaceState({ ppd: 'dashboard' }, '', ''); } catch(e) {}
   
-  window.addEventListener('popstate', function(e) {
-    mHandleBackState(e.state);
+  // Listen to hash change
+  window.addEventListener('hashchange', function() {
+    mHandleHashChange();
   });
+  
+  // Run once in case they reload with a hash
+  mHandleHashChange();
 }
 
 function mPushNav(type, value) {
-  try { window.history.pushState({ ppd: type + ':' + value }, '', ''); } catch(e) {}
+  window.location.hash = type + '-' + value;
 }
 
-function mHandleBackState(state) {
-  const ppdState = (state && state.ppd) ? state.ppd : 'dashboard';
+function mHandleHashChange() {
+  const hash = window.location.hash || '';
   
   // Hide all overlays
   $('#m-quick-sheet').hide();
@@ -2379,29 +2381,29 @@ function mHandleBackState(state) {
   $('#m-photo-crop-overlay').hide();
   $('#m-register-overlay').hide();
 
-  if (ppdState === 'overlay:submenu') {
+  if (hash === '#overlay-submenu') {
     $('#m-submenu-overlay').show();
-  } else if (ppdState === 'overlay:form') {
+  } else if (hash === '#overlay-form') {
     $('#m-submenu-overlay').show();
     $('#m-form-overlay').show();
-  } else if (ppdState === 'overlay:history-detail') {
+  } else if (hash === '#overlay-history-detail') {
     $('#m-history-overlay').show();
-  } else if (ppdState === 'overlay:approval-detail') {
+  } else if (hash === '#overlay-approval-detail') {
     $('#m-approval-overlay').show();
-  } else if (ppdState === 'overlay:planova-templates') {
+  } else if (hash === '#overlay-planova-templates') {
     $('#m-submenu-overlay').show();
     $('#m-form-overlay').show();
     $('#m-templates-overlay').show();
-  } else if (ppdState === 'overlay:quick') {
+  } else if (hash === '#overlay-quick') {
     $('#m-quick-sheet').show();
-  } else if (ppdState === 'overlay:crop-photo') {
+  } else if (hash === '#overlay-crop-photo') {
     $('#m-submenu-overlay').show();
     $('#m-form-overlay').show();
     $('#m-photo-crop-overlay').show();
-  } else if (ppdState === 'overlay:register-new-emp') {
+  } else if (hash === '#overlay-register-new-emp') {
     $('#m-register-overlay').show();
-  } else if (ppdState.startsWith('tab:')) {
-    const tabName = ppdState.split(':')[1];
+  } else if (hash.startsWith('#tab-')) {
+    const tabName = hash.replace('#tab-', '');
     mSwitchTab(tabName, true);
   }
 }
@@ -2492,6 +2494,7 @@ function mLogout(force) {
     mUser = null; mApprovalList = []; mHistoryList = [];
     $('#m-view-app').hide(); $('#m-view-login').show().addClass('m-active');
     $('#m-username').val(''); $('#m-password').val('');
+    window.location.hash = '';
     return;
   }
   Swal.fire({title:'Logout?', icon:'question', showCancelButton:true, confirmButtonText:'Ya, Logout', confirmButtonColor:'#c10f19'}).then(r => {
@@ -2502,6 +2505,7 @@ function mLogout(force) {
       mUser = null; mApprovalList = []; mHistoryList = [];
       $('#m-view-app').hide(); $('#m-view-login').show().addClass('m-active');
       $('#m-username').val(''); $('#m-password').val('');
+      window.location.hash = '';
     }
   });
 }
@@ -3129,7 +3133,7 @@ function mOpenQuickActions() {
   mPushNav('overlay', 'quick');
 }
 function mCloseQuickActions() {
-  if (window.history.state && window.history.state.ppd === 'overlay:quick') {
+  if (window.location.hash === '#overlay-quick') {
     window.history.back();
   } else {
     $('#m-quick-sheet').hide();
@@ -3199,7 +3203,7 @@ function mShowSubmenu(menu) {
 }
 
 function mCloseSubmenu() {
-  if (window.history.state && window.history.state.ppd === 'overlay:submenu') {
+  if (window.location.hash === '#overlay-submenu') {
     window.history.back();
   } else {
     $('#m-submenu-overlay').hide();
@@ -4165,7 +4169,7 @@ function mSubmitCutiForm() {
 }
 
 function mCloseForm() {
-  if (window.history.state && window.history.state.ppd === 'overlay:form') {
+  if (window.location.hash === '#overlay-form') {
     window.history.back();
   } else {
     $('#m-form-overlay').hide();
@@ -4793,7 +4797,7 @@ function mOpenHistoryDetail(idx) {
 }
 
 function mCloseHistoryDetail() {
-  if (window.history.state && window.history.state.ppd === 'overlay:history-detail') {
+  if (window.location.hash === '#overlay-history-detail') {
     window.history.back();
   } else {
     $('#m-history-overlay').hide();
@@ -4829,7 +4833,7 @@ function mShowPlanovaTemplates() {
 }
 
 function mClosePlanovaTemplates() {
-  if (window.history.state && window.history.state.ppd === 'overlay:planova-templates') {
+  if (window.location.hash === '#overlay-planova-templates') {
     window.history.back();
   } else {
     $('#m-templates-overlay').hide();
@@ -5134,7 +5138,7 @@ function mOpenApprovalDetail(idx) {
 }
 
 function mCloseApprovalDetail() {
-  if (window.history.state && window.history.state.ppd === 'overlay:approval-detail') {
+  if (window.location.hash === '#overlay-approval-detail') {
     window.history.back();
   } else {
     $('#m-approval-overlay').hide();
@@ -5589,10 +5593,14 @@ function mInitCrop(file) {
 }
 
 function mCloseCrop() {
-  $('#m-photo-crop-overlay').hide();
-  $('#m-profile-file-input').val('');
-  if (mCropState.mode === "REGISTER" && !mRegPasFotoBase64) {
-    $('#m-reg-file-pasfoto').val('');
+  if (window.location.hash === '#overlay-crop-photo') {
+    window.history.back();
+  } else {
+    $('#m-photo-crop-overlay').hide();
+    $('#m-profile-file-input').val('');
+    if (mCropState.mode === "REGISTER" && !mRegPasFotoBase64) {
+      $('#m-reg-file-pasfoto').val('');
+    }
   }
 }
 
@@ -5890,7 +5898,11 @@ function mOpenNewEmpForm() {
 }
 
 function mCloseNewEmpForm() {
-  $('#m-register-overlay').hide();
+  if (window.location.hash === '#overlay-register-new-emp') {
+    window.history.back();
+  } else {
+    $('#m-register-overlay').hide();
+  }
 }
 
 function mToggleRegSimDlt(val) {
