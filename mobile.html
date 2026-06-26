@@ -678,12 +678,16 @@ button { font-family: inherit; cursor: pointer; }
 
 /* ===== SUBMENU OVERLAY ===== */
 .m-submenu-overlay {
-  position: fixed; inset: 0; z-index: 200;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  min-height: 100vh;
+  z-index: 200;
   background: #f1f5f9;
-  display: flex; flex-direction: column;
+  display: flex;
+  flex-direction: column;
   animation: slideInRight 0.25s ease-out;
-  overscroll-behavior: contain;
-  overflow: hidden;
 }
 @keyframes slideInRight {
   from { transform: translateX(100%); }
@@ -694,6 +698,11 @@ button { font-family: inherit; cursor: pointer; }
   color: #fff; padding: 14px 14px;
   display: flex; align-items: center; gap: 12px;
   box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
 }
 .m-back-btn {
   background: rgba(255,255,255,0.2);
@@ -705,10 +714,7 @@ button { font-family: inherit; cursor: pointer; }
 .m-sub-header h2 { font-size: 1.05em; font-weight: 700; flex: 1; }
 .m-sub-content {
   flex: 1;
-  overflow-y: auto;
-  padding: 14px;
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
+  padding: 80px 14px 40px 14px;
 }
 
 /* ===== SUBMENU CARDS ===== */
@@ -1399,11 +1405,8 @@ button { font-family: inherit; cursor: pointer; }
   background: #f8fafc !important;
   transform: scale(0.97) !important;
 }
-html.m-no-scroll, body.m-no-scroll {
-  overflow: hidden !important;
-  height: 100vh !important;
-  width: 100% !important;
-  position: fixed !important;
+.m-tab-hidden-by-overlay {
+  display: none !important;
 }
 </style>
 
@@ -2297,26 +2300,40 @@ $(document).ready(function() {
   });
 });
 
-// Helper to toggle body scroll when overlays/bottom sheets are open
-function mToggleBodyScroll(lock) {
-  if (lock) {
-    $('html, body').addClass('m-no-scroll');
-  } else {
-    // Only unlock if no overlays/quick sheets are currently visible
-    const anyOverlayVisible = $('.m-submenu-overlay:visible, .m-quick-sheet:visible').length > 0;
-    if (!anyOverlayVisible) {
-      $('html, body').removeClass('m-no-scroll');
-    }
+// Native Body Scroll Overlay Manager
+let mPrevScrollY = 0;
+let mActiveOverlaysCount = 0;
+
+function mOnOverlayOpen() {
+  mActiveOverlaysCount++;
+  if (mActiveOverlaysCount === 1) {
+    // Save scroll position of the home page before opening the first overlay
+    mPrevScrollY = window.scrollY;
+    // Hide the active tab content to prevent scroll height pollution
+    $('.m-tab-active').addClass('m-tab-hidden-by-overlay');
+  }
+  // Scroll the viewport to the top so the form starts at the top
+  window.scrollTo(0, 0);
+}
+
+function mOnOverlayClose() {
+  mActiveOverlaysCount--;
+  if (mActiveOverlaysCount <= 0) {
+    mActiveOverlaysCount = 0;
+    // Show the active tab again
+    $('.m-tab-active').removeClass('m-tab-hidden-by-overlay');
+    // Restore the scroll position of the home page when all overlays are closed
+    window.scrollTo(0, mPrevScrollY);
   }
 }
 
-// Hook into jQuery show/hide to automatically lock/unlock body scroll for overlays/quick-sheet
+// Hook into jQuery show/hide to automatically manage scroll when overlays are visible
 (function($) {
   const originalShow = $.fn.show;
   $.fn.show = function() {
     const result = originalShow.apply(this, arguments);
-    if (this.hasClass('m-submenu-overlay') || this.hasClass('m-quick-sheet')) {
-      mToggleBodyScroll(true);
+    if (this.hasClass('m-submenu-overlay')) {
+      mOnOverlayOpen();
     }
     return result;
   };
@@ -2324,68 +2341,12 @@ function mToggleBodyScroll(lock) {
   const originalHide = $.fn.hide;
   $.fn.hide = function() {
     const result = originalHide.apply(this, arguments);
-    if (this.hasClass('m-submenu-overlay') || this.hasClass('m-quick-sheet')) {
-      mToggleBodyScroll(false);
+    if (this.hasClass('m-submenu-overlay')) {
+      mOnOverlayClose();
     }
     return result;
   };
 })(jQuery);
-
-// Direct check helper to see if any overlay is currently open
-function mIsOverlayVisible() {
-  return $('#m-form-overlay').is(':visible') || 
-         $('#m-submenu-overlay').is(':visible') || 
-         $('#m-approval-overlay').is(':visible') || 
-         $('#m-history-overlay').is(':visible') || 
-         $('#m-templates-overlay').is(':visible') || 
-         $('#m-quick-sheet').is(':visible') ||
-         $('#m-photo-crop-overlay').is(':visible') ||
-         $('#m-register-overlay').is(':visible');
-}
-
-// Bulletproof Touch Event Listener to prevent native pull-to-refresh inside active overlays
-let mTouchStartPageY = 0;
-document.addEventListener('touchstart', function(e) {
-  if (mIsOverlayVisible()) {
-    mTouchStartPageY = e.touches[0].pageY;
-  }
-}, { passive: true });
-
-document.addEventListener('touchmove', function(e) {
-  if (mIsOverlayVisible()) {
-    // Find if the touch is inside any scrollable overlay container
-    const scrollable = $(e.target).closest('.m-sub-content, .m-quick-content, .swal2-html-container');
-    
-    // If touched the static header or backdrop instead of scrollable container, prevent default
-    if (scrollable.length === 0) {
-      if (e.cancelable) e.preventDefault();
-      return;
-    }
-
-    const el = scrollable[0];
-    const scrollTop = el.scrollTop;
-    const scrollHeight = el.scrollHeight;
-    const clientHeight = el.clientHeight;
-
-    const currentY = e.touches[0].pageY;
-    const deltaY = currentY - mTouchStartPageY; // deltaY > 0 is swiping down (scrolling content up/back towards top)
-
-    // If the element has no scrollable range (entire form fits screen), prevent all scrolling to avoid pull-to-refresh
-    if (scrollHeight <= clientHeight + 1) {
-      if (e.cancelable) e.preventDefault();
-      return;
-    }
-
-    // Prevent default browser behavior (like pull-to-refresh) ONLY at the boundaries (top/bottom)
-    if (scrollTop <= 0 && deltaY > 0) {
-      // Swiping down at the very top of container -> prevent pull-to-refresh
-      if (e.cancelable) e.preventDefault();
-    } else if (scrollTop + clientHeight >= scrollHeight - 1 && deltaY < 0) {
-      // Swiping up at the very bottom of container -> prevent elastic bouncing
-      if (e.cancelable) e.preventDefault();
-    }
-  }
-}, { passive: false });
 
 // ============== BACK BUTTON HANDLER ==============
 // Tangani tombol back HP supaya kembali ke screen sebelumnya, bukan close tab.
