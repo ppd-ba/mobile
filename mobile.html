@@ -3021,6 +3021,9 @@ function mOpenQuickActions() {
 }
 function mCloseQuickActions() {
   $('#m-quick-sheet').hide();
+  if (window.history.state && window.history.state.ppd === 'overlay:quick') {
+    window.history.back();
+  }
 }
 
 // ============== TAB SWITCHING ==============
@@ -3085,7 +3088,12 @@ function mShowSubmenu(menu) {
   mPushNav('overlay', 'submenu');
 }
 
-function mCloseSubmenu() { $('#m-submenu-overlay').hide(); }
+function mCloseSubmenu() {
+  $('#m-submenu-overlay').hide();
+  if (window.history.state && window.history.state.ppd === 'overlay:submenu') {
+    window.history.back();
+  }
+}
 
 function mShowMonitoring() {
   Swal.fire('Coming Soon', 'Monitoring SIB/SIM DLT akan tersedia di update berikutnya.', 'info');
@@ -3990,7 +3998,14 @@ function mSubmitCutiForm() {
   });
 }
 
-function mCloseForm() { $('#m-form-overlay').hide(); }
+function mCloseForm() {
+  $('#m-form-overlay').hide();
+  mCloseSubmenu();
+  mLoadHistory(true);
+  if (window.history.state && window.history.state.ppd === 'overlay:form') {
+    window.history.back();
+  }
+}
 
 function mGetFormConfig(formType) {
   let isReadOnlyAtasan = ['IZIN NON RESMI', 'BA TIKET', 'RESCHEDULE & REFUND'].includes(formType);
@@ -4612,6 +4627,9 @@ function mOpenHistoryDetail(idx) {
 
 function mCloseHistoryDetail() {
   $('#m-history-overlay').hide();
+  if (window.history.state && window.history.state.ppd === 'overlay:history-detail') {
+    window.history.back();
+  }
 }
 
 function mShowPlanovaTemplates() {
@@ -4644,6 +4662,9 @@ function mShowPlanovaTemplates() {
 
 function mClosePlanovaTemplates() {
   $('#m-templates-overlay').hide();
+  if (window.history.state && window.history.state.ppd === 'overlay:planova-templates') {
+    window.history.back();
+  }
 }
 
 function mRenderTemplatesList(sheets) {
@@ -4945,6 +4966,9 @@ function mOpenApprovalDetail(idx) {
 
 function mCloseApprovalDetail() {
   $('#m-approval-overlay').hide();
+  if (window.history.state && window.history.state.ppd === 'overlay:approval-detail') {
+    window.history.back();
+  }
 }
 
 function mCalcFinalScore() {
