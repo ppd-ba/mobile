@@ -1399,7 +1399,9 @@ button { font-family: inherit; cursor: pointer; }
 }
 html.m-no-scroll, body.m-no-scroll {
   overflow: hidden !important;
-  height: 100% !important;
+  height: 100vh !important;
+  width: 100% !important;
+  position: fixed !important;
 }
 </style>
 
@@ -2326,6 +2328,48 @@ function mToggleBodyScroll(lock) {
     return result;
   };
 })(jQuery);
+
+// Bulletproof Touch Event Listener to prevent native pull-to-refresh inside active overlays
+let mTouchStartPageY = 0;
+document.addEventListener('touchstart', function(e) {
+  if (document.body.classList.contains('m-no-scroll')) {
+    mTouchStartPageY = e.touches[0].pageY;
+  }
+}, { passive: true });
+
+document.addEventListener('touchmove', function(e) {
+  if (document.body.classList.contains('m-no-scroll')) {
+    // Find if the touch is inside any scrollable overlay container
+    const scrollable = $(e.target).closest('.m-sub-content, .m-quick-content, .swal2-html-container');
+    if (scrollable.length === 0) {
+      if (e.cancelable) e.preventDefault();
+      return;
+    }
+
+    const el = scrollable[0];
+    const scrollTop = el.scrollTop;
+    const scrollHeight = el.scrollHeight;
+    const clientHeight = el.clientHeight;
+
+    const currentY = e.touches[0].pageY;
+    const deltaY = currentY - mTouchStartPageY; // deltaY > 0 is pulling down (scrolling up)
+
+    // If the element has no scrollable range, prevent default scrolling
+    if (scrollHeight <= clientHeight) {
+      if (e.cancelable) e.preventDefault();
+      return;
+    }
+
+    // Prevent default browser behavior ONLY at the boundaries (top/bottom)
+    if (scrollTop <= 0 && deltaY > 0) {
+      // Swiping down at the very top of container -> prevent pull-to-refresh
+      if (e.cancelable) e.preventDefault();
+    } else if (scrollTop + clientHeight >= scrollHeight && deltaY < 0) {
+      // Swiping up at the very bottom of container -> prevent elastic bouncing
+      if (e.cancelable) e.preventDefault();
+    }
+  }
+}, { passive: false });
 
 // ============== BACK BUTTON HANDLER ==============
 // Tangani tombol back HP supaya kembali ke screen sebelumnya, bukan close tab.
