@@ -3880,16 +3880,17 @@ function mCutiOnChange() {
       d.setDate(d.getDate() + lapDur - 1);
       lapAkhirStr = mfFmtDate(d);
       safeVal("CUTI LAPANGAN (AKHIR)", lapAkhirStr);
-      // Cuti Tahunan Awal = CL Akhir + 1
-      let dThn = new Date(d); dThn.setDate(dThn.getDate() + 1);
-      safeVal("CUTI TAHUNAN (AWAL)", mfFmtDate(dThn));
-      // Cuti Tahunan Akhir
       let thnDur = parseInt($('input[data-fkey="DURASI CUTI TAHUNAN"]').val()) || 0;
       if (thnDur > 0) {
+        // Cuti Tahunan Awal = CL Akhir + 1
+        let dThn = new Date(d); dThn.setDate(dThn.getDate() + 1);
+        safeVal("CUTI TAHUNAN (AWAL)", mfFmtDate(dThn));
+        
         let dThnAkhir = new Date(dThn); dThnAkhir.setDate(dThnAkhir.getDate() + thnDur - 1);
         thnAkhirStr = mfFmtDate(dThnAkhir);
         safeVal("CUTI TAHUNAN (AKHIR)", thnAkhirStr);
       } else {
+        safeVal("CUTI TAHUNAN (AWAL)", '');
         safeVal("CUTI TAHUNAN (AKHIR)", '');
       }
     }
