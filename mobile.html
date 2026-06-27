@@ -3967,7 +3967,7 @@ function mCutiOnChange() {
       }
     }
     // === AUTO-FILL KEMBALI JOBSITE: CT AKHIR jika DURASI CT > 0, else CL AKHIR ===
-    let thnDurNow = parseInt($('input[data-fkey="DURASI CUTI TAHUNAN"]').val()) || 0;
+    thnDurNow = parseInt($('input[data-fkey="DURASI CUTI TAHUNAN"]').val()) || 0;
     let kjsNew = (thnDurNow > 0 && thnAkhirStr) ? thnAkhirStr : lapAkhirStr;
     if (kjsNew) {
       let d = new Date(kjsNew + 'T00:00:00');
