@@ -3795,8 +3795,12 @@ function mfStepperChange(btnEl, delta) {
     let $st = $(btnEl).closest('.m-stepper');
     let $inp = $st.find('.m-step-val');
     let cur = parseInt($inp.val()) || 0;
-    let mn = parseInt($st.data('min')) || 0;
-    let mx = parseInt($st.data('max')) || 99;
+    let mnVal = $st.data('min');
+    let mxVal = $st.data('max');
+    let mn = (mnVal !== undefined && mnVal !== null && mnVal !== '') ? parseInt(mnVal) : 0;
+    let mx = (mxVal !== undefined && mxVal !== null && mxVal !== '') ? parseInt(mxVal) : 99;
+    if (isNaN(mn)) mn = 0;
+    if (isNaN(mx)) mx = 99;
     let nv = Math.max(mn, Math.min(mx, cur + delta));
     $inp.val(nv);
     let onCh = $st.data('onchange');
@@ -3812,8 +3816,12 @@ function mfStepperClamp(inpEl) {
   mStepperClamping = true;
   try {
     let $st = $(inpEl).closest('.m-stepper');
-    let mn = parseInt($st.data('min')) || 0;
-    let mx = parseInt($st.data('max')) || 99;
+    let mnVal = $st.data('min');
+    let mxVal = $st.data('max');
+    let mn = (mnVal !== undefined && mnVal !== null && mnVal !== '') ? parseInt(mnVal) : 0;
+    let mx = (mxVal !== undefined && mxVal !== null && mxVal !== '') ? parseInt(mxVal) : 99;
+    if (isNaN(mn)) mn = 0;
+    if (isNaN(mx)) mx = 99;
     let v = parseInt(inpEl.value);
     if (isNaN(v)) v = mn;
     if (v < mn) v = mn;
@@ -3845,11 +3853,22 @@ function mCutiOnChange() {
     let messVal = $('input[data-fkey="MESS/NON MESS"]').val();
     $('#mf-mess-name-wrap').toggle(messVal === 'MESS');
 
-    // Tiket section visibility
-    let jmlTkt = $('input[data-fkey="JUMLAH PESANAN TIKET"]').val();
-    $('#mf-tiket-1').toggle(jmlTkt && jmlTkt !== 'TIDAK PESAN' && jmlTkt !== '');
-    $('#mf-tiket-2').toggle(jmlTkt === '2' || jmlTkt === '3');
-    $('#mf-tiket-3').toggle(jmlTkt === '3');
+    // Tiket section visibility (conditional on PESAN TRAVEL/TIDAK)
+    let pesanTravel = $('input[data-fkey="PESAN TRAVEL/TIDAK"]').val();
+    let $jmlTktGroup = $('input[data-fkey="JUMLAH PESANAN TIKET"]').closest('.m-form-group');
+
+    if (pesanTravel === 'TIDAK') {
+      $jmlTktGroup.hide();
+      $('#mf-tiket-1').hide();
+      $('#mf-tiket-2').hide();
+      $('#mf-tiket-3').hide();
+    } else {
+      $jmlTktGroup.show();
+      let jmlTkt = $('input[data-fkey="JUMLAH PESANAN TIKET"]').val() || '';
+      $('#mf-tiket-1').toggle(jmlTkt === '1' || jmlTkt === '2' || jmlTkt === '3');
+      $('#mf-tiket-2').toggle(jmlTkt === '2' || jmlTkt === '3');
+      $('#mf-tiket-3').toggle(jmlTkt === '3');
+    }
 
     // Calc CUTI LAPANGAN (AKHIR) = CUTI LAPANGAN (AWAL) + DURASI - 1
     let lapAwal = $('input[data-fkey="CUTI LAPANGAN (AWAL)"]').val();
@@ -3950,6 +3969,18 @@ function mCutiOnChange() {
 
     checkField($bjs, 'BERANGKAT DARI JOBSITE');
     checkField($kjs, 'KEMBALI KE JOBSITE');
+
+    // Validate Durasi Cuti Tahunan vs Sisa Cuti Tahunan
+    let $ctDur = $('input[data-fkey="DURASI CUTI TAHUNAN"]');
+    let sisaCuti = parseInt($('input[data-fkey="SISA CUTI TAHUNAN"]').val()) || 0;
+    let maxCtDur = Math.max(0, sisaCuti);
+    $ctDur.closest('.m-form-group').find('.m-ct-error-msg').remove();
+    $ctDur.css('border-color', '');
+
+    if (thnDurNow > maxCtDur) {
+      $ctDur.css('border-color', '#c10f19');
+      $ctDur.closest('.m-form-group').append('<div class="m-ct-error-msg" style="color: #c10f19; font-size: 0.78em; margin-top: 4px; font-weight: 500;">Durasi Cuti Tahunan tidak boleh lebih dari Sisa Cuti Tahunan (' + maxCtDur + ')</div>');
+    }
 
     // Validate day-of-week kalau NON LOKAL (kecuali jabatan tertentu)
     let lokal = $('input[data-fkey="CUTI LOKAL/NON LOKAL"]').val();
@@ -4164,10 +4195,18 @@ function mSubmitCutiForm() {
     let k = $(this).data('fkey');
     let v = $(this).val();
     let req = $(this).prop('required');
-    let visible = $(this).is(':visible') || $(this).attr('type') === 'hidden';
+    
+    let isHidden = false;
+    if ($(this).is(':hidden') && $(this).attr('type') !== 'hidden') {
+      isHidden = true;
+    }
+    if ($(this).closest('.m-form-group').is(':hidden') || $(this).closest('[id^="mf-"]').is(':hidden')) {
+      isHidden = true;
+    }
+    
+    let visible = !isHidden;
     if (req && visible && (!v || v === '')) {
-      // Also check parent visible
-      if ($(this).closest('[id^="mf-"]:hidden').length === 0) missing.push(k);
+      missing.push(k);
     }
     // Auto-uppercase
     if ($(this).data('upper') && v) v = String(v).toUpperCase();
@@ -4196,6 +4235,11 @@ function mSubmitCutiForm() {
   // Validate travel day and date range errors
   if ($('#m-form-content .m-day-error-msg, #m-form-content .m-range-error-msg').length > 0) {
     return Swal.fire('Tanggal Tidak Valid', 'Terdapat kesalahan pada tanggal keberangkatan/kembali dari Jobsite. Harap perbaiki sesuai dengan pesan kesalahan di form.', 'warning');
+  }
+
+  // Validate Durasi Cuti Tahunan vs Sisa Cuti Tahunan
+  if ($('#m-form-content .m-ct-error-msg').length > 0) {
+    return Swal.fire('Durasi Cuti Tahunan Tidak Valid', 'Durasi cuti tahunan melebihi sisa cuti tahunan Anda.', 'warning');
   }
 
   // Validate passenger flight ticket departure and return dates
