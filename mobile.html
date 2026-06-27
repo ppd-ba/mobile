@@ -3362,8 +3362,17 @@ function mRenderGenericForm(formType) {
     let maxCuti = parseInt(mFormCurrent.mp ? mFormCurrent.mp["SISA CUTI TAHUNAN SAAT INI"] : 12) || 12;
     let stepField = cfg.formFields.find(f => f.key === 'JUMLAH HARI');
     if (stepField) {
-      stepField.max = maxCuti;
-      stepField.value = 1;
+      if (maxCuti < 1) {
+        stepField.min = 0;
+        stepField.max = 0;
+        stepField.value = 0;
+        stepField.disabled = true;
+      } else {
+        stepField.min = 1;
+        stepField.max = maxCuti;
+        stepField.value = 1;
+        stepField.disabled = false;
+      }
     }
   }
 
@@ -4433,7 +4442,7 @@ function mGetFormConfig(formType) {
 }
 
 function mBuildField(f) {
-  let val = f.value || '';
+  let val = (f.value !== undefined && f.value !== null) ? f.value : '';
   let req = f.req ? 'req' : '';
   let attr = f.readonly ? 'readonly style="background:#f1f5f9; color:#64748b;"' : '';
   
@@ -4466,10 +4475,12 @@ function mBuildField(f) {
   } else if (f.type === 'stepper') {
     let mn = f.min === undefined ? 1 : f.min;
     let mx = f.max === undefined ? 99 : f.max;
+    let disAttr = f.disabled ? 'disabled style="background:#f1f5f9; color:#94a3b8; pointer-events:none;"' : '';
+    let btnDisAttr = f.disabled ? 'disabled style="opacity:0.5; pointer-events:none;"' : '';
     html += '<div class="m-stepper" data-min="'+mn+'" data-max="'+mx+'">'
-         +   '<button type="button" class="m-step-btn" onclick="mfStepperChange(this, -1)">−</button>'
-         +   '<input class="m-step-val" type="number" data-fkey="'+f.key+'" value="'+val+'" min="'+mn+'" max="'+mx+'" oninput="mfStepperClamp(this)" '+(f.req?'required':'')+'>'
-         +   '<button type="button" class="m-step-btn" onclick="mfStepperChange(this, 1)">+</button>'
+         +   '<button type="button" class="m-step-btn" onclick="mfStepperChange(this, -1)" '+btnDisAttr+'>−</button>'
+         +   '<input class="m-step-val" type="number" data-fkey="'+f.key+'" value="'+val+'" min="'+mn+'" max="'+mx+'" oninput="mfStepperClamp(this)" '+(f.req?'required':'')+' '+disAttr+'>'
+         +   '<button type="button" class="m-step-btn" onclick="mfStepperChange(this, 1)" '+btnDisAttr+'>+</button>'
          + '</div>';
   } else if (f.type === 'file') {
     let acc = f.accept ? `accept="${f.accept}"` : '';
@@ -4513,6 +4524,10 @@ function mSubmitForm(formType) {
   }
 
   if (formType === 'IZIN NON RESMI') {
+    let maxCuti = parseInt(mFormCurrent.mp ? mFormCurrent.mp["SISA CUTI TAHUNAN SAAT INI"] : 12) || 12;
+    if (maxCuti < 1) {
+      return Swal.fire('Gagal Submit', 'Jumlah sisa cuti tahunan anda kurang, silahkan konfirmasi ke atasan terlebih dahulu!', 'warning');
+    }
     if (!mInrValidateDepartureDate()) {
       return Swal.fire('Validasi Gagal', 'Tanggal Berangkat harus lebih dari tanggal hari ini. Silakan konfirmasi ke atasan.', 'warning');
     }
