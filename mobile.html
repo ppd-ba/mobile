@@ -3663,8 +3663,8 @@ function mRenderCutiForm() {
   html += mfStepper('DURASI CUTI TAHUNAN', 'Durasi Cuti Tahunan (hari)', 0, { min:0, max: Math.max(0, sisaCT), onChange:'mCutiOnChange()' });
   html += mfRO('CUTI TAHUNAN (AKHIR)', 'Cuti Tahunan Akhir', '');
 
-  html += mfDate('BERANGKAT DARI JOBSITE', 'Berangkat dari Jobsite', '', { req:true, onChange:'mCutiValidateDay(this); mCutiOnChange()' });
-  html += mfDate('KEMBALI KE JOBSITE', 'Kembali ke Jobsite', '', { req:true, onChange:'mCutiValidateDay(this); mCutiOnChange()' });
+  html += mfDate('BERANGKAT DARI JOBSITE', 'Berangkat dari Jobsite', '', { req:true, onChange:'mCutiOnChange()' });
+  html += mfDate('KEMBALI KE JOBSITE', 'Kembali ke Jobsite', '', { req:true, onChange:'mCutiOnChange()' });
   html += mfRO('JADWAL CUTI SELANJUTNYA', 'Jadwal Cuti Selanjutnya', '');
   html += '</div>';
 
@@ -3953,11 +3953,20 @@ function mCutiOnChange() {
         $el.closest('.m-form-group').append('<div class="m-range-error-msg" style="color: #c10f19; font-size: 0.78em; margin-top: 4px; font-weight: 500;">Tanggal harus &le; ' + labelMax + ' (' + fmtD(maxDate) + ')</div>');
       }
 
-      // 2. Validate day-of-week if Pesan Travel? === 'PESAN' and user not SH, DH, MASTER
+      // 2. Validate day-of-week (Senin/Rabu/Jumat)
+      // Check Rule A (Non-Lokal, non-exempt jabatan)
+      let lokal = $('input[data-fkey="CUTI LOKAL/NON LOKAL"]').val();
+      let jab = String(mUser.jabatan || '').toUpperCase().trim();
+      let exemptJab = ['ACT. SECTION HEAD PLANT','SECTION HEAD PLANT','ACT. DEPARTEMEN HEAD','DEPARTEMEN HEAD'];
+      let isNonLokalExempt = (lokal === 'NON LOKAL' && exemptJab.indexOf(jab) < 0);
+
+      // Check Rule B (Pesan Travel, non-approver roles)
       let role = String(mUser.role || '').toUpperCase().trim();
       let isSH_DH_MASTER = ['SH', 'DH', 'MASTER'].includes(role);
       let pesanTravel = $('input[data-fkey="PESAN TRAVEL/TIDAK"]').val();
-      if (!isSH_DH_MASTER && pesanTravel === 'PESAN') {
+      let isTravelPesanReq = (!isSH_DH_MASTER && pesanTravel === 'PESAN');
+
+      if (isNonLokalExempt || isTravelPesanReq) {
         let d = new Date(val + 'T00:00:00');
         let dy = d.getDay(); // 1=Mon, 3=Wed, 5=Fri
         if ([1, 3, 5].indexOf(dy) < 0) {
@@ -4016,37 +4025,7 @@ function mCutiOnChange() {
     safeVal("TANGGAL KEBERANGKATAN PENUMPANG 1", bjs || "");
     // Sync TANGGAL KEMBALI P2 ← KEMBALI JOBSITE (always)
     safeVal("TANGGAL KEMBALI PENUMPANG 2", kjs || "");
-    if (mustValidateDay) {
-      let invalidFound = false;
-      [bjs, kjs].forEach((dt, i) => {
-        if (!dt) return;
-        let d = new Date(dt + 'T00:00:00');
-        let dy = d.getDay();
-        let allowed = [1, 3, 5];
-        let key = i === 0 ? 'BERANGKAT DARI JOBSITE' : 'KEMBALI KE JOBSITE';
-        let $el = $('input[data-fkey="'+key+'"]');
-        if (allowed.indexOf(dy) < 0) {
-          // CLEAR invalid date
-          if ($el.val() !== '') {
-            $el.val('');
-            invalidFound = true;
-          }
-          $el.css('border-color','');
-        } else {
-          $el.css('border-color','').attr('title','');
-        }
-      });
-      if (invalidFound) {
-        Swal.fire({
-          toast: true, position: 'top', icon: 'warning',
-          title: 'NON LOKAL: hanya Senin/Rabu/Jumat',
-          text: 'Tanggal tidak valid telah dikosongkan, silakan pilih ulang',
-          timer: 3500, showConfirmButton: false
-        });
-      }
-    } else {
-      $('input[data-fkey="BERANGKAT DARI JOBSITE"], input[data-fkey="KEMBALI KE JOBSITE"]').css('border-color','').attr('title','');
-    }
+    // Removed old popup/clearing logic. Validation is handled inline in checkField.
 
     // Calc Jadwal Cuti Selanjutnya = Kembali ke Jobsite + DURASI ONSITE
     if (kjs && mFormCurrent.mp && mFormCurrent.mp["DURASI ONSITE"]) {
@@ -4064,25 +4043,7 @@ function mCutiOnChange() {
 
 // Validasi hari saat user pilih tanggal BJS/KJS — kalau NON LOKAL & jabatan non-exempt
 function mCutiValidateDay(inpEl) {
-  let lokal = $('input[data-fkey="CUTI LOKAL/NON LOKAL"]').val();
-  let jab = String(mUser.jabatan || '').toUpperCase().trim();
-  let exempt = ['ACT. SECTION HEAD PLANT','SECTION HEAD PLANT','ACT. DEPARTEMEN HEAD','DEPARTEMEN HEAD'];
-  if (lokal !== 'NON LOKAL' || exempt.indexOf(jab) >= 0) return;
-  let v = inpEl.value;
-  if (!v) return;
-  let d = new Date(v + 'T00:00:00');
-  let dy = d.getDay();
-  let nameKey = $(inpEl).data('fkey');
-  if ([1, 3, 5].indexOf(dy) < 0) {
-    let dayName = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'][dy];
-    inpEl.value = '';
-    Swal.fire({
-      toast: true, position: 'top', icon: 'warning',
-      title: nameKey + ': ' + dayName + ' tidak diperbolehkan',
-      text: 'Pilih hari Senin/Rabu/Jumat untuk NON LOKAL',
-      timer: 3000, showConfirmButton: false
-    });
-  }
+  // Handled inline in mCutiOnChange
 }
 
 // Sync Bandara P2 (asal/tujuan terbalik dari P1) — dipanggil oninput field P1
