@@ -3670,7 +3670,7 @@ function mRenderCutiForm() {
 
   // ===== SECTION: TIKET PESAWAT =====
   html += '<div class="m-form-section"><div class="m-form-section-title"><i class="fas fa-plane mr-1"></i> Detail Pemesanan Tiket Pesawat</div>';
-  html += mfBtnGroup('PESAN TRAVEL/TIDAK', 'Pesan Travel?', ['PESAN','TIDAK'], { req:true });
+  html += mfBtnGroup('PESAN TRAVEL/TIDAK', 'Pesan Travel?', ['PESAN','TIDAK'], { req:true, onChange: 'mCutiOnChange()' });
   html += mfBtnGroup('JUMLAH PESANAN TIKET', 'Jumlah Pesanan Tiket', ['1','2','3','TIDAK PESAN'], { req:true, onChange:'mCutiOnChange()' });
 
   // Sub-section penumpang (rendered conditionally)
@@ -3874,6 +3874,82 @@ function mCutiOnChange() {
         safeVal("CUTI TAHUNAN (AKHIR)", '');
       }
     }
+
+    // === DATE RANGE & DAY VALIDATION (NEW REQUIREMENTS) ===
+    let minDate = lapAwal || '';
+    let maxDate = '';
+    let thnDurNow = parseInt($('input[data-fkey="DURASI CUTI TAHUNAN"]').val()) || 0;
+    if (thnDurNow > 1) {
+      maxDate = thnAkhirStr || '';
+    } else if (thnDurNow === 0) {
+      maxDate = lapAkhirStr || '';
+    } else if (thnDurNow === 1) {
+      maxDate = thnAkhirStr || lapAkhirStr || '';
+    }
+
+    let $bjs = $('input[data-fkey="BERANGKAT DARI JOBSITE"]');
+    let $kjs = $('input[data-fkey="KEMBALI KE JOBSITE"]');
+
+    if (minDate) {
+      $bjs.attr('min', minDate);
+      $kjs.attr('min', minDate);
+    } else {
+      $bjs.removeAttr('min');
+      $kjs.removeAttr('min');
+    }
+
+    if (maxDate) {
+      $bjs.attr('max', maxDate);
+      $kjs.attr('max', maxDate);
+    } else {
+      $bjs.removeAttr('max');
+      $kjs.removeAttr('max');
+    }
+
+    // Function to format date as dd/mm/yyyy
+    function fmtD(val) {
+      if (!val) return '';
+      let p = val.split('-');
+      if (p.length === 3) return p[2] + '/' + p[1] + '/' + p[0];
+      return val;
+    }
+
+    // Reset error styling and message
+    $bjs.closest('.m-form-group').find('.m-day-error-msg, .m-range-error-msg').remove();
+    $kjs.closest('.m-form-group').find('.m-day-error-msg, .m-range-error-msg').remove();
+    $bjs.css('border-color', '');
+    $kjs.css('border-color', '');
+
+    function checkField($el, key) {
+      let val = $el.val();
+      if (!val) return;
+
+      // 1. Validate Range
+      if (minDate && val < minDate) {
+        $el.css('border-color', '#c10f19');
+        $el.closest('.m-form-group').append('<div class="m-range-error-msg" style="color: #c10f19; font-size: 0.78em; margin-top: 4px; font-weight: 500;">Tanggal harus &ge; Cuti Lapangan Awal (' + fmtD(minDate) + ')</div>');
+      } else if (maxDate && val > maxDate) {
+        $el.css('border-color', '#c10f19');
+        let labelMax = (thnDurNow > 1) ? 'Cuti Tahunan Akhir' : 'Cuti Lapangan Akhir';
+        $el.closest('.m-form-group').append('<div class="m-range-error-msg" style="color: #c10f19; font-size: 0.78em; margin-top: 4px; font-weight: 500;">Tanggal harus &le; ' + labelMax + ' (' + fmtD(maxDate) + ')</div>');
+      }
+
+      // 2. Validate day-of-week if Pesan Travel? === 'PESAN' and user not SH, DH, MASTER
+      let role = String(mUser.role || '').toUpperCase().trim();
+      let isSH_DH_MASTER = ['SH', 'DH', 'MASTER'].includes(role);
+      let pesanTravel = $('input[data-fkey="PESAN TRAVEL/TIDAK"]').val();
+      if (!isSH_DH_MASTER && pesanTravel === 'PESAN') {
+        let d = new Date(val + 'T00:00:00');
+        let dy = d.getDay(); // 1=Mon, 3=Wed, 5=Fri
+        if ([1, 3, 5].indexOf(dy) < 0) {
+          $el.css('border-color', '#c10f19');
+          $el.closest('.m-form-group').append('<div class="m-day-error-msg" style="color: #c10f19; font-size: 0.78em; margin-top: 4px; font-weight: 500;">Hari harus Senin/Rabu/Jum\'at!</div>');
+        }
+      }
+    }
+
+    checkField($bjs, 'BERANGKAT DARI JOBSITE');
+    checkField($kjs, 'KEMBALI KE JOBSITE');
 
     // Validate day-of-week kalau NON LOKAL (kecuali jabatan tertentu)
     let lokal = $('input[data-fkey="CUTI LOKAL/NON LOKAL"]').val();
@@ -4115,6 +4191,11 @@ function mSubmitCutiForm() {
 
   if (missing.length > 0) {
     return Swal.fire('Lengkapi','Field belum lengkap:\n• ' + missing.slice(0,5).join('\n• ') + (missing.length>5?'\n• ...':''),'warning');
+  }
+
+  // Validate travel day and date range errors
+  if ($('#m-form-content .m-day-error-msg, #m-form-content .m-range-error-msg').length > 0) {
+    return Swal.fire('Tanggal Tidak Valid', 'Terdapat kesalahan pada tanggal keberangkatan/kembali dari Jobsite. Harap perbaiki sesuai dengan pesan kesalahan di form.', 'warning');
   }
 
   // Validate passenger flight ticket departure and return dates
