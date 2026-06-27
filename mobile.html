@@ -3954,19 +3954,13 @@ function mCutiOnChange() {
       }
 
       // 2. Validate day-of-week (Senin/Rabu/Jumat)
-      // Check Rule A (Non-Lokal, non-exempt jabatan)
-      let lokal = $('input[data-fkey="CUTI LOKAL/NON LOKAL"]').val();
-      let jab = String(mUser.jabatan || '').toUpperCase().trim();
-      let exemptJab = ['ACT. SECTION HEAD PLANT','SECTION HEAD PLANT','ACT. DEPARTEMEN HEAD','DEPARTEMEN HEAD'];
-      let isNonLokalExempt = (lokal === 'NON LOKAL' && exemptJab.indexOf(jab) < 0);
-
-      // Check Rule B (Pesan Travel, non-approver roles)
+      // Only required if Pesan Travel? === 'PESAN' and user role is not SH, DH, MASTER
       let role = String(mUser.role || '').toUpperCase().trim();
       let isSH_DH_MASTER = ['SH', 'DH', 'MASTER'].includes(role);
       let pesanTravel = $('input[data-fkey="PESAN TRAVEL/TIDAK"]').val();
       let isTravelPesanReq = (!isSH_DH_MASTER && pesanTravel === 'PESAN');
 
-      if (isNonLokalExempt || isTravelPesanReq) {
+      if (isTravelPesanReq) {
         let d = new Date(val + 'T00:00:00');
         let dy = d.getDay(); // 1=Mon, 3=Wed, 5=Fri
         if ([1, 3, 5].indexOf(dy) < 0) {
