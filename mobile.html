@@ -4333,9 +4333,9 @@ function mGetFormConfig(formType) {
     ]);
     formFields = [
       { key:'JENIS BERITA ACARA', label:'Jenis BA', type:'select', options:['PERUBAHAN RUTE/WAKTU','PERMINTAAN TIKET TAMBAHAN'], req:true },
-      { key:'TUJUAN 1', label:'Tujuan Keberangkatan', type:'text', req:true },
+      { key:'TUJUAN 1', label:'Tujuan Keberangkatan', type:'text', req:true, placeholder:'Contoh: SOLO - PALEMBANG, SOC - PLM' },
       { key:'TANGGAL 1', label:'Tanggal Keberangkatan', type:'date', req:true },
-      { key:'TUJUAN 2', label:'Tujuan Kembali', type:'text', req:true },
+      { key:'TUJUAN 2', label:'Tujuan Kembali', type:'text', req:true, placeholder:'Contoh: SOLO - PALEMBANG, SOC - PLM' },
       { key:'TANGGAL 2', label:'Tanggal Kembali', type:'date', req:true },
       { key:'URAIAN/PENJELASAAN', label:'Uraian / Penjelasan', type:'textarea', req:true }
     ];
@@ -4456,7 +4456,8 @@ function mBuildField(f) {
   let html = '<div class="m-form-group"'+groupAttr+'><label class="m-form-label '+req+'">'+f.label+'</label>';
   
   if (f.type === 'textarea') {
-    html += '<textarea class="m-form-textarea" data-fkey="'+f.key+'" '+attr+' '+(f.req?'required':'')+'>'+val+'</textarea>';
+    let plc = f.placeholder ? `placeholder="${f.placeholder}"` : '';
+    html += '<textarea class="m-form-textarea" data-fkey="'+f.key+'" '+attr+' '+(f.req?'required':'')+' '+plc+'>'+val+'</textarea>';
   } else if (f.type === 'select') {
     html += '<select class="m-form-select" data-fkey="'+f.key+'" '+(f.req?'required':'')+'>';
     html += '<option value="">- Pilih -</option>';
@@ -4490,7 +4491,8 @@ function mBuildField(f) {
     if (f.readonly && f.type === 'date') {
       displayType = 'text';
     }
-    html += '<input class="m-form-input" type="'+displayType+'" data-fkey="'+f.key+'" value="'+val+'" '+attr+' '+(f.req?'required':'')+'>';
+    let plc = f.placeholder ? `placeholder="${f.placeholder}"` : '';
+    html += '<input class="m-form-input" type="'+displayType+'" data-fkey="'+f.key+'" value="'+val+'" '+attr+' '+(f.req?'required':'')+' '+plc+'>';
   }
   html += '</div>';
   return html;
