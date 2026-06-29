@@ -2291,6 +2291,19 @@ $(document).ready(function() {
       localStorage.setItem("mLastActiveTime", Date.now());
       mShowApp();
       mInitData();
+
+      // Restore last open form on refresh
+      let hash = window.location.hash || '';
+      if (hash === '#overlay-form') {
+        let lastForm = localStorage.getItem('mLastOpenFormType');
+        if (lastForm) {
+          setTimeout(function() {
+            mOpenForm(lastForm);
+          }, 100);
+        } else {
+          window.location.hash = '';
+        }
+      }
     } catch(e) { localStorage.removeItem('PPDMobileUser'); }
   }
 
@@ -2372,6 +2385,10 @@ function mPushNav(type, value) {
 
 function mHandleHashChange() {
   const hash = window.location.hash || '';
+  
+  if (hash !== '#overlay-form' && hash !== '#overlay-planova-templates' && hash !== '#overlay-crop-photo') {
+    localStorage.removeItem('mLastOpenFormType');
+  }
   
   // Hide all overlays
   $('#m-quick-sheet').hide();
@@ -3287,6 +3304,7 @@ function mGetMpData(callback) {
 }
 
 function mOpenForm(formType) {
+  localStorage.setItem('mLastOpenFormType', formType);
   mFormCurrent = { type: formType, mp: {}, state: {} };
   // CUTI pakai builder khusus
   if (formType === 'CUTI') return mOpenCutiForm();
@@ -4269,6 +4287,7 @@ function mSubmitCutiForm() {
 }
 
 function mCloseForm() {
+  localStorage.removeItem('mLastOpenFormType');
   if (window.location.hash === '#overlay-form') {
     window.history.back();
   } else {
