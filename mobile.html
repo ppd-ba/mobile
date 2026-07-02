@@ -1411,6 +1411,48 @@ button { font-family: inherit; cursor: pointer; }
 }
 </style>
 
+/* ===== MENU LAIN SWAL POPUP ===== */
+.m-menu-lain-swal-popup {
+  border-radius: 20px !important;
+  padding: 16px 8px 24px 8px !important;
+  background: #ffffff !important;
+}
+.m-menu-lain-popup-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px 6px;
+  margin-top: 16px;
+}
+.m-menu-lain-popup-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 6px 2px;
+  transition: transform 0.15s;
+}
+.m-menu-lain-popup-item:active {
+  transform: scale(0.92);
+}
+.m-menu-lain-popup-item .m-ic-wrap {
+  width: 52px;
+  height: 52px;
+  font-size: 1.3em;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+.m-menu-lain-popup-item span {
+  font-size: 0.72em;
+  font-weight: 700;
+  color: #475569;
+  text-align: center;
+  line-height: 1.25;
+}
 
 
 
@@ -1861,44 +1903,7 @@ button { font-family: inherit; cursor: pointer; }
     </div>
   </div>
 
-  <!-- ============ MENU LAIN BOTTOM SHEET ============ -->
-  <div id="m-menu-lain-sheet" class="m-quick-sheet" style="display:none;">
-    <div class="m-quick-backdrop" onclick="mCloseMenuLain()"></div>
-    <div class="m-quick-content">
-      <div class="m-quick-handle"></div>
-      <h3 class="m-quick-title">Menu Lainnya</h3>
-      <div class="m-quick-grid">
-        <div class="m-quick-btn" onclick="mCloseMenuLain(); mShowComingSoonMenu('Absensi')">
-          <div class="m-ic-wrap m-ic-blue"><i class="fa-solid fa-user-check"></i></div>
-          <span>Absensi</span>
-        </div>
-        <div class="m-quick-btn" onclick="mCloseMenuLain(); mShowComingSoonMenu('Event Development')">
-          <div class="m-ic-wrap m-ic-orange"><i class="fa-solid fa-calendar-day"></i></div>
-          <span>Event Development</span>
-        </div>
-        <div class="m-quick-btn" onclick="mCloseMenuLain(); mShowComingSoonMenu('History Development')">
-          <div class="m-ic-wrap m-ic-teal"><i class="fa-solid fa-chart-line"></i></div>
-          <span>History Development</span>
-        </div>
-        <div class="m-quick-btn" onclick="mCloseMenuLain(); mShowComingSoonMenu('Input Oli (OCA)')">
-          <div class="m-ic-wrap m-ic-red"><i class="fa-solid fa-oil-can"></i></div>
-          <span>Input Oli (OCA)</span>
-        </div>
-        <div class="m-quick-btn" onclick="mCloseMenuLain(); mShowComingSoonMenu('Materi Pelatihan')">
-          <div class="m-ic-wrap m-ic-purple"><i class="fa-solid fa-book-open"></i></div>
-          <span>Materi Pelatihan</span>
-        </div>
-        <div class="m-quick-btn" onclick="mCloseMenuLain(); mShowComingSoonMenu('Dokumen Prosedur')">
-          <div class="m-ic-wrap m-ic-indigo"><i class="fa-solid fa-file-shield"></i></div>
-          <span>Dokumen Prosedur</span>
-        </div>
-        <div class="m-quick-btn" onclick="mCloseMenuLain(); mShowComingSoonMenu('Populasi Unit')">
-          <div class="m-ic-wrap m-ic-cyan"><i class="fa-solid fa-truck-monster"></i></div>
-          <span>Populasi Unit</span>
-        </div>
-      </div>
-    </div>
-  </div>
+
 </div>
 
 <!-- ============ SUBMENU OVERLAY ============ -->
@@ -2419,13 +2424,12 @@ function mPushNav(type, value) {
 function mHandleHashChange() {
   const hash = window.location.hash || '';
   
-  if (hash !== '#overlay-form' && hash !== '#overlay-planova-templates' && hash !== '#overlay-crop-photo' && hash !== '#overlay-menu-lain') {
+  if (hash !== '#overlay-form' && hash !== '#overlay-planova-templates' && hash !== '#overlay-crop-photo') {
     localStorage.removeItem('mLastOpenFormType');
   }
   
   // Hide all overlays
   $('#m-quick-sheet').hide();
-  $('#m-menu-lain-sheet').hide();
   $('#m-form-overlay').hide();
   $('#m-submenu-overlay').hide();
   $('#m-approval-overlay').hide();
@@ -2449,8 +2453,7 @@ function mHandleHashChange() {
     $('#m-templates-overlay').show();
   } else if (hash === '#overlay-quick') {
     $('#m-quick-sheet').show();
-  } else if (hash === '#overlay-menu-lain') {
-    $('#m-menu-lain-sheet').show();
+
   } else if (hash === '#overlay-crop-photo') {
     $('#m-submenu-overlay').show();
     $('#m-form-overlay').show();
@@ -3205,17 +3208,50 @@ function mCloseQuickActions() {
   }
 }
 
-// ============== MENU LAIN BOTTOM SHEET ==============
+// ============== MENU LAIN POPUP ==============
 function mOpenMenuLain() {
-  $('#m-menu-lain-sheet').show();
-  mPushNav('overlay', 'menu-lain');
-}
-function mCloseMenuLain() {
-  if (window.location.hash === '#overlay-menu-lain') {
-    window.history.back();
-  } else {
-    $('#m-menu-lain-sheet').hide();
-  }
+  let html = `
+    <div class="m-menu-lain-popup-grid">
+      <div class="m-menu-lain-popup-item" onclick="Swal.close(); mShowComingSoonMenu('Absensi')">
+        <div class="m-ic-wrap m-ic-blue"><i class="fa-solid fa-user-check"></i></div>
+        <span>Absensi</span>
+      </div>
+      <div class="m-menu-lain-popup-item" onclick="Swal.close(); mShowComingSoonMenu('Event Development')">
+        <div class="m-ic-wrap m-ic-orange"><i class="fa-solid fa-calendar-day"></i></div>
+        <span>Event Development</span>
+      </div>
+      <div class="m-menu-lain-popup-item" onclick="Swal.close(); mShowComingSoonMenu('History Development')">
+        <div class="m-ic-wrap m-ic-teal"><i class="fa-solid fa-chart-line"></i></div>
+        <span>History Development</span>
+      </div>
+      <div class="m-menu-lain-popup-item" onclick="Swal.close(); mShowComingSoonMenu('Input Oli (OCA)')">
+        <div class="m-ic-wrap m-ic-red"><i class="fa-solid fa-oil-can"></i></div>
+        <span>Input Oli (OCA)</span>
+      </div>
+      <div class="m-menu-lain-popup-item" onclick="Swal.close(); mShowComingSoonMenu('Materi Pelatihan')">
+        <div class="m-ic-wrap m-ic-purple"><i class="fa-solid fa-book-open"></i></div>
+        <span>Materi Pelatihan</span>
+      </div>
+      <div class="m-menu-lain-popup-item" onclick="Swal.close(); mShowComingSoonMenu('Dokumen Prosedur')">
+        <div class="m-ic-wrap m-ic-indigo"><i class="fa-solid fa-file-shield"></i></div>
+        <span>Dokumen Prosedur</span>
+      </div>
+      <div class="m-menu-lain-popup-item" onclick="Swal.close(); mShowComingSoonMenu('Populasi Unit')">
+        <div class="m-ic-wrap m-ic-cyan"><i class="fa-solid fa-truck-monster"></i></div>
+        <span>Populasi Unit</span>
+      </div>
+    </div>
+  `;
+
+  Swal.fire({
+    title: 'Menu Lainnya',
+    html: html,
+    showConfirmButton: false,
+    showCloseButton: true,
+    customClass: {
+      popup: 'm-menu-lain-swal-popup'
+    }
+  });
 }
 function mShowComingSoonMenu(menuName) {
   Swal.fire('Coming Soon', 'Menu ' + menuName + ' sedang dalam tahap pengembangan!', 'info');
