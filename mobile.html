@@ -582,7 +582,7 @@ button { font-family: inherit; cursor: pointer; }
   background: linear-gradient(180deg, #05244d 0%, #03152e 100%);
   box-shadow: 0 -6px 24px rgba(0,0,0,0.25);
   display: flex; justify-content: space-around; align-items: flex-end;
-  padding: 8px 0 calc(44px + env(safe-area-inset-bottom));
+  padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
   z-index: 100;
   border-top: 1px solid rgba(255,255,255,0.08);
   border-radius: 22px 22px 0 0;
@@ -1409,50 +1409,63 @@ button { font-family: inherit; cursor: pointer; }
 .m-tab-hidden-by-overlay {
   display: none !important;
 }
-</style>
 
-/* ===== MENU LAIN SWAL POPUP ===== */
+/* ===== MENU LAIN SWAL POPUP (LIST STYLE) ===== */
 .m-menu-lain-swal-popup {
   border-radius: 20px !important;
-  padding: 16px 8px 24px 8px !important;
+  padding: 20px 16px !important;
   background: #ffffff !important;
+  width: 90% !important;
+  max-width: 380px !important;
 }
-.m-menu-lain-popup-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px 6px;
-  margin-top: 16px;
-}
-.m-menu-lain-popup-item {
+.m-menu-lain-popup-list {
   display: flex;
   flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 0 4px;
+  width: 100%;
+}
+.m-menu-lain-popup-row {
+  display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 16px;
   cursor: pointer;
-  padding: 6px 2px;
-  transition: transform 0.15s;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  transition: background 0.15s, transform 0.1s;
+  width: 100%;
+  box-sizing: border-box;
 }
-.m-menu-lain-popup-item:active {
-  transform: scale(0.92);
+.m-menu-lain-popup-row:active {
+  transform: scale(0.98);
+  background: #f1f5f9;
 }
-.m-menu-lain-popup-item .m-ic-wrap {
-  width: 52px;
-  height: 52px;
-  font-size: 1.3em;
-  border-radius: 15px;
+.m-menu-lain-popup-row .m-ic-wrap {
+  width: 42px;
+  height: 42px;
+  font-size: 1.25em;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
 }
-.m-menu-lain-popup-item span {
-  font-size: 0.72em;
+.m-menu-lain-row-text {
+  font-size: 0.95em;
   font-weight: 700;
-  color: #475569;
-  text-align: center;
-  line-height: 1.25;
+  color: #334155;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
 }
+
+</style>
 
 
 
@@ -3211,34 +3224,34 @@ function mCloseQuickActions() {
 // ============== MENU LAIN POPUP ==============
 function mOpenMenuLain() {
   let html = `
-    <div class="m-menu-lain-popup-grid">
-      <div class="m-menu-lain-popup-item" onclick="Swal.close(); mShowComingSoonMenu('Absensi')">
+    <div class="m-menu-lain-popup-list">
+      <div class="m-menu-lain-popup-row" onclick="Swal.close(); mShowComingSoonMenu('Absensi')">
         <div class="m-ic-wrap m-ic-blue"><i class="fa-solid fa-user-check"></i></div>
-        <span>Absensi</span>
+        <span class="m-menu-lain-row-text">Absensi</span>
       </div>
-      <div class="m-menu-lain-popup-item" onclick="Swal.close(); mShowComingSoonMenu('Event Development')">
+      <div class="m-menu-lain-popup-row" onclick="Swal.close(); mShowComingSoonMenu('Event Development')">
         <div class="m-ic-wrap m-ic-orange"><i class="fa-solid fa-calendar-day"></i></div>
-        <span>Event Development</span>
+        <span class="m-menu-lain-row-text">Event Development</span>
       </div>
-      <div class="m-menu-lain-popup-item" onclick="Swal.close(); mShowComingSoonMenu('History Development')">
+      <div class="m-menu-lain-popup-row" onclick="Swal.close(); mShowComingSoonMenu('History Development')">
         <div class="m-ic-wrap m-ic-teal"><i class="fa-solid fa-chart-line"></i></div>
-        <span>History Development</span>
+        <span class="m-menu-lain-row-text">History Development</span>
       </div>
-      <div class="m-menu-lain-popup-item" onclick="Swal.close(); mShowComingSoonMenu('Input Oli (OCA)')">
+      <div class="m-menu-lain-popup-row" onclick="Swal.close(); mShowComingSoonMenu('Input Oli (OCA)')">
         <div class="m-ic-wrap m-ic-red"><i class="fa-solid fa-oil-can"></i></div>
-        <span>Input Oli (OCA)</span>
+        <span class="m-menu-lain-row-text">Input Oli (OCA)</span>
       </div>
-      <div class="m-menu-lain-popup-item" onclick="Swal.close(); mShowComingSoonMenu('Materi Pelatihan')">
+      <div class="m-menu-lain-popup-row" onclick="Swal.close(); mShowComingSoonMenu('Materi Pelatihan')">
         <div class="m-ic-wrap m-ic-purple"><i class="fa-solid fa-book-open"></i></div>
-        <span>Materi Pelatihan</span>
+        <span class="m-menu-lain-row-text">Materi Pelatihan</span>
       </div>
-      <div class="m-menu-lain-popup-item" onclick="Swal.close(); mShowComingSoonMenu('Dokumen Prosedur')">
+      <div class="m-menu-lain-popup-row" onclick="Swal.close(); mShowComingSoonMenu('Dokumen Prosedur')">
         <div class="m-ic-wrap m-ic-indigo"><i class="fa-solid fa-file-shield"></i></div>
-        <span>Dokumen Prosedur</span>
+        <span class="m-menu-lain-row-text">Dokumen Prosedur</span>
       </div>
-      <div class="m-menu-lain-popup-item" onclick="Swal.close(); mShowComingSoonMenu('Populasi Unit')">
+      <div class="m-menu-lain-popup-row" onclick="Swal.close(); mShowComingSoonMenu('Populasi Unit')">
         <div class="m-ic-wrap m-ic-cyan"><i class="fa-solid fa-truck-monster"></i></div>
-        <span>Populasi Unit</span>
+        <span class="m-menu-lain-row-text">Populasi Unit</span>
       </div>
     </div>
   `;
