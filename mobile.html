@@ -1354,6 +1354,7 @@ button { font-family: inherit; cursor: pointer; }
 .m-birthday-avatar-wrap {
   position: relative;
   margin-bottom: 10px;
+  display: inline-block;
 }
 .m-birthday-avatar {
   width: 75px;
@@ -1365,10 +1366,12 @@ button { font-family: inherit; cursor: pointer; }
 }
 .m-birthday-hat {
   position: absolute;
-  top: -12px;
-  right: -10px;
-  font-size: 1.5em;
-  transform: rotate(15deg);
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -100%);
+  font-size: 1.6em;
+  z-index: 2;
+  line-height: 1;
 }
 .m-birthday-name {
   font-size: 0.95em;
@@ -1458,6 +1461,83 @@ button { font-family: inherit; cursor: pointer; }
   flex-grow: 1;
 }
 
+/* Custom Dropdown Styling for Mobile */
+.custom-select-hidden {
+  position: absolute !important;
+  width: 0 !important;
+  height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  overflow: hidden !important;
+}
+.custom-select-container {
+  position: relative;
+  width: 100%;
+  user-select: none;
+}
+.custom-select-trigger {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 11px 13px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 11px;
+  font-size: 0.92em;
+  background: #ffffff;
+  color: #0f172a;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.custom-select-trigger.is-invalid {
+  border-color: #c10f19 !important;
+  background-color: #fef2f2 !important;
+}
+.custom-select-trigger.open {
+  border-color: #c10f19;
+  outline: 0;
+}
+.custom-select-trigger i {
+  font-size: 11px;
+  color: #64748b;
+  transition: transform 0.2s ease;
+}
+.custom-select-trigger.open i {
+  transform: rotate(180deg);
+}
+.custom-select-options {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1050;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 11px;
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+  margin-top: 4px;
+  max-height: 220px;
+  overflow-y: auto;
+  display: none;
+}
+.custom-select-option {
+  padding: 11px 13px;
+  font-size: 0.92em;
+  color: #334155;
+  cursor: pointer;
+  transition: background-color 0.1s ease;
+}
+.custom-select-option:hover {
+  background-color: #f1f5f9;
+}
+.custom-select-option.selected {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 600;
+}
 </style>
 
 
@@ -2255,8 +2335,172 @@ button { font-family: inherit; cursor: pointer; }
 <script>window.Swal || document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/11.7.12/sweetalert2.all.min.js"><\/script>')</script>
 <script>
 
+// ====== CUSTOM DROPDOWN SELECTS FOR MOBILE ======
+function rebuildCustomOptions($select, optionsList, trigger) {
+  optionsList.empty();
+  
+  $select.find('option').each(function() {
+    let val = $(this).val();
+    let text = $(this).text();
+    let isSelected = $(this).is(':selected');
+    let isDisabled = $(this).is(':disabled');
+    
+    if (isDisabled && !val) return;
+    
+    let optionEl = $('<div class="custom-select-option" data-value="' + val + '">' + text + '</div>');
+    if (isSelected) optionEl.addClass('selected');
+    optionsList.append(optionEl);
+  });
+  
+  let selectedOpt = $select.find('option:selected');
+  let triggerText = selectedOpt.length ? selectedOpt.text() : ($select.find('option').first().text() || '- Pilih -');
+  trigger.find('span').text(triggerText);
+}
+
+function initCustomMobileSelects(parentSelector) {
+  let selector = 'select.form-control, select.m-form-select';
+  let targets = parentSelector ? $(parentSelector).find(selector) : $(selector);
+  
+  targets.each(function() {
+    let $select = $(this);
+    
+    // Check if already initialized
+    let container = $select.next('.custom-select-container');
+    if ($select.hasClass('custom-select-hidden') && container.length) {
+      let trigger = container.find('.custom-select-trigger');
+      let optionsList = container.find('.custom-select-options');
+      rebuildCustomOptions($select, optionsList, trigger);
+      return;
+    }
+    
+    $select.addClass('custom-select-hidden');
+    
+    let newContainer = $('<div class="custom-select-container"></div>');
+    let trigger = $('<div class="custom-select-trigger"><span></span><i class="fas fa-chevron-down"></i></div>');
+    let optionsList = $('<div class="custom-select-options"></div>');
+    
+    rebuildCustomOptions($select, optionsList, trigger);
+    
+    let observer = new MutationObserver(function(mutations) {
+      rebuildCustomOptions($select, optionsList, trigger);
+    });
+    observer.observe($select[0], { childList: true, characterData: true, subtree: true });
+    
+    // HTML5 validation integration
+    $select.off('invalid.customselect').on('invalid.customselect', function() {
+      trigger.addClass('is-invalid');
+    });
+    $select.off('change.customselect').on('change.customselect', function() {
+      if ($select.val()) {
+        trigger.removeClass('is-invalid');
+      }
+    });
+    
+    newContainer.append(trigger).append(optionsList);
+    $select.after(newContainer);
+  });
+}
+
+(function($) {
+  let originalVal = $.fn.val;
+  $.fn.val = function(value) {
+    if (arguments.length === 0) {
+      return originalVal.call(this);
+    }
+    let result = originalVal.apply(this, arguments);
+    this.each(function() {
+      let $el = $(this);
+      if ($el.is('select') && $el.hasClass('custom-select-hidden')) {
+        let container = $el.next('.custom-select-container');
+        if (container.length) {
+          let selectedOpt = $el.find('option:selected');
+          let text = selectedOpt.length ? selectedOpt.text() : ($el.find('option').first().text() || '- Pilih -');
+          container.find('.custom-select-trigger span').text(text);
+          
+          let val = $el.val();
+          container.find('.custom-select-option').each(function() {
+            $(this).toggleClass('selected', $(this).data('value') == val);
+          });
+        }
+      }
+    });
+    return result;
+  };
+})(jQuery);
+
+$(document).ready(function() {
+  $(document).on('click', '.custom-select-trigger', function(e) {
+    e.stopPropagation();
+    let trigger = $(this);
+    let optionsList = trigger.next('.custom-select-options');
+    let isOpen = trigger.hasClass('open');
+    
+    $('.custom-select-trigger').not(trigger).removeClass('open');
+    $('.custom-select-options').not(optionsList).hide();
+    
+    if (isOpen) {
+      trigger.removeClass('open');
+      optionsList.hide();
+    } else {
+      trigger.addClass('open');
+      optionsList.show();
+    }
+  });
+
+  $(document).on('click', '.custom-select-option', function(e) {
+    e.stopPropagation();
+    let optionEl = $(this);
+    let val = optionEl.data('value');
+    let text = optionEl.text();
+    let container = optionEl.closest('.custom-select-container');
+    let trigger = container.find('.custom-select-trigger');
+    let optionsList = container.find('.custom-select-options');
+    let select = container.prev('select.custom-select-hidden');
+    
+    optionsList.find('.custom-select-option').removeClass('selected');
+    optionEl.addClass('selected');
+    trigger.find('span').text(text);
+    trigger.removeClass('open');
+    optionsList.hide();
+    
+    if (select.length) {
+      select.val(val).trigger('change');
+    }
+  });
+
+  $(document).on('click', function(e) {
+    if (!$(e.target).closest('.custom-select-container').length) {
+      $('.custom-select-trigger').removeClass('open');
+      $('.custom-select-options').hide();
+    }
+  });
+
+  initCustomMobileSelects();
+
+  let bodyObserver = new MutationObserver(function(mutations) {
+    let needsInit = false;
+    mutations.forEach(function(mutation) {
+      if (mutation.addedNodes && mutation.addedNodes.length > 0) {
+        for (let i = 0; i < mutation.addedNodes.length; i++) {
+          let node = mutation.addedNodes[i];
+          if (node.nodeType === 1) { 
+            if ($(node).is('select') || $(node).find('select').length > 0) {
+              needsInit = true;
+              break;
+            }
+          }
+        }
+      }
+    });
+    if (needsInit) {
+      initCustomMobileSelects();
+    }
+  });
+  bodyObserver.observe(document.body, { childList: true, subtree: true });
+});
 
 let mUser = null;
+let mNavStack = [];
 let mIdleInterval;
 const M_AUTO_LOGOUT_TIME = 120 * 60 * 1000; // 120 menit
 let mApprovalList = [];
@@ -2463,7 +2707,10 @@ function mInitBackHandler() {
 }
 
 function mPushNav(type, value) {
-  window.location.hash = type + '-' + value;
+  const targetHash = '#' + type + '-' + value;
+  if (window.location.hash !== targetHash) {
+    window.location.hash = type + '-' + value;
+  }
 }
 
 function mHandleHashChange() {
@@ -3249,10 +3496,14 @@ function mOpenQuickActions() {
   mPushNav('overlay', 'quick');
 }
 function mCloseQuickActions() {
+  $('#m-quick-sheet').hide();
   if (window.location.hash === '#overlay-quick') {
     window.history.back();
-  } else {
-    $('#m-quick-sheet').hide();
+    setTimeout(() => {
+      if (window.location.hash === '#overlay-quick') {
+        window.location.hash = 'tab-home';
+      }
+    }, 100);
   }
 }
 
@@ -3263,10 +3514,14 @@ function mOpenMenuLain() {
 }
 
 function mCloseMenuLain() {
+  $('#m-menu-lain-sheet').hide();
   if (window.location.hash === '#overlay-menu-lain') {
     window.history.back();
-  } else {
-    $('#m-menu-lain-sheet').hide();
+    setTimeout(() => {
+      if (window.location.hash === '#overlay-menu-lain') {
+        window.location.hash = 'tab-home';
+      }
+    }, 100);
   }
 }
 function mShowComingSoonMenu(menuName) {
@@ -3336,10 +3591,14 @@ function mShowSubmenu(menu) {
 }
 
 function mCloseSubmenu() {
+  $('#m-submenu-overlay').hide();
   if (window.location.hash === '#overlay-submenu') {
     window.history.back();
-  } else {
-    $('#m-submenu-overlay').hide();
+    setTimeout(() => {
+      if (window.location.hash === '#overlay-submenu') {
+        window.location.hash = 'tab-home';
+      }
+    }, 100);
   }
 }
 
@@ -3594,7 +3853,10 @@ function mRenderGenericForm(formType) {
 
       $kat.trigger('change');
     }
-  }, 50);
+    
+    // Explicitly initialize/refresh custom selects for form content
+    initCustomMobileSelects('#m-form-content');
+  }, 100);
 }
 
 // ===== SURAT PERINTAH LEMBUR form khusus =====
@@ -3672,7 +3934,10 @@ function mRenderSplForm() {
     // Pre-fill own WhatsApp
     let ownWa = mFormCurrent.mp ? mFormCurrent.mp["NO. WHATSAPP"] : "";
     if (ownWa) $('input[data-fkey="NO. HANDPHONE"]').val(ownWa);
-  }, 50);
+    
+    // Explicitly initialize custom selects
+    initCustomMobileSelects('#m-form-content');
+  }, 100);
 }
 
 // ===== CUTI form khusus =====
@@ -3858,8 +4123,11 @@ function mRenderCutiForm() {
   html += '<button class="m-btn-secondary m-btn-block mt-2" onclick="mCloseForm()"><i class="fas fa-times"></i> Batal</button>';
 
   $('#m-form-content').html(html);
-  // Trigger initial calc
-  setTimeout(mCutiOnChange, 100);
+  // Trigger initial calc and initialize/refresh custom selects
+  setTimeout(() => {
+    mCutiOnChange();
+    initCustomMobileSelects('#m-form-content');
+  }, 100);
 }
 
 // ===== Helper field renderers =====
@@ -4392,10 +4660,19 @@ function mSubmitCutiForm() {
 
 function mCloseForm() {
   localStorage.removeItem('mLastOpenFormType');
+  $('#m-form-overlay').hide();
   if (window.location.hash === '#overlay-form') {
     window.history.back();
+    setTimeout(() => {
+      if (window.location.hash === '#overlay-form') {
+        if ($('#m-submenu-overlay').is(':visible')) {
+          window.location.hash = 'overlay-submenu';
+        } else {
+          window.location.hash = 'tab-home';
+        }
+      }
+    }, 100);
   } else {
-    $('#m-form-overlay').hide();
     mCloseSubmenu();
     mLoadHistory(true);
   }
@@ -5065,10 +5342,14 @@ function mOpenHistoryDetail(idx) {
 }
 
 function mCloseHistoryDetail() {
+  $('#m-history-overlay').hide();
   if (window.location.hash === '#overlay-history-detail') {
     window.history.back();
-  } else {
-    $('#m-history-overlay').hide();
+    setTimeout(() => {
+      if (window.location.hash === '#overlay-history-detail') {
+        window.location.hash = 'tab-history';
+      }
+    }, 100);
   }
 }
 
@@ -5101,10 +5382,14 @@ function mShowPlanovaTemplates() {
 }
 
 function mClosePlanovaTemplates() {
+  $('#m-templates-overlay').hide();
   if (window.location.hash === '#overlay-planova-templates') {
     window.history.back();
-  } else {
-    $('#m-templates-overlay').hide();
+    setTimeout(() => {
+      if (window.location.hash === '#overlay-planova-templates') {
+        window.location.hash = 'tab-home';
+      }
+    }, 100);
   }
 }
 
@@ -5282,7 +5567,7 @@ function mOpenApprovalDetail(idx) {
           <div class="m-scoring-header"><i class="fas fa-hammer"></i> ASPEK : USAHA</div>
           <div class="m-score-row"><label>Efektivitas Waktu <br><small style="font-style: italic; color: #64748b; font-weight: normal; display: block; margin-top: 2px; font-size: 0.8em; line-height: 1.2;">Mengurangi waktu proses tertentu (Mempercepat atau Mempermudah pekerjaan).</small></label><input type="number" class="m-score-input m-score-val" min="0" max="100" oninput="mCalcFinalScore()" required></div>
           <div class="m-score-row"><label>Duplikasi Ide <br><small style="font-style: italic; color: #64748b; font-weight: normal; display: block; margin-top: 2px; font-size: 0.8em; line-height: 1.2;">Tingkat kemudahan untuk diduplikasi ke unit atau bagian lain.</small></label><input type="number" class="m-score-input m-score-val" min="0" max="100" oninput="mCalcFinalScore()" required></div>
-          <div class="m-score-row"><label>5R</label><input type="number" class="m-score-input m-score-val" min="0" max="100" oninput="mCalcFinalScore()" required></div>
+          <div class="m-score-row"><label>5R <br><small style="font-style: italic; color: #64748b; font-weight: normal; display: block; margin-top: 2px; font-size: 0.8em; line-height: 1.2;">Dampak terhadap 5R</small></label><input type="number" class="m-score-input m-score-val" min="0" max="100" oninput="mCalcFinalScore()" required></div>
           <div class="m-score-row"><label>Standarisasi <br><small style="font-style: italic; color: #64748b; font-weight: normal; display: block; margin-top: 2px; font-size: 0.8em; line-height: 1.2;">Terdapat standarisasi jika ide dipakai atau diterapkan.</small></label><input type="number" class="m-score-input m-score-val" min="0" max="100" oninput="mCalcFinalScore()" required></div>
         </div>
         <div class="m-scoring-section">
@@ -5406,10 +5691,14 @@ function mOpenApprovalDetail(idx) {
 }
 
 function mCloseApprovalDetail() {
+  $('#m-approval-overlay').hide();
   if (window.location.hash === '#overlay-approval-detail') {
     window.history.back();
-  } else {
-    $('#m-approval-overlay').hide();
+    setTimeout(() => {
+      if (window.location.hash === '#overlay-approval-detail') {
+        window.location.hash = 'tab-approval';
+      }
+    }, 100);
   }
 }
 
@@ -5861,14 +6150,22 @@ function mInitCrop(file) {
 }
 
 function mCloseCrop() {
+  $('#m-photo-crop-overlay').hide();
+  $('#m-profile-file-input').val('');
+  if (mCropState.mode === "REGISTER" && !mRegPasFotoBase64) {
+    $('#m-reg-file-pasfoto').val('');
+  }
   if (window.location.hash === '#overlay-crop-photo') {
     window.history.back();
-  } else {
-    $('#m-photo-crop-overlay').hide();
-    $('#m-profile-file-input').val('');
-    if (mCropState.mode === "REGISTER" && !mRegPasFotoBase64) {
-      $('#m-reg-file-pasfoto').val('');
-    }
+    setTimeout(() => {
+      if (window.location.hash === '#overlay-crop-photo') {
+        if (mCropState.mode === "REGISTER") {
+          window.location.hash = 'overlay-register-new-emp';
+        } else {
+          window.location.hash = 'tab-profile';
+        }
+      }
+    }, 100);
   }
 }
 
@@ -6154,6 +6451,9 @@ function mOpenNewEmpForm() {
       if (d.golonganDarah.indexOf("-") === -1) {
         $('#m-reg-golongandarah').append('<option value="-">-</option>');
       }
+      
+      // Explicitly initialize/refresh custom selects for registration form
+      initCustomMobileSelects('#m-form-register');
     } else {
       Swal.fire('Error', 'Gagal memuat opsi form: ' + (res ? res.message : 'Unknown error'), 'error');
     }
@@ -6166,10 +6466,14 @@ function mOpenNewEmpForm() {
 }
 
 function mCloseNewEmpForm() {
+  $('#m-register-overlay').hide();
   if (window.location.hash === '#overlay-register-new-emp') {
     window.history.back();
-  } else {
-    $('#m-register-overlay').hide();
+    setTimeout(() => {
+      if (window.location.hash === '#overlay-register-new-emp') {
+        window.location.hash = 'tab-profile';
+      }
+    }, 100);
   }
 }
 

@@ -182,17 +182,61 @@
     /* Padding normal agar kotak cari tidak terpotong */
   }
 
-  /* INPUT PENCARIAN */
-  .col-filter {
-    width: 100%;
-    height: 20px !important;
-    padding: 2px 5px !important;
-    border-radius: 3px;
-    border: 1px solid #ccc;
+  /* INPUT PENCARIAN & TRIGGER FILTER EXCEL */
+  .excel-filter-trigger {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #fff;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding: 3px 6px;
+    font-weight: normal;
     font-size: 11px !important;
-    margin: 0 !important;
-    display: block;
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+    color: #495057;
+    height: 24px !important;
+    min-width: 70px;
+    user-select: none;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  }
+  .excel-filter-trigger:hover {
+    border-color: #80bdff;
+    background-color: #f8f9fa;
+  }
+  .excel-filter-trigger.active {
+    border-color: #28a745;
+    background-color: #e8f5e9;
+    color: #1b5e20;
+    font-weight: 600;
+  }
+  .excel-filter-trigger.active i {
+    color: #28a745 !important;
+  }
+  
+  /* POPUP FILTER EXCEL */
+  #excel-filter-popup {
+    font-size: 13px !important;
+  }
+  #excel-filter-popup .custom-checkbox .custom-control-label::before {
+    border-radius: 3px;
+  }
+  #excel-filter-popup .excel-filter-opt-item {
+    padding: 2px 4px;
+    border-radius: 3px;
+    transition: background-color 0.1s ease, color 0.1s ease;
+  }
+  #excel-filter-popup .excel-filter-opt-item:hover {
+    background-color: #f1f3f5;
+  }
+  #excel-filter-popup .excel-filter-opt-item.selected-item {
+    background-color: #e7f5ff !important;
+    color: #0056b3 !important;
+    font-weight: 600;
+  }
+  #excel-filter-popup .excel-filter-opt-item.selected-item label {
+    color: #0056b3 !important;
   }
 
   /* ISI DATA TABEL */
@@ -3344,7 +3388,7 @@
                     <div class="scoring-header">ASPEK : USAHA</div>
                     <div class="score-row"><label>Efektivitas Waktu <br><small style="font-style: italic; color: #6c757d; font-weight: normal; display: block; margin-top: 2px; font-size: 0.82em; line-height: 1.3;">Mengurangi waktu proses tertentu (Mempercepat atau Mempermudah pekerjaan).</small></label><input type="number" class="score-input sc-usaha" min="0" max="100" oninput="calcFinalScore()" required></div>
                     <div class="score-row"><label>Duplikasi Ide <br><small style="font-style: italic; color: #6c757d; font-weight: normal; display: block; margin-top: 2px; font-size: 0.82em; line-height: 1.3;">Tingkat kemudahan untuk diduplikasi ke unit atau bagian lain.</small></label><input type="number" class="score-input sc-usaha" min="0" max="100" oninput="calcFinalScore()" required></div>
-                    <div class="score-row"><label>5R</label><input type="number" class="score-input sc-usaha" min="0" max="100" oninput="calcFinalScore()" required></div>
+                    <div class="score-row"><label>5R <br><small style="font-style: italic; color: #6c757d; font-weight: normal; display: block; margin-top: 2px; font-size: 0.82em; line-height: 1.3;">Dampak terhadap 5R</small></label><input type="number" class="score-input sc-usaha" min="0" max="100" oninput="calcFinalScore()" required></div>
                     <div class="score-row"><label>Standarisasi <br><small style="font-style: italic; color: #6c757d; font-weight: normal; display: block; margin-top: 2px; font-size: 0.82em; line-height: 1.3;">Terdapat standarisasi jika ide dipakai atau diterapkan.</small></label><input type="number" class="score-input sc-usaha" min="0" max="100" oninput="calcFinalScore()" required></div>
                   </div>
                   <div class="scoring-section">
@@ -3475,13 +3519,7 @@ $(document).on('click keypress touchstart', function() {
   $('.date-picker').datepicker({format:'dd/mm/yyyy',autoclose:true,todayHighlight:true,orientation:"bottom auto"});
   $('#dashStartDate').datepicker('setDate',new Date(now.getFullYear(),now.getMonth(),1));
   $('#dashEndDate').datepicker('setDate',new Date(now.getFullYear(),now.getMonth()+1,0));
-  // Trigger saat user ketik di kolom cari (Save ke Memori)
-  $(document).on('keyup change','.col-filter',function(){
-      if(tableInstance) {
-          tableInstance.column($(this).data('index')).search(this.value).draw();
-          saveTableFilters(); 
-      }
-  });
+  // Excel multi-select handles filtering and saving automatically
 
   // Trigger saat user ubah rentang tanggal (Save ke Memori) - pakai event delegation
   // supaya tetap jalan walau input #tableStartDate/#tableEndDate di-rebuild oleh mph-toolbar
@@ -3690,7 +3728,7 @@ function loadInitialServerData(){
       showLoading(false);
       Swal.fire('Gagal Memuat', err.message || 'Periksa koneksi internet.', 'error');
     }
-  }).getInitialAppData(currentUser.username, currentUser.role, currentUser.nama);
+  }).getInitialAppData(currentUser.username, currentUser.role, currentUser.nama, currentUser.nrp);
 }
 
 // ========================================================
@@ -5585,7 +5623,17 @@ function renderTable(res) {
     let filters = '<tr>' + colMap.map((c, i) => {
         let dispName = c.name;
         if (currentSheetName === 'CERTIFICATE' && c.name.toUpperCase().trim() === 'CERTIFICATE') dispName = 'PDF';
-        return '<th><input type="text" class="col-filter" placeholder="Cari ' + dispName + '..." data-index="' + i + '" value="' + (activeColumnFilters[i] || "") + '"></th>';
+        let filterVal = activeColumnFilters[i];
+        let triggerText = "Semua";
+        let isActive = false;
+        if (filterVal && Array.isArray(filterVal)) {
+            isActive = true;
+            if (filterVal.length === 0) triggerText = "Kosong";
+            else if (filterVal.length === 1) triggerText = filterVal[0];
+            else triggerText = filterVal.length + " Terpilih";
+        }
+        let activeClass = isActive ? "active" : "";
+        return '<th style="padding: 4px 8px; font-weight: normal; vertical-align: middle;"><div class="excel-filter-trigger ' + activeClass + '" data-index="' + i + '" id="excel-filter-trigger-' + i + '"><span class="excel-filter-text" style="max-width: 140px; display: inline-block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle;">' + triggerText + '</span><i class="fas fa-filter text-muted ml-1" style="font-size: 0.85em; vertical-align: middle;"></i></div></th>';
     }).join('') + certChkFilter + '</tr>';
     
     if (dataRows.length > 0) {
@@ -5652,7 +5700,7 @@ function renderTable(res) {
 
                 if (dropdownCols.includes(col.name)) {
                     let opts = res.dropdownOptions[col.name] || [], disabled = canEdit ? '' : 'disabled';
-                    return '<td ' + tdAttr + '><select class="status-badge ' + getStatusClass(val) + '" data-row="' + row.rowIndex + '" data-col="' + col.realIdx + '" data-colname="' + col.name + '" onfocus="startEdit(this)" onchange="saveData(this, true)" ' + disabled + '><option value="" class="bg-white text-dark">-</option>' + opts.map(o => '<option value="' + o + '" ' + (o == val ? 'selected' : '') + ' class="bg-white text-dark">' + o + '</option>').join('') + '</select></td>';
+                    return '<td ' + tdAttr + ' data-search="' + val + '" data-order="' + val + '"><select class="status-badge ' + getStatusClass(val) + '" data-row="' + row.rowIndex + '" data-col="' + col.realIdx + '" data-colname="' + col.name + '" onfocus="startEdit(this)" onchange="saveData(this, true)" ' + disabled + '><option value="" class="bg-white text-dark">-</option>' + opts.map(o => '<option value="' + o + '" ' + (o == val ? 'selected' : '') + ' class="bg-white text-dark">' + o + '</option>').join('') + '</select></td>';
                 } else if (formulaCols.includes(col.name)) {
                     return '<td ' + tdAttr + '><span class="static-badge ' + getStatusClass(val) + '">' + val + '</span></td>';
                 } else {
@@ -5731,12 +5779,31 @@ function renderTable(res) {
     if (dataRows.length > 0) {
         $.fn.dataTable.ext.search.pop();
         $.fn.dataTable.ext.search.push(function (settings, data) {
-            if (currentDateColIndex === -1) return true;
-            const rawMin = $('#tableStartDate').val(), rawMax = $('#tableEndDate').val();
-            if (!rawMin && !rawMax) return true;
-            let d = parseDateFlexible(data[currentDateColIndex]), min = rawMin ? parseDateFlexible(rawMin) : null, max = rawMax ? parseDateFlexible(rawMax) : null;
-            if (!d) return false; d.setHours(0, 0, 0, 0); if (min) min.setHours(0, 0, 0, 0); if (max) max.setHours(0, 0, 0, 0);
-            return (!min || d >= min) && (!max || d <= max);
+            // 1. Filter Rentang Tanggal
+            if (currentDateColIndex !== -1) {
+                const rawMin = $('#tableStartDate').val(), rawMax = $('#tableEndDate').val();
+                if (rawMin || rawMax) {
+                    let d = parseDateFlexible(data[currentDateColIndex]), min = rawMin ? parseDateFlexible(rawMin) : null, max = rawMax ? parseDateFlexible(rawMax) : null;
+                    if (!d) return false;
+                    d.setHours(0, 0, 0, 0);
+                    if (min) min.setHours(0, 0, 0, 0);
+                    if (max) max.setHours(0, 0, 0, 0);
+                    if ((min && d < min) || (max && d > max)) return false;
+                }
+            }
+            
+            // 2. Filter Excel Multi-Select per Kolom
+            for (let idx in activeColumnFilters) {
+                let allowedVals = activeColumnFilters[idx];
+                if (allowedVals && Array.isArray(allowedVals)) {
+                    let cellVal = String(data[idx] || '').trim();
+                    if (!cellVal) cellVal = '-';
+                    if (!allowedVals.includes(cellVal)) {
+                        return false;
+                    }
+                }
+            }
+            return true;
         });
 
         tableInstance = $('#dataTable').DataTable({
@@ -5764,14 +5831,13 @@ function renderTable(res) {
                     setTimeout(() => { window.applyDocoFilter(this.api()); }, 200);
                 }
                 this.api().columns.adjust();
-                Object.keys(activeColumnFilters).forEach(idx => { this.api().column(idx).search(activeColumnFilters[idx]); });
                 
                 // --- TRIGGER OTOMATIS FILTER SITE ---
                 if (currentSheetName === 'CERTIFICATE' && typeof window.applyCertSiteFilter === 'function') {
                     let dtApi = this.api();
                     // Beri jeda 200 milidetik agar tabel selesai merender sebelum dipotong filter
                     setTimeout(() => { window.applyCertSiteFilter(dtApi); }, 200);
-                } else if (Object.keys(activeColumnFilters).length > 0) {
+                } else {
                     this.api().draw();
                 }
 
@@ -5845,11 +5911,12 @@ function resetFilter() {
         
         // HANYA reset tanggal tabel, JANGAN sentuh tanggal Dashboard
         $('#tableStartDate, #tableEndDate').datepicker('setDate', null);
-        $('.col-filter').val('');
+        $('.excel-filter-trigger').removeClass('active').find('.excel-filter-text').text('Semua');
         
         if (tableInstance) {
-            tableInstance.search('').columns().search('').draw();
+            tableInstance.search('');
             activeColumnFilters = {};
+            tableInstance.draw();
         }
 
         // --- PENGAMAN RESET UNTUK CERTIFICATE ---
@@ -6452,6 +6519,8 @@ function saveData(el,isSel){
               if (isSel) {
                   $(el).find('option').removeAttr('selected');
                   $(el).find('option[value="' + val + '"]').attr('selected', 'selected');
+                  // Update data-search dan data-order di td parent
+                  p.attr('data-search', val).attr('data-order', val);
               }
               // Beritahu DataTables untuk membaca ulang DOM dan merefresh memori pencariannya
               tableInstance.cell(p).invalidate().draw(false);
@@ -6553,6 +6622,202 @@ $(document).ready(function(){
   
   $(document).on('click','.nav-sidebar .nav-link:not(#nav-oil-controlling)',function(){$('#view-oil-dashboard').hide();});
 });
+
+// ====== EXCEL-LIKE MULTI-SELECT COLUMN FILTER ======
+$(document).ready(function() {
+    // 1. Buat popup element jika belum ada
+    if ($('#excel-filter-popup').length === 0) {
+        $('body').append(`
+            <div id="excel-filter-popup" class="card shadow" style="position: absolute; z-index: 9999; display: none; width: 240px; font-weight: normal; border: 1px solid #ced4da; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;">
+                <div class="card-body p-2" style="background: #ffffff; border-radius: 6px;">
+                    <!-- Search Box -->
+                    <div class="input-group input-group-sm mb-2">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text" style="background:#f8f9fa;"><i class="fas fa-search" style="color:#6c757d;"></i></span>
+                        </div>
+                        <input type="text" id="excel-filter-search" class="form-control" placeholder="Cari item...">
+                    </div>
+                    <!-- Options List -->
+                    <div class="excel-filter-list-wrapper" style="max-height: 180px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 4px; padding: 6px; background: #ffffff; margin-bottom: 8px;">
+                        <div class="custom-control custom-checkbox mb-1" style="user-select: none;">
+                            <input type="checkbox" class="custom-control-input" id="excel-filter-select-all" checked>
+                            <label class="custom-control-label font-weight-bold" for="excel-filter-select-all" style="cursor:pointer;">(Pilih Semua)</label>
+                        </div>
+                        <div id="excel-filter-options" style="margin-top: 4px;">
+                            <!-- Dynamically filled -->
+                        </div>
+                    </div>
+                    <!-- Actions -->
+                    <div class="d-flex justify-content-end" style="gap: 6px;">
+                        <button id="excel-filter-btn-cancel" class="btn btn-xs btn-default mr-1" style="font-size:0.8em; padding: 2px 8px; border:1px solid #ced4da;">Batal</button>
+                        <button id="excel-filter-btn-ok" class="btn btn-xs btn-primary" style="font-size:0.8em; padding: 2px 8px; background-color:#007bff; border-color:#007bff;">OK</button>
+                    </div>
+                </div>
+            </div>
+        `);
+    }
+
+    // Helper functions untuk escape
+    function escapeHtml(str) {
+        return String(str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+    function makeSafeId(str) {
+        return String(str || '').replace(/[^a-zA-Z0-9_-]/g, '_');
+    }
+
+    // 2. Event click pada trigger
+    $(document).on('click', '.excel-filter-trigger', function(e) {
+        e.stopPropagation();
+        if (!tableInstance) return;
+        
+        let trigger = $(this);
+        let index = parseInt(trigger.data('index'));
+        
+        // Simpan index kolom di popup
+        let popup = $('#excel-filter-popup');
+        popup.data('index', index);
+        
+        // Ambil semua unique values dari kolom (menggunakan render filter agar bersih)
+        let valsSet = new Set();
+        tableInstance.cells(null, index).render('filter').each(function(renderVal) {
+            let cleanVal = String(renderVal || '').trim();
+            if (!cleanVal) cleanVal = '-';
+            valsSet.add(cleanVal);
+        });
+        
+        let uniqueVals = Array.from(valsSet).sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+        
+        // Isi daftar checkbox
+        let optionsContainer = $('#excel-filter-options').empty();
+        let allowedVals = activeColumnFilters[index]; // array of checked values
+        
+        uniqueVals.forEach(val => {
+            let isChecked = (!allowedVals || allowedVals.includes(val));
+            let checkedAttr = isChecked ? 'checked' : '';
+            let selectedClass = isChecked ? 'selected-item' : '';
+            let safeId = 'opt_chk_' + index + '_' + makeSafeId(val);
+            
+            optionsContainer.append(`
+                <div class="custom-control custom-checkbox mb-1 excel-filter-opt-item ${selectedClass}" style="user-select: none;" data-val="${escapeHtml(val)}">
+                    <input type="checkbox" class="custom-control-input excel-filter-opt-chk" id="${safeId}" data-val="${escapeHtml(val)}" ${checkedAttr}>
+                    <label class="custom-control-label" for="${safeId}" style="cursor:pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 190px;" title="${escapeHtml(val)}">${escapeHtml(val)}</label>
+                </div>
+            `);
+        });
+        
+        // Set Select All status
+        updateSelectAllState();
+        
+        // Reset search input
+        $('#excel-filter-search').val('');
+        
+        // Posisikan popup
+        let offset = trigger.offset();
+        popup.css({
+            top: offset.top + trigger.outerHeight() + 2,
+            left: Math.min(offset.left, $(window).width() - popup.outerWidth() - 15),
+            display: 'block'
+        });
+    });
+
+    // Helper untuk update state checkbox Select All
+    function updateSelectAllState() {
+        let allVisibleChks = $('.excel-filter-opt-chk:visible');
+        let checkedVisibleChks = $('.excel-filter-opt-chk:visible:checked');
+        let selectAll = $('#excel-filter-select-all');
+        
+        if (allVisibleChks.length === 0) {
+            selectAll.prop('checked', false).prop('indeterminate', false);
+        } else if (allVisibleChks.length === checkedVisibleChks.length) {
+            selectAll.prop('checked', true).prop('indeterminate', false);
+        } else if (checkedVisibleChks.length === 0) {
+            selectAll.prop('checked', false).prop('indeterminate', false);
+        } else {
+            selectAll.prop('checked', false).prop('indeterminate', true);
+        }
+    }
+
+    // 3. Ketik di input pencarian internal dropdown
+    $(document).on('keyup input', '#excel-filter-search', function() {
+        let q = $(this).val().toLowerCase().trim();
+        $('.excel-filter-opt-item').each(function() {
+            let itemVal = $(this).data('val').toString().toLowerCase();
+            if (itemVal.includes(q)) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
+        });
+        updateSelectAllState();
+    });
+
+    // 4. Klik Select All
+    $(document).on('change', '#excel-filter-select-all', function() {
+        let isChecked = $(this).prop('checked');
+        $('.excel-filter-opt-chk:visible').prop('checked', isChecked)
+                                           .closest('.excel-filter-opt-item').toggleClass('selected-item', isChecked);
+        // Jika indeterminate bernilai true, hilangkan
+        $(this).prop('indeterminate', false);
+    });
+
+    // 5. Ubah checkbox individual
+    $(document).on('change', '.excel-filter-opt-chk', function() {
+        let isChecked = $(this).prop('checked');
+        $(this).closest('.excel-filter-opt-item').toggleClass('selected-item', isChecked);
+        updateSelectAllState();
+    });
+
+    // 6. Tombol OK
+    $(document).on('click', '#excel-filter-btn-ok', function() {
+        let popup = $('#excel-filter-popup');
+        let index = popup.data('index');
+        
+        // Ambil semua unique values yang dicentang
+        let checkedVals = [];
+        let allCount = 0;
+        $('.excel-filter-opt-chk').each(function() {
+            allCount++;
+            if ($(this).prop('checked')) {
+                checkedVals.push($(this).data('val').toString());
+            }
+        });
+        
+        // Jika semua dicentang, anggap tidak ada filter di kolom ini
+        if (checkedVals.length === allCount) {
+            delete activeColumnFilters[index];
+            $('#excel-filter-trigger-' + index).removeClass('active').find('.excel-filter-text').text('Semua');
+        } else {
+            activeColumnFilters[index] = checkedVals;
+            let triggerText = '';
+            if (checkedVals.length === 0) {
+                triggerText = 'Kosong';
+            } else if (checkedVals.length === 1) {
+                triggerText = checkedVals[0];
+            } else {
+                triggerText = checkedVals.length + ' Terpilih';
+            }
+            $('#excel-filter-trigger-' + index).addClass('active').find('.excel-filter-text').text(triggerText);
+        }
+        
+        popup.hide();
+        if (tableInstance) {
+            tableInstance.draw();
+            if (typeof saveTableFilters === 'function') saveTableFilters();
+        }
+    });
+
+    // 7. Tombol Cancel
+    $(document).on('click', '#excel-filter-btn-cancel', function() {
+        $('#excel-filter-popup').hide();
+    });
+
+    // 8. Klik di luar popup untuk menutup
+    $(document).on('click', function(e) {
+        if (!$(e.target).closest('#excel-filter-popup, .excel-filter-trigger').length) {
+            $('#excel-filter-popup').hide();
+        }
+    });
+});
 </script>
 
   <script>
@@ -6566,7 +6831,7 @@ function fetchAndRenderUserPhoto() {
                 currentUser.fotoUrl = url; 
                 localStorage.setItem("PPDUser", JSON.stringify(currentUser)); 
                 applyPhotoToHtml(url);
-            }).getUserProfilePhoto(currentUser.nama);
+            }).getUserProfilePhoto(currentUser.nama, currentUser.nrp);
         }, 2000);
     }
 }
@@ -6799,11 +7064,7 @@ async function submitBulkAction(action) {
 // ==================================================
 function saveTableFilters() {
     if(!currentSheetName) return;
-    let filters = { cols: {}, start: $('#tableStartDate').val(), end: $('#tableEndDate').val() };
-    $('.col-filter').each(function() {
-        let val = $(this).val();
-        if(val) filters.cols[$(this).data('index')] = val;
-    });
+    let filters = { cols: activeColumnFilters, start: $('#tableStartDate').val(), end: $('#tableEndDate').val() };
     let allFilters = JSON.parse(localStorage.getItem('PPD_TableFilters') || '{}');
     allFilters[currentSheetName] = filters;
     localStorage.setItem('PPD_TableFilters', JSON.stringify(allFilters));
