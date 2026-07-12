@@ -1997,13 +1997,15 @@ html.swal2-shown, body.swal2-shown {
 
 </div>
 
-  <!-- ============ MENU LAIN BOTTOM SHEET ============ -->
-  <div id="m-menu-lain-sheet" class="m-quick-sheet" style="display:none;">
-    <div class="m-quick-backdrop" onclick="mCloseMenuLain()"></div>
-    <div class="m-quick-content">
-      <div class="m-quick-handle"></div>
-      <h3 class="m-quick-title">Menu Lainnya</h3>
-      <div class="m-menu-lain-list">
+  <!-- ============ MENU LAIN OVERLAY ============ -->
+  <div id="m-menu-lain-sheet" class="m-submenu-overlay" style="display:none;">
+    <header class="m-sub-header">
+      <button class="m-back-btn" onclick="mCloseMenuLain()"><i class="fas fa-arrow-left"></i></button>
+      <h4 style="margin: 0; font-size: 1.1em; font-weight: 600;">Menu Lainnya</h4>
+    </header>
+    
+    <div style="flex: 1; padding: 75px 16px 20px 16px; overflow-y: auto;">
+      <div class="m-menu-lain-list" style="margin-top: 0;">
         <div class="m-menu-lain-row" onclick="mCloseMenuLain(); mShowComingSoonMenu('Absensi')">
           <div class="m-ic-wrap m-ic-blue"><i class="fa-solid fa-user-check"></i></div>
           <span class="m-menu-lain-text">Absensi</span>
