@@ -1373,7 +1373,7 @@ html.swal2-shown, body.swal2-shown {
 }
 .m-birthday-hat {
   position: absolute;
-  top: 0;
+  top: -8px;
   left: 50%;
   transform: translate(-50%, -100%);
   font-size: 1.6em;
@@ -1667,7 +1667,6 @@ html.swal2-shown, body.swal2-shown {
         </div>
         <div class="text-center mt-2">
           <a href="#" onclick="mOpenForgotPassForm(); return false;" style="color: #05244d; font-weight: 500; font-size: 0.85em; text-decoration: none;">Lupa Password?</a>
-        </div>
       </form>
       
       <div class="m-login-bottom-icons-area">
@@ -1676,6 +1675,26 @@ html.swal2-shown, body.swal2-shown {
       </div>
       <p class="m-login-footer">v1.0 · Mobile</p>
     </div>
+  </div>
+  
+  <!-- FLOATING ABSENSI WIDGET -->
+  <style>
+    .m-fab-absensi {
+      animation: m-pulse-fab 2s infinite;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    @keyframes m-pulse-fab {
+      0% { box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4); }
+      50% { box-shadow: 0 6px 30px rgba(16, 185, 129, 0.7); }
+      100% { box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4); }
+    }
+    .m-fab-absensi:active {
+      transform: scale(0.92) !important;
+    }
+  </style>
+  <div onclick="mOpenAbsensiForm();" class="m-fab-absensi" style="position: fixed; bottom: 24px; right: 20px; z-index: 150; background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 12px 18px; border-radius: 50px; display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 0.85em; text-transform: uppercase; cursor: pointer; letter-spacing: 0.5px; border: 1.5px solid rgba(255,255,255,0.25); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);">
+    <i class="fas fa-calendar-check" style="font-size: 1.25em;"></i>
+    <span>Absensi</span>
   </div>
 </div>
 
@@ -2319,6 +2338,126 @@ html.swal2-shown, body.swal2-shown {
 
       <button type="submit" class="m-btn-primary w-100 font-weight-bold" style="padding: 12px 0; font-size: 1.05em;"><i class="fas fa-paper-plane mr-1"></i> KIRIM PENDAFTARAN</button>
       <button type="button" class="m-btn-secondary w-100 mt-2" onclick="mCloseNewEmpForm()">BATAL</button>
+    </form>
+  </div>
+</div>
+
+<!-- ============ ABSENSI PERTEMUAN OVERLAY ============ -->
+<div id="m-absensi-overlay" class="m-submenu-overlay" style="display:none; z-index: 200;">
+  <header class="m-sub-header" style="background: linear-gradient(135deg, #05244d 0%, #10b981 100%) !important;">
+    <button class="m-back-btn" onclick="mCloseAbsensiForm()"><i class="fas fa-arrow-left"></i></button>
+    <h2>Absensi Pertemuan / Training</h2>
+  </header>
+  <div class="m-sub-content" style="padding: 16px; background-color: #f8f9fa;">
+    <form id="m-form-absensi" onsubmit="event.preventDefault(); mSubmitAbsensi();">
+      
+      <!-- Section 1: Informasi Kegiatan -->
+      <div class="card shadow-sm border-0 mb-3" style="border-radius: 10px;">
+        <div class="card-header text-white py-2" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important; border-top-left-radius: 10px; border-top-right-radius: 10px;">
+          <h5 class="mb-0 font-weight-bold" style="font-size: 0.95em;"><i class="fas fa-info-circle mr-1"></i> Informasi Kegiatan</h5>
+        </div>
+        <div class="card-body p-3">
+          <div class="form-group mb-2">
+            <label class="font-weight-bold small mb-1">NAMA AKTIFITAS <span class="text-danger">*</span></label>
+            <input type="text" id="m-abs-aktifitas" class="form-control" placeholder="Nama Kegiatan / Meeting / Training" required>
+          </div>
+          <div class="form-group mb-2">
+            <label class="font-weight-bold small mb-1">UNIT TYPE (JIKA TRAINING UNIT)</label>
+            <input type="text" id="m-abs-unittype" class="form-control" placeholder="Contoh: EXCAVATOR PC1250 (Opsional)">
+          </div>
+          <div class="form-group mb-2">
+            <label class="font-weight-bold small mb-1">TEMPAT PENYELENGGARAAN <span class="text-danger">*</span></label>
+            <input type="text" id="m-abs-tempat" class="form-control" placeholder="Tempat / Ruangan" required>
+          </div>
+          <div class="form-group mb-2">
+            <label class="font-weight-bold small mb-1">PENANGGUNG JAWAB / INSTRUKTUR <span class="text-danger">*</span></label>
+            <input type="text" id="m-abs-instruktur" class="form-control" placeholder="Nama Penanggung Jawab / Instruktur" required>
+          </div>
+          <div class="form-group mb-2">
+            <label class="font-weight-bold small mb-1">NO. WA INSTRUKTUR</label>
+            <input type="text" id="m-abs-wainstruktur" class="form-control" placeholder="Contoh: 0852xxxxxxxx (Opsional)">
+          </div>
+          <div class="form-group mb-2">
+            <label class="font-weight-bold small mb-1">TANGGAL KEGIATAN <span class="text-danger">*</span></label>
+            <input type="date" id="m-abs-tanggal" class="form-control" required>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2: Data Diri Peserta -->
+      <div class="card shadow-sm border-0 mb-3" style="border-radius: 10px;">
+        <div class="card-header text-white py-2" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important; border-top-left-radius: 10px; border-top-right-radius: 10px;">
+          <h5 class="mb-0 font-weight-bold" style="font-size: 0.95em;"><i class="fas fa-user mr-1"></i> Data Diri Peserta</h5>
+        </div>
+        <div class="card-body p-3">
+          <div class="form-group mb-2">
+            <label class="font-weight-bold small mb-1">NIK / NRP <span class="text-danger">*</span></label>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="m-abs-nik" class="form-control" placeholder="Masukkan NIK/NRP Anda" required pattern="\d+" style="flex: 1;">
+              <button type="button" onclick="mSearchAbsensiProfile()" style="background: #05244d; color: white; border: 0; padding: 0 16px; border-radius: 10px; font-size: 0.9em; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap;">
+                <i class="fas fa-search"></i> Cari
+              </button>
+            </div>
+            <small class="form-text text-muted" style="font-size: 0.75em; color: #64748b; margin-top: 4px; display: block;">Masukkan NIK/NRP lalu klik Cari untuk memuat profil otomatis.</small>
+          </div>
+          <div class="form-group mb-2">
+            <label class="font-weight-bold small mb-1">NAMA LENGKAP <span class="text-danger">*</span></label>
+            <input type="text" id="m-abs-nama" class="form-control" placeholder="Nama Lengkap" required>
+          </div>
+          <div class="form-group mb-2">
+            <label class="font-weight-bold small mb-1">JABATAN <span class="text-danger">*</span></label>
+            <input type="text" id="m-abs-jabatan" class="form-control" placeholder="Jabatan" required>
+          </div>
+          <div class="form-group mb-2">
+            <label class="font-weight-bold small mb-1">DEPARTMENT / SECTION <span class="text-danger">*</span></label>
+            <input type="text" id="m-abs-department" class="form-control" placeholder="Department / Section" required>
+          </div>
+          <div class="form-group mb-2">
+            <label class="font-weight-bold small mb-1">NO. WHATSAPP <span class="text-danger">*</span></label>
+            <input type="text" id="m-abs-whatsapp" class="form-control" placeholder="Contoh: 08123456789" required>
+          </div>
+          <div class="form-group mb-2">
+            <label class="font-weight-bold small mb-1">EMAIL</label>
+            <input type="email" id="m-abs-email" class="form-control" placeholder="alamat.email@domain.com (Opsional)">
+          </div>
+          <div class="form-group mb-2">
+            <label class="font-weight-bold small mb-1">KETERANGAN <span class="text-danger">*</span></label>
+            <select id="m-abs-keterangan" class="form-control" required>
+              <option value="Hadir" selected>Hadir</option>
+              <option value="Ready">Ready</option>
+              <option value="Ijin">Ijin</option>
+              <option value="Sakit">Sakit</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3: Tanda Tangan -->
+      <div class="card shadow-sm border-0 mb-3" style="border-radius: 10px;">
+        <div class="card-header text-white py-2" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important; border-top-left-radius: 10px; border-top-right-radius: 10px;">
+          <h5 class="mb-0 font-weight-bold" style="font-size: 0.95em;"><i class="fas fa-pen-nib mr-1"></i> Tanda Tangan (Paraf) <span class="text-danger">*</span></h5>
+        </div>
+        <div class="card-body p-3 text-center">
+          <canvas id="m-absensi-signature-canvas" style="border: 2px dashed #cbd5e1; border-radius: 8px; width: 100%; height: 180px; background-color: #f8fafc; touch-action: none;"></canvas>
+          <div class="d-flex justify-content-between mt-2">
+            <button type="button" class="btn btn-sm btn-secondary" onclick="mClearAbsensiSignature()" style="border-radius: 6px;"><i class="fas fa-eraser mr-1"></i> Hapus</button>
+            <span class="text-muted small align-self-center" style="font-size: 0.75em;">Gunakan jari/stylus di area atas</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit / Progress bar -->
+      <div id="m-abs-progress-wrapper" class="mb-3" style="display:none;">
+        <div class="progress progress-sm" style="height: 6px;">
+          <div id="m-abs-progressbar" class="progress-bar bg-success" role="progressbar" style="width: 0%"></div>
+        </div>
+        <div id="m-abs-progresstext" class="small text-center text-muted mt-1" style="font-size: 0.78em;">Menyimpan absensi...</div>
+      </div>
+
+      <button type="submit" class="w-100 font-weight-bold" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: 0; padding: 12px 0; border-radius: 12px; font-size: 1.05em; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25); display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;">
+        <i class="fas fa-check-circle"></i> KIRIM ABSENSI
+      </button>
+      <button type="button" class="m-btn-secondary w-100 mt-2" onclick="mCloseAbsensiForm()">BATAL</button>
     </form>
   </div>
 </div>
@@ -6965,7 +7104,242 @@ function mRenderBirthdays(list) {
     }
   }
 }
+// ================= ABSENSI PERTEMUAN LOGIC =================
+let absensiCanvas = null;
+let absensiCtx = null;
+let absensiDrawing = false;
+let absensiHasSigned = false;
 
+function initAbsensiSignaturePad() {
+  absensiCanvas = document.getElementById('m-absensi-signature-canvas');
+  if (!absensiCanvas) return;
+  absensiCtx = absensiCanvas.getContext('2d');
+  
+  // Set canvas size matching display size
+  const rect = absensiCanvas.getBoundingClientRect();
+  absensiCanvas.width = rect.width;
+  absensiCanvas.height = rect.height;
+  
+  // Signature style
+  absensiCtx.strokeStyle = '#05244d'; // Navy blue
+  absensiCtx.lineWidth = 3;
+  absensiCtx.lineCap = 'round';
+  absensiCtx.lineJoin = 'round';
+  
+  absensiDrawing = false;
+  absensiHasSigned = false;
+
+  function getPos(e) {
+    const r = absensiCanvas.getBoundingClientRect();
+    if (e.touches && e.touches.length > 0) {
+      return {
+        x: e.touches[0].clientX - r.left,
+        y: e.touches[0].clientY - r.top
+      };
+    }
+    return {
+      x: e.clientX - r.left,
+      y: e.clientY - r.top
+    };
+  }
+
+  function startDrawing(e) {
+    if (e.cancelable) e.preventDefault();
+    absensiDrawing = true;
+    const pos = getPos(e);
+    absensiCtx.beginPath();
+    absensiCtx.moveTo(pos.x, pos.y);
+  }
+
+  function draw(e) {
+    if (!absensiDrawing) return;
+    if (e.cancelable) e.preventDefault();
+    const pos = getPos(e);
+    absensiCtx.lineTo(pos.x, pos.y);
+    absensiCtx.stroke();
+    absensiHasSigned = true;
+  }
+
+  function stopDrawing() {
+    absensiDrawing = false;
+  }
+
+  // Mouse listeners
+  absensiCanvas.addEventListener('mousedown', startDrawing);
+  absensiCanvas.addEventListener('mousemove', draw);
+  window.addEventListener('mouseup', stopDrawing);
+
+  // Touch listeners
+  absensiCanvas.addEventListener('touchstart', startDrawing, { passive: false });
+  absensiCanvas.addEventListener('touchmove', draw, { passive: false });
+  window.addEventListener('touchend', stopDrawing);
+}
+
+function mClearAbsensiSignature() {
+  if (absensiCanvas && absensiCtx) {
+    absensiCtx.clearRect(0, 0, absensiCanvas.width, absensiCanvas.height);
+    absensiHasSigned = false;
+  }
+}
+
+function mOpenAbsensiForm() {
+  document.getElementById('m-absensi-overlay').style.display = 'block';
+  document.getElementById('m-form-absensi').reset();
+  $('#m-abs-progress-wrapper').hide();
+  mClearAbsensiSignature();
+
+  // Set default date to today
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  let mm = today.getMonth() + 1;
+  let dd = today.getDate();
+  if (mm < 10) mm = '0' + mm;
+  if (dd < 10) dd = '0' + dd;
+  document.getElementById('m-abs-tanggal').value = yyyy + '-' + mm + '-' + dd;
+
+  // Initialize pad after overlay display
+  setTimeout(() => {
+    initAbsensiSignaturePad();
+  }, 150);
+}
+
+function mCloseAbsensiForm() {
+  document.getElementById('m-absensi-overlay').style.display = 'none';
+}
+
+function mSearchAbsensiProfile() {
+  const nik = $('#m-abs-nik').val().trim();
+  if (!nik) {
+    Swal.fire('Informasi', 'Masukkan NIK/NRP terlebih dahulu.', 'info');
+    return;
+  }
+
+  Swal.fire({
+    title: 'Mencari Profil...',
+    text: 'Mohon tunggu sebentar',
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
+
+  google.script.run.withSuccessHandler(function(profile) {
+    Swal.close();
+    if (profile && profile['NAMA KARYAWAN']) {
+      $('#m-abs-nama').val(profile['NAMA KARYAWAN']);
+      $('#m-abs-jabatan').val(profile['JABATAN']);
+      $('#m-abs-department').val(profile['SECTION']);
+      $('#m-abs-whatsapp').val(profile['NO. WHATSAPP']);
+      Swal.fire({
+        icon: 'success',
+        title: 'Profil Ditemukan',
+        text: 'Data diri berhasil diisi otomatis.',
+        timer: 1500,
+        showConfirmButton: false
+      });
+    } else {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Profil Tidak Ditemukan',
+        text: 'NIK tidak terdaftar. Silakan masukkan data diri Anda secara manual.',
+        confirmButtonText: 'Ok'
+      });
+    }
+  }).withFailureHandler(function(err) {
+    Swal.close();
+    Swal.fire({
+      icon: 'warning',
+      title: 'Koneksi Lambat',
+      text: 'Gagal mencari profil. Silakan masukkan data diri Anda secara manual.',
+      confirmButtonText: 'Ok'
+    });
+  }).getMobileMpDataByNrp(nik);
+}
+
+function mSubmitAbsensi() {
+  const aktifitas = $('#m-abs-aktifitas').val().trim();
+  const unittype = $('#m-abs-unittype').val().trim();
+  const tempat = $('#m-abs-tempat').val().trim();
+  const instruktur = $('#m-abs-instruktur').val().trim();
+  const wainstruktur = $('#m-abs-wainstruktur').val().trim();
+  const tanggal = $('#m-abs-tanggal').val();
+  const nik = $('#m-abs-nik').val().trim();
+  const nama = $('#m-abs-nama').val().trim();
+  const jabatan = $('#m-abs-jabatan').val().trim();
+  const department = $('#m-abs-department').val().trim();
+  const whatsapp = $('#m-abs-whatsapp').val().trim();
+  const email = $('#m-abs-email').val().trim();
+  const keterangan = $('#m-abs-keterangan').val();
+
+  if (!aktifitas || !tempat || !instruktur || !tanggal || !nik || !nama || !jabatan || !department || !whatsapp) {
+    Swal.fire('Peringatan', 'Mohon lengkapi semua field yang berbintang (*)', 'warning');
+    return;
+  }
+
+  if (!absensiHasSigned) {
+    Swal.fire('Peringatan', 'Tanda tangan (paraf) wajib diisi.', 'warning');
+    return;
+  }
+
+  // Show loading progress
+  $('#m-abs-progress-wrapper').show();
+  $('#m-abs-progressbar').css('width', '20%');
+  $('#m-abs-progresstext').text('Mengunggah tanda tangan...');
+
+  // Convert canvas to base64 png
+  const signatureBase64 = absensiCanvas.toDataURL("image/png").split(',')[1];
+  const signatureFilename = `signature_${nik}_${Date.now()}.png`;
+
+  google.script.run.withSuccessHandler(function(uploadRes) {
+    if (uploadRes && uploadRes.success) {
+      $('#m-abs-progressbar').css('width', '60%');
+      $('#m-abs-progresstext').text('Menyimpan data absensi...');
+
+      const absensiData = {
+        namaAktifitas: aktifitas,
+        unitType: unittype,
+        tempatPenyelenggaraan: tempat,
+        penanggungJawab: instruktur,
+        waInstruktur: wainstruktur,
+        tanggal: mFormatDateToIndo(tanggal),
+        nik: nik,
+        nama: nama,
+        jabatan: jabatan,
+        department: department,
+        noWhatsapp: whatsapp,
+        email: email,
+        keterangan: keterangan,
+        signatureUrl: uploadRes.url
+      };
+
+      google.script.run.withSuccessHandler(function(submitRes) {
+        $('#m-abs-progress-wrapper').hide();
+        if (submitRes && submitRes.success) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Absensi Berhasil!',
+            text: 'Terima kasih, data absensi Anda telah disimpan.',
+            confirmButtonText: 'Selesai'
+          }).then(() => {
+            mCloseAbsensiForm();
+          });
+        } else {
+          Swal.fire('Gagal Menyimpan', submitRes.message || 'Gagal menyimpan data absensi ke spreadsheet.', 'error');
+        }
+      }).withFailureHandler(function(err) {
+        $('#m-abs-progress-wrapper').hide();
+        Swal.fire('Error', 'Gagal menghubungi server: ' + err.toString(), 'error');
+      }).submitAbsensi(absensiData);
+
+    } else {
+      $('#m-abs-progress-wrapper').hide();
+      Swal.fire('Gagal Upload', 'Gagal mengunggah tanda tangan: ' + uploadRes.message, 'error');
+    }
+  }).withFailureHandler(function(err) {
+    $('#m-abs-progress-wrapper').hide();
+    Swal.fire('Error', 'Gagal mengunggah tanda tangan: ' + err.toString(), 'error');
+  }).uploadFileToDrive(signatureBase64, signatureFilename, "image/png", "ABSENSI");
+}
 
 </script>
 
