@@ -2504,13 +2504,7 @@ html.swal2-shown, body.swal2-shown {
         </div>
       </div>
 
-      <!-- Progress bar -->
-      <div id="m-abs-progress-wrapper" class="mb-3" style="display:none;">
-        <div class="progress progress-sm" style="height: 6px;">
-          <div id="m-abs-progressbar" class="progress-bar bg-success" role="progressbar" style="width: 0%"></div>
-        </div>
-        <div id="m-abs-progresstext" class="small text-center text-muted mt-1" style="font-size: 0.78em;">Menyimpan absensi...</div>
-      </div>
+
 
       <button type="submit" class="w-100 font-weight-bold" style="background: linear-gradient(135deg, #10b981, #047857); color: white; border: 0; padding: 12px 0; border-radius: 12px; font-size: 1.05em; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25); display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;">
         <i class="fas fa-check-circle"></i> KIRIM ABSENSI
@@ -7370,10 +7364,8 @@ function mSubmitAbsensi() {
     return;
   }
 
-  // Start progress bar
-  $('#m-abs-progress-wrapper').show();
-  $('#m-abs-progressbar').css('width', '10%');
-  $('#m-abs-progresstext').text('Mengunggah paraf...');
+  // Show global loader overlay
+  mShow(true, 'Mengunggah paraf...');
 
   // 1. Upload signature
   const signatureBase64 = absensiCanvas.toDataURL("image/png").split(',')[1];
@@ -7381,11 +7373,10 @@ function mSubmitAbsensi() {
 
   google.script.run.withSuccessHandler(function(sigRes) {
     if (sigRes && sigRes.success) {
-      $('#m-abs-progressbar').css('width', '50%');
       
       // 2. Check if optional documentation file is selected
       if (selectedDocFile) {
-        $('#m-abs-progresstext').text('Mengunggah dokumentasi...');
+        mShow(true, 'Mengunggah dokumentasi...');
         const reader = new FileReader();
         reader.onload = function(e) {
           const docBase64 = e.target.result.split(',')[1];
@@ -7396,11 +7387,11 @@ function mSubmitAbsensi() {
             if (docRes && docRes.success) {
               submitAbsensiFinal(sigRes.url, docRes.url);
             } else {
-              $('#m-abs-progress-wrapper').hide();
+              mShow(false);
               Swal.fire('Gagal Upload', 'Gagal mengunggah foto dokumentasi: ' + docRes.message, 'error');
             }
           }).withFailureHandler(function(err) {
-            $('#m-abs-progress-wrapper').hide();
+            mShow(false);
             Swal.fire('Error', 'Gagal mengunggah foto dokumentasi: ' + err.toString(), 'error');
           }).uploadFileToDrive(docBase64, docFilename, selectedDocFile.type, "ABSENSI");
         };
@@ -7411,17 +7402,16 @@ function mSubmitAbsensi() {
       }
 
     } else {
-      $('#m-abs-progress-wrapper').hide();
+      mShow(false);
       Swal.fire('Gagal Upload', 'Gagal mengunggah paraf: ' + sigRes.message, 'error');
     }
   }).withFailureHandler(function(err) {
-    $('#m-abs-progress-wrapper').hide();
+    mShow(false);
     Swal.fire('Error', 'Gagal mengunggah paraf: ' + err.toString(), 'error');
   }).uploadFileToDrive(signatureBase64, signatureFilename, "image/png", "ABSENSI");
 
   function submitAbsensiFinal(sigUrl, docUrl) {
-    $('#m-abs-progressbar').css('width', '80%');
-    $('#m-abs-progresstext').text('Menyimpan data absensi...');
+    mShow(true, 'Menyimpan data absensi...');
 
     const absensiData = {
       jenisPertemuan: jenis,
@@ -7437,7 +7427,7 @@ function mSubmitAbsensi() {
     };
 
     google.script.run.withSuccessHandler(function(submitRes) {
-      $('#m-abs-progress-wrapper').hide();
+      mShow(false);
       if (submitRes && submitRes.success) {
         Swal.fire({
           icon: 'success',
@@ -7452,7 +7442,7 @@ function mSubmitAbsensi() {
         Swal.fire('Gagal Menyimpan', submitRes.message || 'Gagal menyimpan data absensi ke spreadsheet.', 'error');
       }
     }).withFailureHandler(function(err) {
-      $('#m-abs-progress-wrapper').hide();
+      mShow(false);
       Swal.fire('Error', 'Gagal menghubungi server: ' + err.toString(), 'error');
     }).submitAbsensi(absensiData);
   }
