@@ -1677,24 +1677,11 @@ html.swal2-shown, body.swal2-shown {
     </div>
   </div>
   
-  <!-- FLOATING ABSENSI WIDGET -->
-  <style>
-    .m-fab-absensi {
-      animation: m-pulse-fab 2s infinite;
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
-    }
-    @keyframes m-pulse-fab {
-      0% { box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4); }
-      50% { box-shadow: 0 6px 30px rgba(16, 185, 129, 0.7); }
-      100% { box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4); }
-    }
-    .m-fab-absensi:active {
-      transform: scale(0.92) !important;
-    }
-  </style>
-  <div onclick="mOpenAbsensiForm();" class="m-fab-absensi" style="position: fixed; bottom: 24px; right: 20px; z-index: 150; background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 12px 18px; border-radius: 50px; display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 0.85em; text-transform: uppercase; cursor: pointer; letter-spacing: 0.5px; border: 1.5px solid rgba(255,255,255,0.25); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);">
-    <i class="fas fa-calendar-check" style="font-size: 1.25em;"></i>
-    <span>Absensi</span>
+  <!-- ABSENSI PERTEMUAN BUTTON (BELOW CARD, CENTERED) -->
+  <div class="text-center mt-3 pb-3" style="width: 100%; display: flex; justify-content: center; z-index: 10;">
+    <button type="button" onclick="mOpenAbsensiForm(); return false;" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: 0; padding: 12px 28px; border-radius: 50px; font-weight: 700; font-size: 0.9em; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25); display: flex; align-items: center; gap: 8px; cursor: pointer; border: 1.5px solid rgba(255,255,255,0.25); transition: transform 0.15s ease, box-shadow 0.15s ease;" onmousedown="this.style.transform='scale(0.95)'" onmouseup="this.style.transform='scale(1)'">
+      <i class="fas fa-calendar-check" style="font-size: 1.1em;"></i> ABSENSI PERTEMUAN
+    </button>
   </div>
 </div>
 
