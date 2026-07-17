@@ -1637,7 +1637,9 @@ html.swal2-shown, body.swal2-shown {
     <div class="m-login-orb m-orb-1"></div>
     <div class="m-login-orb m-orb-2"></div>
   </div>
-  <div class="m-login-card">
+  <!-- WRAPPER FOR VERTICAL ALIGNMENT -->
+  <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2; width: 100%; max-width: 380px;">
+    <div class="m-login-card">
     <!-- Top Branding Section (matches login-pane-left) -->
     <div class="m-login-pane-top">
       <div class="m-login-bg-icons-container" id="m-login-bg-icons"></div>
@@ -1684,6 +1686,7 @@ html.swal2-shown, body.swal2-shown {
       ABSENSI
     </button>
   </div>
+  </div> <!-- END WRAPPER -->
 </div>
 
 <!-- ============== APP SHELL (after login) ============== -->
