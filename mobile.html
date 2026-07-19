@@ -2470,36 +2470,6 @@ html.swal2-shown, body.swal2-shown {
             </div>
           </div>
           
-          <!-- Dokumentasi (Optional) -->
-          <div class="form-group mb-2">
-            <label class="font-weight-bold small mb-1">DOKUMENTASI (OPTIONAL)</label>
-            <div style="display: flex; gap: 10px;">
-              <!-- Camera Button -->
-              <button type="button" onclick="document.getElementById('m-abs-doc-camera').click();" style="flex: 1; padding: 12px; border-radius: 8px; border: 1.5px solid #cbd5e1; font-weight: 700; background: #fff; color: #334155; font-size: 0.82em; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: all 0.15s ease;">
-                <i class="fas fa-camera" style="color: #10b981;"></i> AMBIL FOTO
-              </button>
-              <!-- Gallery Button -->
-              <button type="button" onclick="document.getElementById('m-abs-doc-gallery').click();" style="flex: 1; padding: 12px; border-radius: 8px; border: 1.5px solid #cbd5e1; font-weight: 700; background: #fff; color: #334155; font-size: 0.82em; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: all 0.15s ease;">
-                <i class="fas fa-images" style="color: #3b82f6;"></i> PILIH GALERI
-              </button>
-            </div>
-            
-            <!-- Hidden inputs -->
-            <input type="file" id="m-abs-doc-camera" accept="image/png, image/jpeg" capture="environment" style="display: none;" onchange="mHandleDocFileSelected(this, 'camera')">
-            <input type="file" id="m-abs-doc-gallery" accept="image/png, image/jpeg" style="display: none;" onchange="mHandleDocFileSelected(this, 'gallery')">
-            
-            <!-- Preview Area -->
-            <div id="m-abs-doc-preview-container" style="display: none;" class="mt-2 text-center position-relative">
-              <div style="position: relative; display: inline-block;">
-                <img id="m-abs-doc-preview" src="" style="max-width: 100%; max-height: 150px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); display: block;">
-                <button type="button" onclick="mRemoveDocFile()" style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: #fff; border: 0; width: 24px; height: 24px; border-radius: 50%; font-size: 0.8em; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 5;">
-                  <i class="fas fa-times"></i>
-                </button>
-              </div>
-              <div id="m-abs-doc-preview-label" class="small text-muted mt-1" style="font-size: 0.72em;"></div>
-            </div>
-          </div>
-          
         </div>
       </div>
 
@@ -2660,36 +2630,6 @@ html.swal2-shown, body.swal2-shown {
                 <button type="button" class="btn btn-sm btn-secondary" onclick="mClearUserAbsensiSignature()" style="border-radius: 6px;"><i class="fas fa-eraser mr-1"></i> Hapus</button>
                 <span class="text-muted small align-self-center" style="font-size: 0.75em;">Gunakan jari/stylus di area atas</span>
               </div>
-            </div>
-          </div>
-          
-          <!-- Dokumentasi (Optional) -->
-          <div class="form-group mb-2">
-            <label class="font-weight-bold small mb-1">DOKUMENTASI (OPTIONAL)</label>
-            <div style="display: flex; gap: 10px;">
-              <!-- Camera Button -->
-              <button type="button" onclick="document.getElementById('m-user-abs-doc-camera').click();" style="flex: 1; padding: 12px; border-radius: 8px; border: 1.5px solid #cbd5e1; font-weight: 700; background: #fff; color: #334155; font-size: 0.82em; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: all 0.15s ease;">
-                <i class="fas fa-camera" style="color: #10b981;"></i> AMBIL FOTO
-              </button>
-              <!-- Gallery Button -->
-              <button type="button" onclick="document.getElementById('m-user-abs-doc-gallery').click();" style="flex: 1; padding: 12px; border-radius: 8px; border: 1.5px solid #cbd5e1; font-weight: 700; background: #fff; color: #334155; font-size: 0.82em; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: all 0.15s ease;">
-                <i class="fas fa-images" style="color: #3b82f6;"></i> PILIH GALERI
-              </button>
-            </div>
-            
-            <!-- Hidden inputs -->
-            <input type="file" id="m-user-abs-doc-camera" accept="image/png, image/jpeg" capture="environment" style="display: none;" onchange="mHandleUserDocFileSelected(this, 'camera')">
-            <input type="file" id="m-user-abs-doc-gallery" accept="image/png, image/jpeg" style="display: none;" onchange="mHandleUserDocFileSelected(this, 'gallery')">
-            
-            <!-- Preview Area -->
-            <div id="m-user-abs-doc-preview-container" style="display: none;" class="mt-2 text-center position-relative">
-              <div style="position: relative; display: inline-block;">
-                <img id="m-user-abs-doc-preview" src="" style="max-width: 100%; max-height: 150px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); display: block;">
-                <button type="button" onclick="mRemoveUserDocFile()" style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: #fff; border: 0; width: 24px; height: 24px; border-radius: 50%; font-size: 0.8em; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 5;">
-                  <i class="fas fa-times"></i>
-                </button>
-              </div>
-              <div id="m-user-abs-doc-preview-label" class="small text-muted mt-1" style="font-size: 0.72em;"></div>
             </div>
           </div>
           
