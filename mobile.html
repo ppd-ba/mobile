@@ -2910,6 +2910,30 @@ function mInitBackHandler() {
   
   // Run once in case they reload with a hash
   mHandleHashChange();
+
+  // Native back handler for APK
+  window.mOnBackPressed = function() {
+    const hash = window.location.hash || '';
+    
+    // If there is an active overlay, close it by going back in history
+    const isOverlayOpen = hash.startsWith('#overlay-') || hash === '#overlay-submenu';
+    if (isOverlayOpen) {
+      window.history.back();
+      return;
+    }
+    
+    // No overlays open. Check active tab
+    const activeTab = $('.m-nav-item.m-nav-active').data('tab') || 'home';
+    if (activeTab !== 'home') {
+      // If not on home tab, go back to home tab
+      mSwitchTab('home');
+    } else {
+      // If on home tab or login page, call Android to exit
+      if (window.AndroidBridge) {
+        window.AndroidBridge.showExitDialog();
+      }
+    }
+  };
 }
 
 function mPushNav(type, value) {
@@ -2937,7 +2961,11 @@ function mHandleHashChange() {
   $('#m-photo-crop-overlay').hide();
   $('#m-register-overlay').hide();
 
-  if (hash === '#overlay-submenu') {
+  if (!hash || hash === '#tab-home') {
+    if (typeof mUser !== 'undefined' && mUser) {
+      mSwitchTab('home', true);
+    }
+  } else if (hash === '#overlay-submenu') {
     $('#m-submenu-overlay').show();
   } else if (hash === '#overlay-form') {
     $('#m-submenu-overlay').show();
