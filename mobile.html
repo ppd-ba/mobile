@@ -1885,8 +1885,12 @@ html.swal2-shown, body.swal2-shown {
         </ul>
       </div>
 
+      <!-- Tombol Ganti Password & Logout -->
+      <button class="m-btn-secondary m-btn-block mt-2" onclick="mChangePass()"><i class="fas fa-key mr-1"></i> Ganti Password</button>
+      <button class="m-btn-danger m-btn-block mt-2" onclick="mLogout()"><i class="fas fa-sign-out-alt mr-1"></i> Logout</button>
+
       <!-- Tombol Lihat Data Karyawan -->
-      <div class="mt-2 mb-3">
+      <div class="mt-3 mb-3">
         <button id="m-btn-reveal-data" class="m-btn-primary m-btn-block" style="background-color: #05244d; border-radius: 8px; padding: 10px 0; font-size: 0.9em;" onclick="mToggleRevealData()">
           <i class="fas fa-eye mr-1"></i> Lihat Data Karyawan
         </button>
@@ -1953,8 +1957,7 @@ html.swal2-shown, body.swal2-shown {
         </div>
       </div>
     </div>
-    <button class="m-btn-secondary m-btn-block mt-3" onclick="mChangePass()"><i class="fas fa-key mr-1"></i> Ganti Password</button>
-    <button class="m-btn-danger m-btn-block mt-2" onclick="mLogout()"><i class="fas fa-sign-out-alt mr-1"></i> Logout</button>
+    <button class="m-btn-secondary m-btn-block mt-3" onclick="mSwitchTab('home')"><i class="fas fa-arrow-left mr-1"></i> Kembali</button>
     <p class="m-app-version">PPD Mobile v1.0 · <a href="?view=desktop" target="_blank" style="color:#c10f19;">Versi Desktop</a></p>
   </main>
 
