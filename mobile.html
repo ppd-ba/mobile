@@ -2469,6 +2469,28 @@ html.swal2-shown, body.swal2-shown {
               </div>
             </div>
           </div>
+          <!-- Dokumentasi (Optional) -->
+          <div class="form-group mb-2">
+            <label class="font-weight-bold small mb-1">DOKUMENTASI (Opsional/Tidak Wajib)</label>
+            <div style="display: flex; gap: 10px;">
+              <button type="button" onclick="document.getElementById('m-abs-doc-gallery').click();" style="width: 100%; padding: 12px; border-radius: 8px; border: 1.5px solid #cbd5e1; font-weight: 700; background: #fff; color: #334155; font-size: 0.82em; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: all 0.15s ease;">
+                <i class="fas fa-images" style="color: #3b82f6;"></i> FOTO GALERI
+              </button>
+            </div>
+            
+            <input type="file" id="m-abs-doc-gallery" accept="image/png, image/jpeg" style="display: none;" onchange="mHandleDocFileSelected(this, 'gallery')">
+            
+            <!-- Preview Area -->
+            <div id="m-abs-doc-preview-container" style="display: none;" class="mt-2 text-center position-relative">
+              <div style="position: relative; display: inline-block;">
+                <img id="m-abs-doc-preview" src="" style="max-width: 100%; max-height: 150px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); display: block;">
+                <button type="button" onclick="mRemoveDocFile()" style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: #fff; border: 0; width: 24px; height: 24px; border-radius: 50%; font-size: 0.8em; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 5;">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              <div id="m-abs-doc-preview-label" class="small text-muted mt-1" style="font-size: 0.72em;"></div>
+            </div>
+          </div>
           
         </div>
       </div>
@@ -2630,6 +2652,28 @@ html.swal2-shown, body.swal2-shown {
                 <button type="button" class="btn btn-sm btn-secondary" onclick="mClearUserAbsensiSignature()" style="border-radius: 6px;"><i class="fas fa-eraser mr-1"></i> Hapus</button>
                 <span class="text-muted small align-self-center" style="font-size: 0.75em;">Gunakan jari/stylus di area atas</span>
               </div>
+            </div>
+          </div>
+          <!-- Dokumentasi (Optional) -->
+          <div class="form-group mb-2">
+            <label class="font-weight-bold small mb-1">DOKUMENTASI (Opsional/Tidak Wajib)</label>
+            <div style="display: flex; gap: 10px;">
+              <button type="button" onclick="document.getElementById('m-user-abs-doc-gallery').click();" style="width: 100%; padding: 12px; border-radius: 8px; border: 1.5px solid #cbd5e1; font-weight: 700; background: #fff; color: #334155; font-size: 0.82em; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: all 0.15s ease;">
+                <i class="fas fa-images" style="color: #3b82f6;"></i> FOTO GALERI
+              </button>
+            </div>
+            
+            <input type="file" id="m-user-abs-doc-gallery" accept="image/png, image/jpeg" style="display: none;" onchange="mHandleUserDocFileSelected(this, 'gallery')">
+            
+            <!-- Preview Area -->
+            <div id="m-user-abs-doc-preview-container" style="display: none;" class="mt-2 text-center position-relative">
+              <div style="position: relative; display: inline-block;">
+                <img id="m-user-abs-doc-preview" src="" style="max-width: 100%; max-height: 150px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); display: block;">
+                <button type="button" onclick="mRemoveUserDocFile()" style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: #fff; border: 0; width: 24px; height: 24px; border-radius: 50%; font-size: 0.8em; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 5;">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              <div id="m-user-abs-doc-preview-label" class="small text-muted mt-1" style="font-size: 0.72em;"></div>
             </div>
           </div>
           
@@ -7351,7 +7395,25 @@ function initAbsensiSignaturePad() {
   absensiDrawing = false;
   absensiHasSigned = false;
 
+  let isSized = false;
+  function ensureSized() {
+    if (isSized) return;
+    const r = absensiCanvas.getBoundingClientRect();
+    if (r.width > 0 && r.height > 0) {
+      absensiCanvas.width = r.width;
+      absensiCanvas.height = r.height;
+      absensiCtx.fillStyle = '#ffffff';
+      absensiCtx.fillRect(0, 0, absensiCanvas.width, absensiCanvas.height);
+      absensiCtx.strokeStyle = '#05244d';
+      absensiCtx.lineWidth = 3;
+      absensiCtx.lineCap = 'round';
+      absensiCtx.lineJoin = 'round';
+      isSized = true;
+    }
+  }
+
   function getPos(e) {
+    ensureSized();
     const r = absensiCanvas.getBoundingClientRect();
     if (e.touches && e.touches.length > 0) {
       return {
@@ -7366,6 +7428,7 @@ function initAbsensiSignaturePad() {
   }
 
   function startDrawing(e) {
+    ensureSized();
     if (e.cancelable) e.preventDefault();
     absensiDrawing = true;
     const pos = getPos(e);
@@ -7470,7 +7533,7 @@ function mOpenAbsensiForm() {
   let dd = today.getDate();
   if (mm < 10) mm = '0' + mm;
   if (dd < 10) dd = '0' + dd;
-  document.getElementById('m-abs-tanggal').value = yyyy + '-' + mm + '-' + dd;
+  $('#m-abs-tanggal').val(yyyy + '-' + mm + '-' + dd);
  
   // Initialize pad after overlay display
   setTimeout(() => {
@@ -7627,7 +7690,25 @@ function initUserAbsensiSignaturePad() {
   userAbsDrawing = false;
   userAbsHasSigned = false;
 
+  let isSized = false;
+  function ensureSized() {
+    if (isSized) return;
+    const r = userAbsCanvas.getBoundingClientRect();
+    if (r.width > 0 && r.height > 0) {
+      userAbsCanvas.width = r.width;
+      userAbsCanvas.height = r.height;
+      userAbsCtx.fillStyle = '#ffffff';
+      userAbsCtx.fillRect(0, 0, userAbsCanvas.width, userAbsCanvas.height);
+      userAbsCtx.strokeStyle = '#05244d';
+      userAbsCtx.lineWidth = 3;
+      userAbsCtx.lineCap = 'round';
+      userAbsCtx.lineJoin = 'round';
+      isSized = true;
+    }
+  }
+
   function getPos(e) {
+    ensureSized();
     const r = userAbsCanvas.getBoundingClientRect();
     if (e.touches && e.touches.length > 0) {
       return {
@@ -7642,6 +7723,7 @@ function initUserAbsensiSignaturePad() {
   }
 
   function startDrawing(e) {
+    ensureSized();
     if (e.cancelable) e.preventDefault();
     userAbsDrawing = true;
     const pos = getPos(e);
@@ -7723,7 +7805,6 @@ function mOpenUserAbsensiForm() {
   document.getElementById('m-form-user-absensi').reset();
   mClearUserAbsensiSignature();
   mRemoveUserDocFile();
-  
   // Set default date to today
   const today = new Date();
   const yyyy = today.getFullYear();
@@ -7731,7 +7812,7 @@ function mOpenUserAbsensiForm() {
   let dd = today.getDate();
   if (mm < 10) mm = '0' + mm;
   if (dd < 10) dd = '0' + dd;
-  document.getElementById('m-user-abs-tanggal').value = yyyy + '-' + mm + '-' + dd;
+  $('#m-user-abs-tanggal').val(yyyy + '-' + mm + '-' + dd);
 
   // Initialize canvas pad
   setTimeout(() => {
