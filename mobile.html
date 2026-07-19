@@ -2485,7 +2485,7 @@ html.swal2-shown, body.swal2-shown {
             </div>
             
             <!-- Hidden inputs -->
-            <input type="file" id="m-abs-doc-camera" accept="image/png, image/jpeg" capture="environment" style="display: none;" onchange="mHandleDocFileSelected(this, 'camera')">
+            <input type="file" id="m-abs-doc-camera" accept="image/png, image/jpeg" style="display: none;" onchange="mHandleDocFileSelected(this, 'camera')">
             <input type="file" id="m-abs-doc-gallery" accept="image/png, image/jpeg" style="display: none;" onchange="mHandleDocFileSelected(this, 'gallery')">
             
             <!-- Preview Area -->
@@ -2678,7 +2678,7 @@ html.swal2-shown, body.swal2-shown {
             </div>
             
             <!-- Hidden inputs -->
-            <input type="file" id="m-user-abs-doc-camera" accept="image/png, image/jpeg" capture="environment" style="display: none;" onchange="mHandleUserDocFileSelected(this, 'camera')">
+            <input type="file" id="m-user-abs-doc-camera" accept="image/png, image/jpeg" style="display: none;" onchange="mHandleUserDocFileSelected(this, 'camera')">
             <input type="file" id="m-user-abs-doc-gallery" accept="image/png, image/jpeg" style="display: none;" onchange="mHandleUserDocFileSelected(this, 'gallery')">
             
             <!-- Preview Area -->
@@ -8070,9 +8070,19 @@ function mSubmitUserAbsensi() {
   }
 }
 
-function mCompressImage(fileOrDataUrl, maxWidth, maxHeight, quality, callback) {
+function mCompressImage(file, maxWidth, maxHeight, quality, callback) {
+  if (!file) return callback("");
+  
+  if (typeof file === 'string') {
+    return callback(file);
+  }
+
   const img = new Image();
+  const objectUrl = URL.createObjectURL(file);
+  
   img.onload = function() {
+    URL.revokeObjectURL(objectUrl);
+    
     let width = img.width;
     let height = img.height;
     
@@ -8097,16 +8107,18 @@ function mCompressImage(fileOrDataUrl, maxWidth, maxHeight, quality, callback) {
     const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
     callback(compressedBase64);
   };
-  
-  if (typeof fileOrDataUrl === 'string') {
-    img.src = fileOrDataUrl;
-  } else {
+
+  img.onerror = function() {
+    URL.revokeObjectURL(objectUrl);
+    // Fallback if URL.createObjectURL fails
     const reader = new FileReader();
     reader.onload = function(e) {
-      img.src = e.target.result;
+      callback(e.target.result);
     };
-    reader.readAsDataURL(fileOrDataUrl);
-  }
+    reader.readAsDataURL(file);
+  };
+  
+  img.src = objectUrl;
 }
 </script>
 
