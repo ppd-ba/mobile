@@ -2023,10 +2023,6 @@ html.swal2-shown, body.swal2-shown {
     
     <div style="flex: 1; padding: 75px 16px 20px 16px; overflow-y: auto;">
       <div class="m-menu-lain-list" style="margin-top: 0;">
-        <div class="m-menu-lain-row" onclick="mShowComingSoonMenu('Absensi')">
-          <div class="m-ic-wrap m-ic-blue"><i class="fa-solid fa-user-check"></i></div>
-          <span class="m-menu-lain-text">Absensi</span>
-        </div>
         <div class="m-menu-lain-row" onclick="mShowComingSoonMenu('Event Development')">
           <div class="m-ic-wrap m-ic-orange"><i class="fa-solid fa-calendar-day"></i></div>
           <span class="m-menu-lain-text">Event Development</span>
@@ -7402,6 +7398,10 @@ function initAbsensiSignaturePad() {
   absensiCanvas.width = rect.width;
   absensiCanvas.height = rect.height;
   
+  // Fill background with white
+  absensiCtx.fillStyle = '#ffffff';
+  absensiCtx.fillRect(0, 0, absensiCanvas.width, absensiCanvas.height);
+  
   // Signature style
   absensiCtx.strokeStyle = '#05244d'; // Navy blue
   absensiCtx.lineWidth = 3;
@@ -7459,7 +7459,8 @@ function initAbsensiSignaturePad() {
 
 function mClearAbsensiSignature() {
   if (absensiCanvas && absensiCtx) {
-    absensiCtx.clearRect(0, 0, absensiCanvas.width, absensiCanvas.height);
+    absensiCtx.fillStyle = '#ffffff';
+    absensiCtx.fillRect(0, 0, absensiCanvas.width, absensiCanvas.height);
     absensiHasSigned = false;
   }
 }
@@ -7597,23 +7598,21 @@ function mSubmitAbsensi() {
   }
 
   // Show global loader overlay
-  mShow(true, 'Mengunggah paraf...');
+  mShow(true, 'Mengkompres & mengunggah paraf...');
 
-  // 1. Upload signature
-  const signatureBase64 = absensiCanvas.toDataURL("image/png").split(',')[1];
-  const signatureFilename = `sig_${nama.replace(/\s+/g, '_')}_${Date.now()}.png`;
+  // 1. Upload signature (compressed to JPEG)
+  const signatureBase64 = absensiCanvas.toDataURL("image/jpeg", 0.7).split(',')[1];
+  const signatureFilename = `sig_${nama.replace(/\s+/g, '_')}_${Date.now()}.jpg`;
 
   google.script.run.withSuccessHandler(function(sigRes) {
     if (sigRes && sigRes.success) {
       
       // 2. Check if optional documentation file is selected
       if (selectedDocFile) {
-        mShow(true, 'Mengunggah dokumentasi...');
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const docBase64 = e.target.result.split(',')[1];
-          const ext = selectedDocFile.name.split('.').pop();
-          const docFilename = `doc_${nama.replace(/\s+/g, '_')}_${Date.now()}.${ext}`;
+        mShow(true, 'Mengkompres & mengunggah dokumentasi...');
+        mCompressImage(selectedDocFile, 1000, 1000, 0.6, function(compressedBase64) {
+          const docBase64 = compressedBase64.split(',')[1];
+          const docFilename = `doc_${nama.replace(/\s+/g, '_')}_${Date.now()}.jpg`;
           
           google.script.run.withSuccessHandler(function(docRes) {
             if (docRes && docRes.success) {
@@ -7625,9 +7624,8 @@ function mSubmitAbsensi() {
           }).withFailureHandler(function(err) {
             mShow(false);
             Swal.fire('Error', 'Gagal mengunggah foto dokumentasi: ' + err.toString(), 'error');
-          }).uploadFileToDrive(docBase64, docFilename, selectedDocFile.type, "ABSENSI");
-        };
-        reader.readAsDataURL(selectedDocFile);
+          }).uploadFileToDrive(docBase64, docFilename, "image/jpeg", "ABSENSI");
+        });
       } else {
         // No documentation file uploaded
         submitAbsensiFinal(sigRes.url, "");
@@ -7700,6 +7698,10 @@ function initUserAbsensiSignaturePad() {
   userAbsCanvas.width = rect.width;
   userAbsCanvas.height = rect.height;
   
+  // Fill background with white
+  userAbsCtx.fillStyle = '#ffffff';
+  userAbsCtx.fillRect(0, 0, userAbsCanvas.width, userAbsCanvas.height);
+  
   userAbsCtx.strokeStyle = '#05244d';
   userAbsCtx.lineWidth = 3;
   userAbsCtx.lineCap = 'round';
@@ -7754,7 +7756,8 @@ function initUserAbsensiSignaturePad() {
 
 function mClearUserAbsensiSignature() {
   if (userAbsCanvas && userAbsCtx) {
-    userAbsCtx.clearRect(0, 0, userAbsCanvas.width, userAbsCanvas.height);
+    userAbsCtx.fillStyle = '#ffffff';
+    userAbsCtx.fillRect(0, 0, userAbsCanvas.width, userAbsCanvas.height);
     userAbsHasSigned = false;
   }
 }
@@ -8025,19 +8028,18 @@ function mSubmitUserAbsensi() {
   if (jenis === 'TRAINING' && !penanggungJawab) return Swal.fire('Lengkapi', 'Penanggung Jawab/Instruktur wajib diisi.', 'warning');
   if (!userAbsHasSigned) return Swal.fire('Tanda Tangan', 'Paraf tanda tangan wajib diisi.', 'warning');
 
-  mShow(true, 'Mengunggah paraf...');
+  mShow(true, 'Mengkompres & mengunggah paraf...');
   
-  const signatureBase64 = userAbsCanvas.toDataURL('image/png').split(',')[1];
-  const signatureFilename = `TTD_${nik}_${Date.now()}.png`;
+  const signatureBase64 = userAbsCanvas.toDataURL('image/jpeg', 0.7).split(',')[1];
+  const signatureFilename = `TTD_${nik}_${Date.now()}.jpg`;
 
   google.script.run.withSuccessHandler(function(sigRes) {
     if (sigRes && sigRes.success) {
       if (userSelectedDocFile) {
-        mShow(true, 'Mengunggah dokumentasi...');
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const docBase64 = e.target.result.split(',')[1];
-          const docFilename = `DOC_${nik}_${Date.now()}_${userSelectedDocFile.name}`;
+        mShow(true, 'Mengkompres & mengunggah dokumentasi...');
+        mCompressImage(userSelectedDocFile, 1000, 1000, 0.6, function(compressedBase64) {
+          const docBase64 = compressedBase64.split(',')[1];
+          const docFilename = `DOC_${nik}_${Date.now()}.jpg`;
           
           google.script.run.withSuccessHandler(function(docRes) {
             if (docRes && docRes.success) {
@@ -8049,9 +8051,8 @@ function mSubmitUserAbsensi() {
           }).withFailureHandler(function(err) {
             mShow(false);
             Swal.fire('Error', 'Gagal mengunggah dokumentasi: ' + err.toString(), 'error');
-          }).uploadFileToDrive(docBase64, docFilename, userSelectedDocFile.type, "ABSENSI");
-        };
-        reader.readAsDataURL(userSelectedDocFile);
+          }).uploadFileToDrive(docBase64, docFilename, "image/jpeg", "ABSENSI");
+        });
       } else {
         submitAbsensiFinal(sigRes.url, "");
       }
@@ -8062,7 +8063,7 @@ function mSubmitUserAbsensi() {
   }).withFailureHandler(function(err) {
     mShow(false);
     Swal.fire('Error', 'Gagal mengunggah paraf: ' + err.toString(), 'error');
-  }).uploadFileToDrive(signatureBase64, signatureFilename, "image/png", "ABSENSI");
+  }).uploadFileToDrive(signatureBase64, signatureFilename, "image/jpeg", "ABSENSI");
 
   function submitAbsensiFinal(sigUrl, docUrl) {
     mShow(true, 'Menyimpan data absensi...');
@@ -8105,6 +8106,45 @@ function mSubmitUserAbsensi() {
       mShow(false);
       Swal.fire('Error', 'Gagal menghubungi server: ' + err.toString(), 'error');
     }).submitAbsensi(absensiData);
+  }
+}
+
+function mCompressImage(fileOrDataUrl, maxWidth, maxHeight, quality, callback) {
+  const img = new Image();
+  img.onload = function() {
+    let width = img.width;
+    let height = img.height;
+    
+    if (width > height) {
+      if (width > maxWidth) {
+        height = Math.round((height * maxWidth) / width);
+        width = maxWidth;
+      }
+    } else {
+      if (height > maxHeight) {
+        width = Math.round((width * maxHeight) / height);
+        height = maxHeight;
+      }
+    }
+    
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, width, height);
+    
+    const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+    callback(compressedBase64);
+  };
+  
+  if (typeof fileOrDataUrl === 'string') {
+    img.src = fileOrDataUrl;
+  } else {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(fileOrDataUrl);
   }
 }
 </script>
