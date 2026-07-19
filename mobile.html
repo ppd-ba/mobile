@@ -2923,7 +2923,8 @@ function mInitBackHandler() {
     }
     
     // No overlays open. Check active tab
-    const activeTab = $('.m-nav-item.m-nav-active').data('tab') || 'home';
+    const activeTabId = $('.m-tab.m-tab-active').attr('id') || 'm-tab-home';
+    const activeTab = activeTabId.replace('m-tab-', '');
     if (activeTab !== 'home') {
       // If not on home tab, go back to home tab
       mSwitchTab('home');
@@ -2960,6 +2961,7 @@ function mHandleHashChange() {
   $('#m-templates-overlay').hide();
   $('#m-photo-crop-overlay').hide();
   $('#m-register-overlay').hide();
+  $('#m-absensi-overlay').hide();
 
   if (!hash || hash === '#tab-home') {
     if (typeof mUser !== 'undefined' && mUser) {
@@ -2970,6 +2972,8 @@ function mHandleHashChange() {
   } else if (hash === '#overlay-form') {
     $('#m-submenu-overlay').show();
     $('#m-form-overlay').show();
+  } else if (hash === '#overlay-absensi') {
+    $('#m-absensi-overlay').show();
   } else if (hash === '#overlay-history-detail') {
     $('#m-history-overlay').show();
   } else if (hash === '#overlay-approval-detail') {
@@ -2982,7 +2986,6 @@ function mHandleHashChange() {
     $('#m-menu-lain-sheet').show();
   } else if (hash === '#overlay-quick') {
     $('#m-quick-sheet').show();
-
   } else if (hash === '#overlay-crop-photo') {
     $('#m-submenu-overlay').show();
     $('#m-form-overlay').show();
@@ -7300,7 +7303,8 @@ function mRemoveDocFile() {
 }
 
 function mOpenAbsensiForm() {
-  document.getElementById('m-absensi-overlay').style.display = 'block';
+  mPushNav('overlay', 'absensi');
+  $('#m-absensi-overlay').show();
   document.getElementById('m-form-absensi').reset();
   $('#m-abs-progress-wrapper').hide();
   mClearAbsensiSignature();
@@ -7316,7 +7320,7 @@ function mOpenAbsensiForm() {
   $('#m-abs-tempat-custom').removeAttr('required').val('');
   $('#m-abs-jabatan-custom-wrapper').hide();
   $('#m-abs-jabatan-custom').removeAttr('required').val('');
-
+ 
   // Set default date to today
   const today = new Date();
   const yyyy = today.getFullYear();
@@ -7325,15 +7329,18 @@ function mOpenAbsensiForm() {
   if (mm < 10) mm = '0' + mm;
   if (dd < 10) dd = '0' + dd;
   document.getElementById('m-abs-tanggal').value = yyyy + '-' + mm + '-' + dd;
-
+ 
   // Initialize pad after overlay display
   setTimeout(() => {
     initAbsensiSignaturePad();
   }, 150);
 }
-
+ 
 function mCloseAbsensiForm() {
-  document.getElementById('m-absensi-overlay').style.display = 'none';
+  $('#m-absensi-overlay').hide();
+  if (window.location.hash === '#overlay-absensi') {
+    window.history.back();
+  }
 }
 
 function mSelectJenisPertemuan(val) {
