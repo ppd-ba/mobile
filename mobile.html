@@ -7476,17 +7476,21 @@ function mHandleDocFileSelected(input, source) {
     return;
   }
 
-  selectedDocFile = file;
-  selectedDocSource = source;
+  mShow(true, 'Mengkompres foto...');
 
-  // Show preview
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    $('#m-abs-doc-preview').attr('src', e.target.result);
-    $('#m-abs-doc-preview-label').text(`Terpilih dari ${source === 'camera' ? 'Kamera' : 'Galeri'} (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
+  mCompressImage(file, 1000, 1000, 0.6, function(compressedBase64) {
+    mShow(false);
+    selectedDocFile = compressedBase64;
+    selectedDocSource = source;
+
+    // Show preview using compressed base64
+    $('#m-abs-doc-preview').attr('src', compressedBase64);
+    
+    // Approximate size in MB from base64 length
+    const approxSize = (compressedBase64.length * 0.75) / 1024 / 1024;
+    $('#m-abs-doc-preview-label').text(`Terkompresi (${approxSize.toFixed(2)} MB)`);
     $('#m-abs-doc-preview-container').show();
-  };
-  reader.readAsDataURL(file);
+  });
 }
 
 function mRemoveDocFile() {
@@ -7745,16 +7749,21 @@ function mHandleUserDocFileSelected(input, source) {
     return;
   }
 
-  userSelectedDocFile = file;
-  userSelectedDocSource = source;
+  mShow(true, 'Mengkompres foto...');
 
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    $('#m-user-abs-doc-preview').attr('src', e.target.result);
-    $('#m-user-abs-doc-preview-label').text(`Terpilih dari ${source === 'camera' ? 'Kamera' : 'Galeri'} (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
+  mCompressImage(file, 1000, 1000, 0.6, function(compressedBase64) {
+    mShow(false);
+    userSelectedDocFile = compressedBase64;
+    userSelectedDocSource = source;
+
+    // Show preview using compressed base64
+    $('#m-user-abs-doc-preview').attr('src', compressedBase64);
+    
+    // Approximate size in MB from base64 length
+    const approxSize = (compressedBase64.length * 0.75) / 1024 / 1024;
+    $('#m-user-abs-doc-preview-label').text(`Terkompresi (${approxSize.toFixed(2)} MB)`);
     $('#m-user-abs-doc-preview-container').show();
-  };
-  reader.readAsDataURL(file);
+  });
 }
 
 function mRemoveUserDocFile() {
