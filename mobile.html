@@ -1781,9 +1781,9 @@ html.swal2-shown, body.swal2-shown {
         <div class="m-ic-wrap m-ic-cyan"><i class="fa-solid fa-lightbulb"></i></div>
         <span>PLANOVA</span>
       </div>
-      <div class="m-icon-btn" onclick="mShowMonitoring()">
-        <div class="m-ic-wrap m-ic-indigo"><i class="fa-solid fa-id-card"></i></div>
-        <span>Core Value</span>
+      <div class="m-icon-btn" onclick="mOpenUserAbsensiForm()">
+        <div class="m-ic-wrap m-ic-indigo"><i class="fa-solid fa-clipboard-user"></i></div>
+        <span>Absensi</span>
       </div>
       <div class="m-icon-btn" onclick="mSwitchTab('history')">
         <div class="m-ic-wrap m-ic-slate"><i class="fa-solid fa-clock-rotate-left"></i></div>
@@ -2517,6 +2517,197 @@ html.swal2-shown, body.swal2-shown {
   </div>
 </div>
 
+<!-- ============ ABSENSI KARYAWAN (USER) OVERLAY ============ -->
+<div id="m-user-absensi-overlay" class="m-submenu-overlay" style="display:none; z-index: 200;">
+  <header class="m-sub-header" style="background: linear-gradient(135deg, #05244d 0%, #10b981 100%) !important;">
+    <button class="m-back-btn" onclick="mCloseUserAbsensiForm()"><i class="fas fa-arrow-left"></i></button>
+    <h2>Absensi Training / Kegiatan</h2>
+  </header>
+  <div class="m-sub-content" style="padding: 16px; background-color: #f8f9fa;">
+    <form id="m-form-user-absensi" onsubmit="event.preventDefault(); mSubmitUserAbsensi();">
+      
+      <!-- Section 1: Informasi Kegiatan -->
+      <div class="card shadow-sm border-0 mb-3" style="border-radius: 10px;">
+        <div class="card-header text-white py-2" style="background: linear-gradient(135deg, #05244d 0%, #4f46e5 100%) !important; border-top-left-radius: 10px; border-top-right-radius: 10px;">
+          <h5 class="mb-0 font-weight-bold" style="font-size: 0.95em;"><i class="fas fa-info-circle mr-1"></i> Informasi Kegiatan</h5>
+        </div>
+        <div class="card-body p-3">
+          
+          <!-- Jenis Pertemuan -->
+          <div class="form-group mb-2">
+            <label class="font-weight-bold small mb-1">JENIS PERTEMUAN <span class="text-danger">*</span></label>
+            <div style="display: flex; gap: 8px;">
+              <button type="button" id="m-btn-user-jenis-training" onclick="mSelectUserJenisPertemuan('TRAINING')" style="flex: 1; padding: 10px; border-radius: 8px; border: 1.5px solid #cbd5e1; font-weight: 700; background: #fff; color: #64748b; font-size: 0.85em; cursor: pointer; transition: all 0.15s ease;">TRAINING</button>
+              <button type="button" id="m-btn-user-jenis-nontraining" onclick="mSelectUserJenisPertemuan('NON TRAINING')" style="flex: 1; padding: 10px; border-radius: 8px; border: 1.5px solid #05244d; font-weight: 700; background: #05244d; color: #fff; font-size: 0.85em; cursor: pointer; transition: all 0.15s ease;">NON TRAINING</button>
+            </div>
+            <input type="hidden" id="m-user-abs-jenispertemuan" value="NON TRAINING">
+          </div>
+          
+          <!-- Tanggal -->
+          <div class="form-group mb-2">
+            <label class="font-weight-bold small mb-1">TANGGAL <span class="text-danger">*</span></label>
+            <input type="date" id="m-user-abs-tanggal" class="form-control" required>
+          </div>
+          
+          <!-- Nama Kegiatan/Aktifitas -->
+          <div class="form-group mb-2">
+            <label class="font-weight-bold small mb-1">NAMA AKTIFITAS <span class="text-danger">*</span></label>
+            <select id="m-user-abs-aktifitas" class="form-control" required onchange="mOnUserActivityChanged(this.value)">
+              <option value="" disabled selected>-- Pilih Nama Kegiatan --</option>
+            </select>
+            <div id="m-user-abs-aktifitas-custom-wrapper" style="display:none;" class="mt-2">
+              <input type="text" id="m-user-abs-aktifitas-custom" class="form-control" placeholder="Masukkan nama aktifitas lainnya...">
+            </div>
+          </div>
+
+          <!-- Unit Type (Jika Training Unit) -->
+          <div id="m-user-abs-unit-wrapper" class="form-group mb-2" style="display:none;">
+            <label class="font-weight-bold small mb-1">UNIT TYPE (JIKA TRAINING UNIT)</label>
+            <select id="m-user-abs-unit" class="form-control">
+              <option value="">-- Pilih Unit Type --</option>
+            </select>
+          </div>
+
+          <!-- Tempat Penyelenggaraan -->
+          <div class="form-group mb-2">
+            <label class="font-weight-bold small mb-1">TEMPAT PENYELENGGARAAN <span class="text-danger">*</span></label>
+            <!-- Dropdown for NON TRAINING -->
+            <select id="m-user-abs-tempat-select" class="form-control" onchange="mToggleCustomField(this.value, 'm-user-abs-tempat-custom-wrapper')">
+              <option value="" disabled selected>-- Pilih Tempat --</option>
+              <option value="Ruang Meeting Office Plant">Ruang Meeting Office Plant</option>
+              <option value="Workshop PPA">Workshop PPA</option>
+              <option value="KOPPA">KOPPA</option>
+              <option value="Lainnya...">Lainnya...</option>
+            </select>
+            <div id="m-user-abs-tempat-custom-wrapper" style="display:none;" class="mt-2">
+              <input type="text" id="m-user-abs-tempat-custom" class="form-control" placeholder="Masukkan tempat lainnya...">
+            </div>
+            <!-- Read-only text input for TRAINING -->
+            <input type="text" id="m-user-abs-tempat-input" class="form-control" value="Ruangan Training PPA Site BA" readonly style="display:none;">
+          </div>
+
+          <!-- Penanggung Jawab / Instruktur -->
+          <div id="m-user-abs-instruktur-wrapper" class="form-group mb-2" style="display:none;">
+            <label class="font-weight-bold small mb-1">PENANGGUNG JAWAB/INSTRUKTUR <span class="text-danger">*</span></label>
+            <select id="m-user-abs-instruktur" class="form-control" onchange="mToggleCustomField(this.value, 'm-user-abs-instruktur-custom-wrapper')">
+              <option value="" disabled selected>-- Pilih Instruktur --</option>
+            </select>
+            <div id="m-user-abs-instruktur-custom-wrapper" style="display:none;" class="mt-2">
+              <input type="text" id="m-user-abs-instruktur-custom" class="form-control" placeholder="Masukkan nama instruktur lainnya...">
+            </div>
+          </div>
+          
+        </div>
+      </div>
+
+      <!-- Section 2: Data Diri Peserta -->
+      <div class="card shadow-sm border-0 mb-3" style="border-radius: 10px;">
+        <div class="card-header text-white py-2" style="background: linear-gradient(135deg, #05244d 0%, #4f46e5 100%) !important; border-top-left-radius: 10px; border-top-right-radius: 10px;">
+          <h5 class="mb-0 font-weight-bold" style="font-size: 0.95em;"><i class="fas fa-user mr-1"></i> Data Diri Peserta</h5>
+        </div>
+        <div class="card-body p-3">
+          
+          <!-- NIK -->
+          <div class="form-group mb-2">
+            <label class="font-weight-bold small mb-1">NIK <span class="text-danger">*</span></label>
+            <input type="text" id="m-user-abs-nik" class="form-control" readonly>
+          </div>
+
+          <!-- Nama -->
+          <div class="form-group mb-2">
+            <label class="font-weight-bold small mb-1">NAMA <span class="text-danger">*</span></label>
+            <input type="text" id="m-user-abs-nama" class="form-control" readonly>
+          </div>
+          
+          <!-- Perusahaan -->
+          <div class="form-group mb-2">
+            <label class="font-weight-bold small mb-1">PERUSAHAAN <span class="text-danger">*</span></label>
+            <input type="text" id="m-user-abs-perusahaan" class="form-control" readonly>
+          </div>
+          
+          <!-- Site -->
+          <div class="form-group mb-2">
+            <label class="font-weight-bold small mb-1">SITE <span class="text-danger">*</span></label>
+            <input type="text" id="m-user-abs-site" class="form-control" readonly>
+          </div>
+
+          <!-- Jabatan -->
+          <div class="form-group mb-2">
+            <label class="font-weight-bold small mb-1">JABATAN <span class="text-danger">*</span></label>
+            <input type="text" id="m-user-abs-jabatan" class="form-control" readonly>
+          </div>
+
+          <!-- No. Whatsapp -->
+          <div class="form-group mb-2">
+            <label class="font-weight-bold small mb-1">NO. WHATSAPP <span class="text-danger">*</span></label>
+            <input type="text" id="m-user-abs-wa" class="form-control" readonly>
+          </div>
+
+          <!-- Department -->
+          <div class="form-group mb-2">
+            <label class="font-weight-bold small mb-1">DEPARTMENT <span class="text-danger">*</span></label>
+            <input type="text" id="m-user-abs-department" class="form-control" readonly>
+          </div>
+
+          <!-- Keterangan -->
+          <div class="form-group mb-2">
+            <label class="font-weight-bold small mb-1">KETERANGAN (OPSIONAL)</label>
+            <input type="text" id="m-user-abs-keterangan" class="form-control" placeholder="Contoh: Sakit, Izin, Hadir, dll.">
+          </div>
+          
+          <!-- Paraf -->
+          <div class="form-group mb-2">
+            <label class="font-weight-bold small mb-1">PARAF <span class="text-danger">*</span></label>
+            <div class="text-center p-2" style="border: 2px dashed #cbd5e1; border-radius: 8px; background-color: #f8fafc;">
+              <canvas id="m-user-absensi-signature-canvas" style="width: 100%; height: 180px; touch-action: none; background-color: #f8fafc; display: block;"></canvas>
+              <div class="d-flex justify-content-between mt-2">
+                <button type="button" class="btn btn-sm btn-secondary" onclick="mClearUserAbsensiSignature()" style="border-radius: 6px;"><i class="fas fa-eraser mr-1"></i> Hapus</button>
+                <span class="text-muted small align-self-center" style="font-size: 0.75em;">Gunakan jari/stylus di area atas</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Dokumentasi (Optional) -->
+          <div class="form-group mb-2">
+            <label class="font-weight-bold small mb-1">DOKUMENTASI (OPTIONAL)</label>
+            <div style="display: flex; gap: 10px;">
+              <!-- Camera Button -->
+              <button type="button" onclick="document.getElementById('m-user-abs-doc-camera').click();" style="flex: 1; padding: 12px; border-radius: 8px; border: 1.5px solid #cbd5e1; font-weight: 700; background: #fff; color: #334155; font-size: 0.82em; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: all 0.15s ease;">
+                <i class="fas fa-camera" style="color: #10b981;"></i> AMBIL FOTO
+              </button>
+              <!-- Gallery Button -->
+              <button type="button" onclick="document.getElementById('m-user-abs-doc-gallery').click();" style="flex: 1; padding: 12px; border-radius: 8px; border: 1.5px solid #cbd5e1; font-weight: 700; background: #fff; color: #334155; font-size: 0.82em; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: all 0.15s ease;">
+                <i class="fas fa-images" style="color: #3b82f6;"></i> PILIH GALERI
+              </button>
+            </div>
+            
+            <!-- Hidden inputs -->
+            <input type="file" id="m-user-abs-doc-camera" accept="image/png, image/jpeg" capture="environment" style="display: none;" onchange="mHandleUserDocFileSelected(this, 'camera')">
+            <input type="file" id="m-user-abs-doc-gallery" accept="image/png, image/jpeg" style="display: none;" onchange="mHandleUserDocFileSelected(this, 'gallery')">
+            
+            <!-- Preview Area -->
+            <div id="m-user-abs-doc-preview-container" style="display: none;" class="mt-2 text-center position-relative">
+              <div style="position: relative; display: inline-block;">
+                <img id="m-user-abs-doc-preview" src="" style="max-width: 100%; max-height: 150px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); display: block;">
+                <button type="button" onclick="mRemoveUserDocFile()" style="position: absolute; top: -8px; right: -8px; background: #ef4444; color: #fff; border: 0; width: 24px; height: 24px; border-radius: 50%; font-size: 0.8em; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 5;">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              <div id="m-user-abs-doc-preview-label" class="small text-muted mt-1" style="font-size: 0.72em;"></div>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+
+      <button type="submit" class="w-100 font-weight-bold" style="background: linear-gradient(135deg, #05244d, #4f46e5); color: white; border: 0; padding: 12px 0; border-radius: 12px; font-size: 1.05em; box-shadow: 0 4px 12px rgba(5, 36, 77, 0.25); display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;">
+        <i class="fas fa-check-circle"></i> KIRIM ABSENSI
+      </button>
+      <button type="button" class="m-btn-secondary w-100 mt-2" onclick="mCloseUserAbsensiForm()">BATAL</button>
+    </form>
+  </div>
+</div>
+
 <!-- Loader -->
 <div id="m-loader" class="m-loader" style="display:none;">
   <div style="display: flex; flex-direction: column; align-items: center; gap: 16px;">
@@ -2965,6 +3156,7 @@ function mHandleHashChange() {
   $('#m-photo-crop-overlay').hide();
   $('#m-register-overlay').hide();
   $('#m-absensi-overlay').hide();
+  $('#m-user-absensi-overlay').hide();
 
   if (!hash || hash === '#tab-home') {
     if (typeof mUser !== 'undefined' && mUser) {
@@ -2977,6 +3169,8 @@ function mHandleHashChange() {
     $('#m-form-overlay').show();
   } else if (hash === '#overlay-absensi') {
     $('#m-absensi-overlay').show();
+  } else if (hash === '#overlay-user-absensi') {
+    $('#m-user-absensi-overlay').show();
   } else if (hash === '#overlay-history-detail') {
     $('#m-history-overlay').show();
   } else if (hash === '#overlay-approval-detail') {
@@ -7475,6 +7669,434 @@ function mSubmitAbsensi() {
           confirmButtonText: 'Selesai'
         }).then(() => {
           mCloseAbsensiForm();
+        });
+      } else {
+        Swal.fire('Gagal Menyimpan', submitRes.message || 'Gagal menyimpan data absensi ke spreadsheet.', 'error');
+      }
+    }).withFailureHandler(function(err) {
+      mShow(false);
+      Swal.fire('Error', 'Gagal menghubungi server: ' + err.toString(), 'error');
+    }).submitAbsensi(absensiData);
+  }
+}
+
+// ================= ABSENSI USER (KARYAWAN) LOGIC =================
+let userAbsCanvas = null;
+let userAbsCtx = null;
+let userAbsDrawing = false;
+let userAbsHasSigned = false;
+let userSelectedDocFile = null;
+let userSelectedDocSource = '';
+let mCatalogData = [];
+let mInstructorsList = [];
+let mCachedUserProfile = null;
+
+function initUserAbsensiSignaturePad() {
+  userAbsCanvas = document.getElementById('m-user-absensi-signature-canvas');
+  if (!userAbsCanvas) return;
+  userAbsCtx = userAbsCanvas.getContext('2d');
+  
+  const rect = userAbsCanvas.getBoundingClientRect();
+  userAbsCanvas.width = rect.width;
+  userAbsCanvas.height = rect.height;
+  
+  userAbsCtx.strokeStyle = '#05244d';
+  userAbsCtx.lineWidth = 3;
+  userAbsCtx.lineCap = 'round';
+  userAbsCtx.lineJoin = 'round';
+  
+  userAbsDrawing = false;
+  userAbsHasSigned = false;
+
+  function getPos(e) {
+    const r = userAbsCanvas.getBoundingClientRect();
+    if (e.touches && e.touches.length > 0) {
+      return {
+        x: e.touches[0].clientX - r.left,
+        y: e.touches[0].clientY - r.top
+      };
+    }
+    return {
+      x: e.clientX - r.left,
+      y: e.clientY - r.top
+    };
+  }
+
+  function startDrawing(e) {
+    if (e.cancelable) e.preventDefault();
+    userAbsDrawing = true;
+    const pos = getPos(e);
+    userAbsCtx.beginPath();
+    userAbsCtx.moveTo(pos.x, pos.y);
+  }
+
+  function draw(e) {
+    if (!userAbsDrawing) return;
+    if (e.cancelable) e.preventDefault();
+    const pos = getPos(e);
+    userAbsCtx.lineTo(pos.x, pos.y);
+    userAbsCtx.stroke();
+    userAbsHasSigned = true;
+  }
+
+  function stopDrawing() {
+    userAbsDrawing = false;
+  }
+
+  userAbsCanvas.addEventListener('mousedown', startDrawing);
+  userAbsCanvas.addEventListener('mousemove', draw);
+  window.addEventListener('mouseup', stopDrawing);
+
+  userAbsCanvas.addEventListener('touchstart', startDrawing, { passive: false });
+  userAbsCanvas.addEventListener('touchmove', draw, { passive: false });
+  window.addEventListener('touchend', stopDrawing);
+}
+
+function mClearUserAbsensiSignature() {
+  if (userAbsCanvas && userAbsCtx) {
+    userAbsCtx.clearRect(0, 0, userAbsCanvas.width, userAbsCanvas.height);
+    userAbsHasSigned = false;
+  }
+}
+
+function mHandleUserDocFileSelected(input, source) {
+  const file = input.files ? input.files[0] : null;
+  if (!file) return;
+
+  if (file.size > 5 * 1024 * 1024) {
+    Swal.fire('File Terlalu Besar', 'Maksimal ukuran foto adalah 5MB.', 'warning');
+    input.value = '';
+    return;
+  }
+
+  userSelectedDocFile = file;
+  userSelectedDocSource = source;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    $('#m-user-abs-doc-preview').attr('src', e.target.result);
+    $('#m-user-abs-doc-preview-label').text(`Terpilih dari ${source === 'camera' ? 'Kamera' : 'Galeri'} (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
+    $('#m-user-abs-doc-preview-container').show();
+  };
+  reader.readAsDataURL(file);
+}
+
+function mRemoveUserDocFile() {
+  userSelectedDocFile = null;
+  userSelectedDocSource = '';
+  const camInput = document.getElementById('m-user-abs-doc-camera');
+  const galInput = document.getElementById('m-user-abs-doc-gallery');
+  if (camInput) camInput.value = '';
+  if (galInput) galInput.value = '';
+  $('#m-user-abs-doc-preview-container').hide();
+  $('#m-user-abs-doc-preview').attr('src', '');
+}
+
+function mOpenUserAbsensiForm() {
+  mPushNav('overlay', 'user-absensi');
+  $('#m-user-absensi-overlay').show();
+  document.getElementById('m-form-user-absensi').reset();
+  mClearUserAbsensiSignature();
+  mRemoveUserDocFile();
+  
+  // Set default date to today
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  let mm = today.getMonth() + 1;
+  let dd = today.getDate();
+  if (mm < 10) mm = '0' + mm;
+  if (dd < 10) dd = '0' + dd;
+  document.getElementById('m-user-abs-tanggal').value = yyyy + '-' + mm + '-' + dd;
+
+  // Initialize canvas pad
+  setTimeout(() => {
+    initUserAbsensiSignaturePad();
+  }, 150);
+
+  // Set default selection
+  mSelectUserJenisPertemuan('NON TRAINING');
+
+  // Load employee profile details and katalog/instructors data
+  mShow(true, 'Memuat profil & data awal...');
+  
+  let pProfile = new Promise((resolve, reject) => {
+    if (mCachedUserProfile) {
+      resolve(mCachedUserProfile);
+    } else {
+      google.script.run.withSuccessHandler(res => {
+        if (res.success) {
+          mCachedUserProfile = res.data;
+          resolve(res.data);
+        } else {
+          reject(res.message || 'Gagal memuat profil');
+        }
+      }).withFailureHandler(err => reject(err.toString())).getEmployeeFullData(mUser.nrp);
+    }
+  });
+
+  let pCatalog = new Promise((resolve) => {
+    if (mCatalogData.length > 0) {
+      resolve(mCatalogData);
+    } else {
+      google.script.run.withSuccessHandler(res => {
+        if (res.success) {
+          mCatalogData = res.data || [];
+          resolve(mCatalogData);
+        } else {
+          resolve([]);
+        }
+      }).withFailureHandler(() => resolve([])).getTrainingCatalog();
+    }
+  });
+
+  let pInstructors = new Promise((resolve) => {
+    if (mInstructorsList.length > 0) {
+      resolve(mInstructorsList);
+    } else {
+      google.script.run.withSuccessHandler(res => {
+        if (res.success) {
+          mInstructorsList = res.data || [];
+          resolve(mInstructorsList);
+        } else {
+          resolve([]);
+        }
+      }).withFailureHandler(() => resolve([])).getInstructors();
+    }
+  });
+
+  Promise.all([pProfile, pCatalog, pInstructors]).then(([profile, catalog, instructors]) => {
+    mShow(false);
+    // Autofill user fields
+    $('#m-user-abs-nik').val(mUser.nrp || mUser.username || '');
+    $('#m-user-abs-nama').val(profile["NAMA KARYAWAN"] || mUser.nama || '');
+    $('#m-user-abs-perusahaan').val(profile["PERUSAHAAN"] || 'PPA');
+    $('#m-user-abs-site').val(profile["SITE"] || 'BA');
+    $('#m-user-abs-jabatan').val(profile["JABATAN"] || '');
+    $('#m-user-abs-wa').val(profile["NO. WHATSAPP"] || '');
+    $('#m-user-abs-department').val(profile["SECTION"] || '');
+
+    // Populate instructors select dropdown
+    const $inst = $('#m-user-abs-instruktur').empty();
+    $inst.append('<option value="" disabled selected>-- Pilih Instruktur --</option>');
+    instructors.forEach(name => {
+      $inst.append(`<option value="${name}">${name}</option>`);
+    });
+    $inst.append('<option value="Lainnya...">Lainnya...</option>');
+
+  }).catch(err => {
+    mShow(false);
+    Swal.fire('Gagal memuat data', err, 'error');
+    mCloseUserAbsensiForm();
+  });
+}
+
+function mCloseUserAbsensiForm() {
+  $('#m-user-absensi-overlay').hide();
+  if (window.location.hash === '#overlay-user-absensi') {
+    window.history.back();
+  }
+}
+
+function mSelectUserJenisPertemuan(val) {
+  $('#m-user-abs-jenispertemuan').val(val);
+  
+  if (val === 'TRAINING') {
+    $('#m-btn-user-jenis-training').css({ 'background': '#05244d', 'color': '#fff', 'border-color': '#05244d' });
+    $('#m-btn-user-jenis-nontraining').css({ 'background': '#fff', 'color': '#64748b', 'border-color': '#cbd5e1' });
+
+    // 1. Show training fields
+    $('#m-user-abs-unit-wrapper').show();
+    $('#m-user-abs-instruktur-wrapper').show();
+    $('#m-user-abs-instruktur').attr('required', 'required');
+
+    // 2. Adjust Tempat Penyelenggaraan: hide dropdown, show read-only input
+    $('#m-user-abs-tempat-select').hide().removeAttr('required');
+    $('#m-user-abs-tempat-custom-wrapper').hide();
+    $('#m-user-abs-tempat-custom').removeAttr('required').val('');
+    $('#m-user-abs-tempat-input').show();
+
+    // 3. Populate Nama Aktifitas from Katalog
+    const $act = $('#m-user-abs-aktifitas').empty();
+    $act.append('<option value="" disabled selected>-- Pilih Nama Kegiatan --</option>');
+    
+    // Find unique activity names
+    const uniqueActs = [];
+    mCatalogData.forEach(item => {
+      if (item.activity && !uniqueActs.includes(item.activity)) {
+        uniqueActs.push(item.activity);
+      }
+    });
+    
+    uniqueActs.forEach(act => {
+      $act.append(`<option value="${act}">${act}</option>`);
+    });
+    
+  } else {
+    $('#m-btn-user-jenis-nontraining').css({ 'background': '#05244d', 'color': '#fff', 'border-color': '#05244d' });
+    $('#m-btn-user-jenis-training').css({ 'background': '#fff', 'color': '#64748b', 'border-color': '#cbd5e1' });
+
+    // 1. Hide training fields
+    $('#m-user-abs-unit-wrapper').hide();
+    $('#m-user-abs-unit').val('');
+    $('#m-user-abs-instruktur-wrapper').hide();
+    $('#m-user-abs-instruktur').removeAttr('required').val('');
+    $('#m-user-abs-instruktur-custom-wrapper').hide();
+    $('#m-user-abs-instruktur-custom').removeAttr('required').val('');
+
+    // 2. Adjust Tempat Penyelenggaraan: show dropdown, hide read-only input
+    $('#m-user-abs-tempat-input').hide();
+    $('#m-user-abs-tempat-select').show().attr('required', 'required').val('');
+
+    // 3. Populate Nama Aktifitas with standard options
+    const $act = $('#m-user-abs-aktifitas').empty();
+    $act.append('<option value="" disabled selected>-- Pilih Nama Kegiatan --</option>');
+    $act.append('<option value="DMBD (Daily Monitoring Break Down)">DMBD (Daily Monitoring Break Down)</option>');
+    $act.append('<option value="KPI Weekly/Monthly">KPI Weekly/Monthly</option>');
+    $act.append('<option value="Meeting Vendor">Meeting Vendor</option>');
+    $act.append('<option value="Lainnya...">Lainnya...</option>');
+  }
+}
+
+function mOnUserActivityChanged(val) {
+  const jenis = $('#m-user-abs-jenispertemuan').val();
+  
+  if (jenis === 'NON TRAINING') {
+    mToggleCustomField(val, 'm-user-abs-aktifitas-custom-wrapper');
+  } else {
+    // Populate Unit Type based on selected activity
+    const $unit = $('#m-user-abs-unit').empty();
+    $unit.append('<option value="">-- Pilih Unit Type --</option>');
+    
+    const matching = mCatalogData.filter(item => item.activity === val);
+    const uniqueUnits = [];
+    matching.forEach(item => {
+      if (item.unitType && !uniqueUnits.includes(item.unitType)) {
+        uniqueUnits.push(item.unitType);
+      }
+    });
+
+    uniqueUnits.forEach(u => {
+      $unit.append(`<option value="${u}">${u}</option>`);
+    });
+  }
+}
+
+function mSubmitUserAbsensi() {
+  const jenis = $('#m-user-abs-jenispertemuan').val();
+  const tanggal = $('#m-user-abs-tanggal').val();
+  
+  let aktifitas = $('#m-user-abs-aktifitas').val();
+  if (aktifitas === 'Lainnya...') {
+    aktifitas = $('#m-user-abs-aktifitas-custom').val().trim();
+  }
+
+  let unitType = $('#m-user-abs-unit').val();
+  
+  let tempat = '';
+  if (jenis === 'TRAINING') {
+    tempat = $('#m-user-abs-tempat-input').val();
+  } else {
+    tempat = $('#m-user-abs-tempat-select').val();
+    if (tempat === 'Lainnya...') {
+      tempat = $('#m-user-abs-tempat-custom').val().trim();
+    }
+  }
+
+  let penanggungJawab = '';
+  if (jenis === 'TRAINING') {
+    penanggungJawab = $('#m-user-abs-instruktur').val();
+    if (penanggungJawab === 'Lainnya...') {
+      penanggungJawab = $('#m-user-abs-instruktur-custom').val().trim();
+    }
+  }
+
+  const nik = $('#m-user-abs-nik').val();
+  const nama = $('#m-user-abs-nama').val();
+  const perusahaan = $('#m-user-abs-perusahaan').val();
+  const site = $('#m-user-abs-site').val();
+  const jabatan = $('#m-user-abs-jabatan').val();
+  const noWhatsapp = $('#m-user-abs-wa').val();
+  const department = $('#m-user-abs-department').val();
+  const keterangan = $('#m-user-abs-keterangan').val().trim();
+
+  // Validations
+  if (!aktifitas) return Swal.fire('Lengkapi', 'Nama Aktifitas wajib diisi.', 'warning');
+  if (!tempat) return Swal.fire('Lengkapi', 'Tempat Penyelenggaraan wajib diisi.', 'warning');
+  if (jenis === 'TRAINING' && !penanggungJawab) return Swal.fire('Lengkapi', 'Penanggung Jawab/Instruktur wajib diisi.', 'warning');
+  if (!userAbsHasSigned) return Swal.fire('Tanda Tangan', 'Paraf tanda tangan wajib diisi.', 'warning');
+
+  mShow(true, 'Mengunggah paraf...');
+  
+  const signatureBase64 = userAbsCanvas.toDataURL('image/png').split(',')[1];
+  const signatureFilename = `TTD_${nik}_${Date.now()}.png`;
+
+  google.script.run.withSuccessHandler(function(sigRes) {
+    if (sigRes && sigRes.success) {
+      if (userSelectedDocFile) {
+        mShow(true, 'Mengunggah dokumentasi...');
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const docBase64 = e.target.result.split(',')[1];
+          const docFilename = `DOC_${nik}_${Date.now()}_${userSelectedDocFile.name}`;
+          
+          google.script.run.withSuccessHandler(function(docRes) {
+            if (docRes && docRes.success) {
+              submitAbsensiFinal(sigRes.url, docRes.url);
+            } else {
+              mShow(false);
+              Swal.fire('Gagal Upload', 'Gagal mengunggah dokumentasi: ' + docRes.message, 'error');
+            }
+          }).withFailureHandler(function(err) {
+            mShow(false);
+            Swal.fire('Error', 'Gagal mengunggah dokumentasi: ' + err.toString(), 'error');
+          }).uploadFileToDrive(docBase64, docFilename, userSelectedDocFile.type, "ABSENSI");
+        };
+        reader.readAsDataURL(userSelectedDocFile);
+      } else {
+        submitAbsensiFinal(sigRes.url, "");
+      }
+    } else {
+      mShow(false);
+      Swal.fire('Gagal Upload', 'Gagal mengunggah paraf: ' + sigRes.message, 'error');
+    }
+  }).withFailureHandler(function(err) {
+    mShow(false);
+    Swal.fire('Error', 'Gagal mengunggah paraf: ' + err.toString(), 'error');
+  }).uploadFileToDrive(signatureBase64, signatureFilename, "image/png", "ABSENSI");
+
+  function submitAbsensiFinal(sigUrl, docUrl) {
+    mShow(true, 'Menyimpan data absensi...');
+
+    const absensiData = {
+      jenisPertemuan: jenis,
+      tanggal: mFormatDateToIndo(tanggal),
+      namaAktifitas: aktifitas,
+      unitType: unitType,
+      tempatPenyelenggaraan: tempat,
+      penanggungJawab: penanggungJawab,
+      nik: nik,
+      nama: nama,
+      perusahaan: perusahaan,
+      site: site,
+      jabatan: jabatan,
+      noWhatsapp: noWhatsapp,
+      department: department,
+      keterangan: keterangan,
+      signatureUrl: sigUrl,
+      dokumentasiUrl: docUrl
+    };
+
+    google.script.run.withSuccessHandler(function(submitRes) {
+      mShow(false);
+      if (submitRes && submitRes.success) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Absensi Berhasil!',
+          text: 'Terima kasih, data absensi Anda telah disimpan.',
+          confirmButtonColor: '#05244d',
+          confirmButtonText: 'Selesai'
+        }).then(() => {
+          mCloseUserAbsensiForm();
         });
       } else {
         Swal.fire('Gagal Menyimpan', submitRes.message || 'Gagal menyimpan data absensi ke spreadsheet.', 'error');
