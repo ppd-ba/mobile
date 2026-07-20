@@ -7472,9 +7472,9 @@ function mHandleDocFileSelected(input, source) {
   const file = input.files ? input.files[0] : null;
   if (!file) return;
 
-  // Validate size (max 5MB)
-  if (file.size > 5 * 1024 * 1024) {
-    Swal.fire('File Terlalu Besar', 'Maksimal ukuran foto adalah 5MB.', 'warning');
+  // Validate size (max 10MB)
+  if (file.size > 10 * 1024 * 1024) {
+    Swal.fire('File Terlalu Besar', 'Maksimal ukuran foto adalah 10MB.', 'warning');
     input.value = '';
     return;
   }
@@ -7788,8 +7788,8 @@ function mHandleUserDocFileSelected(input, source) {
   const file = input.files ? input.files[0] : null;
   if (!file) return;
 
-  if (file.size > 5 * 1024 * 1024) {
-    Swal.fire('File Terlalu Besar', 'Maksimal ukuran foto adalah 5MB.', 'warning');
+  if (file.size > 10 * 1024 * 1024) {
+    Swal.fire('File Terlalu Besar', 'Maksimal ukuran foto adalah 10MB.', 'warning');
     input.value = '';
     return;
   }
