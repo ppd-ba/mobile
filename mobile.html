@@ -3389,13 +3389,22 @@ function mInitData() {
     if (cachedApproval) mApprovalList = JSON.parse(cachedApproval);
   } catch(e) {}
 
+  // Load cached absensi form data
+  try {
+    const uProf = localStorage.getItem('PPDUserProfile_' + mUser.nrp);
+    if (uProf) mCachedUserProfile = JSON.parse(uProf);
+    const catData = localStorage.getItem('PPDCatalogData');
+    if (catData) mCatalogData = JSON.parse(catData);
+    const instList = localStorage.getItem('PPDInstructorsList');
+    if (instList) mInstructorsList = JSON.parse(instList);
+  } catch(e) {}
+
   const cacheKey = 'PPDMobileEssentials_' + mUser.nrp;
   let cached = null;
   try {
     const stored = localStorage.getItem(cacheKey);
     if (stored) {
       const cacheObj = JSON.parse(stored);
-      // Valid for 24 hours
       if (Date.now() - cacheObj.timestamp < 86400000) {
         cached = cacheObj.data;
       }
@@ -3417,75 +3426,52 @@ function mInitData() {
   }
 
   if (cached) {
-    // Load essentials instantly from cache
     applyEssentials(cached);
-    mUpdateHeroStats();
-    
-    // Load other lists instantly from their respective caches (non-forced)
-    mLoadNews(false);
-    mLoadBirthdays(false);
-    mLoadEventDevelopment(false);
-    mLoadHistory(false);
-    
-    let role = String(mUser.role || '').toUpperCase().trim();
-    if (M_APPROVER_ROLES.includes(role)) {
-      mLoadApproval(false);
-    }
+  }
 
-    // Revalidate essentials silently in background
+  mUpdateHeroStats();
+  mLoadNews(false);
+  mLoadBirthdays(false);
+  mLoadEventDevelopment(false);
+  mLoadHistory(false);
+  
+  let role = String(mUser.role || '').toUpperCase().trim();
+  if (M_APPROVER_ROLES.includes(role)) {
+    mLoadApproval(false);
+  }
+
+  // Fetch essentials silently in background
+  google.script.run.withSuccessHandler(res => {
+    if (res && res.success) {
+      try { localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data: res })); } catch(e) {}
+      applyEssentials(res);
+    }
+  }).getMobileEssentials(mUser.username, mUser.role, mUser.nama, mUser.nrp);
+
+  // Pre-fetch absensi form data silently in background for instant form opening
+  if (!mCachedUserProfile && mUser && mUser.nrp) {
     google.script.run.withSuccessHandler(res => {
       if (res && res.success) {
-        try { localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data: res })); } catch(e) {}
-        applyEssentials(res);
+        mCachedUserProfile = res.data;
+        try { localStorage.setItem('PPDUserProfile_' + mUser.nrp, JSON.stringify(res.data)); } catch(e) {}
       }
-    }).getMobileEssentials(mUser.username, mUser.role, mUser.nama, mUser.nrp);
-
-  } else {
-    // No cache -> show loading screen
-    mShow(true);
-    let isTimedOut = false;
-    const timeoutId = setTimeout(() => {
-      isTimedOut = true;
-      mShow(false);
-      Swal.fire('Koneksi Lambat', 'Gagal memuat data awal dari server. Silakan muat ulang halaman ini.', 'warning');
-    }, 60000);
-
+    }).getEmployeeFullData(mUser.nrp);
+  }
+  if (!mCatalogData || mCatalogData.length === 0) {
     google.script.run.withSuccessHandler(res => {
-      if (isTimedOut) return;
-      clearTimeout(timeoutId);
-      mShow(false);
-      if (res.success) {
-        try { localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data: res })); } catch(e) {}
-        applyEssentials(res);
-        
-        mNewsList = [];
-        mRenderNews();
-        mRenderBirthdays([]);
-        mRenderEventDevelopment([]);
-        mHistoryList = [];
-        mRenderHistoryList();
-        mApprovalList = [];
-        mRenderApprovalList();
-        mUpdateHeroStats();
-
-        mLoadNews(true);
-        mLoadBirthdays(true);
-        mLoadEventDevelopment(true);
-        mLoadHistory(false);
-        
-        let role = String(mUser.role || '').toUpperCase().trim();
-        if (M_APPROVER_ROLES.includes(role)) {
-          mLoadApproval(false);
-        }
-      } else {
-        Swal.fire('Gagal', res.message || 'Gagal memuat data awal', 'error');
+      if (res && res.success) {
+        mCatalogData = res.data || [];
+        try { localStorage.setItem('PPDCatalogData', JSON.stringify(mCatalogData)); } catch(e) {}
       }
-    }).withFailureHandler(err => {
-      if (isTimedOut) return;
-      clearTimeout(timeoutId);
-      mShow(false);
-      Swal.fire('Error', err.message || 'Koneksi ke server terputus', 'error');
-    }).getMobileEssentials(mUser.username, mUser.role, mUser.nama, mUser.nrp);
+    }).getTrainingCatalog();
+  }
+  if (!mInstructorsList || mInstructorsList.length === 0) {
+    google.script.run.withSuccessHandler(res => {
+      if (res && res.success) {
+        mInstructorsList = res.data || [];
+        try { localStorage.setItem('PPDInstructorsList', JSON.stringify(mInstructorsList)); } catch(e) {}
+      }
+    }).getInstructors();
   }
 }
 
@@ -7801,78 +7787,82 @@ function mOpenUserAbsensiForm() {
   // Set default selection
   mSelectUserJenisPertemuan('NON TRAINING');
 
-  // Load employee profile details and katalog/instructors data
-  mShow(true, 'Memuat profil & data awal...');
-  
-  let pProfile = new Promise((resolve, reject) => {
-    if (mCachedUserProfile) {
-      resolve(mCachedUserProfile);
-    } else {
-      google.script.run.withSuccessHandler(res => {
-        if (res.success) {
-          mCachedUserProfile = res.data;
-          resolve(res.data);
-        } else {
-          reject(res.message || 'Gagal memuat profil');
-        }
-      }).withFailureHandler(err => reject(err.toString())).getEmployeeFullData(mUser.nrp);
+  // Load from memory/localStorage if available
+  try {
+    if (!mCachedUserProfile) {
+      const uProf = localStorage.getItem('PPDUserProfile_' + mUser.nrp);
+      if (uProf) mCachedUserProfile = JSON.parse(uProf);
     }
-  });
-
-  let pCatalog = new Promise((resolve) => {
-    if (mCatalogData.length > 0) {
-      resolve(mCatalogData);
-    } else {
-      google.script.run.withSuccessHandler(res => {
-        if (res.success) {
-          mCatalogData = res.data || [];
-          resolve(mCatalogData);
-        } else {
-          resolve([]);
-        }
-      }).withFailureHandler(() => resolve([])).getTrainingCatalog();
+    if (!mCatalogData || mCatalogData.length === 0) {
+      const catData = localStorage.getItem('PPDCatalogData');
+      if (catData) mCatalogData = JSON.parse(catData);
     }
-  });
-
-  let pInstructors = new Promise((resolve) => {
-    if (mInstructorsList.length > 0) {
-      resolve(mInstructorsList);
-    } else {
-      google.script.run.withSuccessHandler(res => {
-        if (res.success) {
-          mInstructorsList = res.data || [];
-          resolve(mInstructorsList);
-        } else {
-          resolve([]);
-        }
-      }).withFailureHandler(() => resolve([])).getInstructors();
+    if (!mInstructorsList || mInstructorsList.length === 0) {
+      const instList = localStorage.getItem('PPDInstructorsList');
+      if (instList) mInstructorsList = JSON.parse(instList);
     }
-  });
+  } catch(e) {}
 
-  Promise.all([pProfile, pCatalog, pInstructors]).then(([profile, catalog, instructors]) => {
-    mShow(false);
-    // Autofill user fields
+  function populateUserForm(profile, catalog, instructors) {
     $('#m-user-abs-nik').val(mUser.nrp || mUser.username || '');
-    $('#m-user-abs-nama').val(profile["NAMA KARYAWAN"] || mUser.nama || '');
-    $('#m-user-abs-perusahaan').val(profile["PERUSAHAAN"] || 'PPA');
-    $('#m-user-abs-site').val(profile["SITE"] || 'BA');
-    $('#m-user-abs-jabatan').val(profile["JABATAN"] || '');
-    $('#m-user-abs-wa').val(profile["NO. WHATSAPP"] || '');
-    $('#m-user-abs-department').val(profile["SECTION"] || '');
+    $('#m-user-abs-nama').val((profile && profile["NAMA KARYAWAN"]) || mUser.nama || '');
+    $('#m-user-abs-perusahaan').val((profile && profile["PERUSAHAAN"]) || 'PPA');
+    $('#m-user-abs-site').val((profile && profile["SITE"]) || 'BA');
+    $('#m-user-abs-jabatan').val((profile && profile["JABATAN"]) || '');
+    $('#m-user-abs-wa').val((profile && profile["NO. WHATSAPP"]) || '');
+    $('#m-user-abs-department').val((profile && profile["SECTION"]) || '');
 
     // Populate instructors select dropdown
     const $inst = $('#m-user-abs-instruktur').empty();
     $inst.append('<option value="" disabled selected>-- Pilih Instruktur --</option>');
-    instructors.forEach(name => {
+    (instructors || []).forEach(name => {
       $inst.append(`<option value="${name}">${name}</option>`);
     });
     $inst.append('<option value="Lainnya...">Lainnya...</option>');
+  }
 
-  }).catch(err => {
-    mShow(false);
-    Swal.fire('Gagal memuat data', err, 'error');
-    mCloseUserAbsensiForm();
-  });
+  // Populate immediately with whatever is in cache
+  populateUserForm(mCachedUserProfile, mCatalogData, mInstructorsList);
+
+  // Fetch missing items silently if needed
+  if (!mCachedUserProfile || !mCatalogData || mCatalogData.length === 0 || !mInstructorsList || mInstructorsList.length === 0) {
+    let pProfile = new Promise((resolve) => {
+      if (mCachedUserProfile) return resolve(mCachedUserProfile);
+      google.script.run.withSuccessHandler(res => {
+        if (res && res.success) {
+          mCachedUserProfile = res.data;
+          try { localStorage.setItem('PPDUserProfile_' + mUser.nrp, JSON.stringify(res.data)); } catch(e) {}
+          resolve(res.data);
+        } else resolve(null);
+      }).withFailureHandler(() => resolve(null)).getEmployeeFullData(mUser.nrp);
+    });
+
+    let pCatalog = new Promise((resolve) => {
+      if (mCatalogData && mCatalogData.length > 0) return resolve(mCatalogData);
+      google.script.run.withSuccessHandler(res => {
+        if (res && res.success) {
+          mCatalogData = res.data || [];
+          try { localStorage.setItem('PPDCatalogData', JSON.stringify(mCatalogData)); } catch(e) {}
+          resolve(mCatalogData);
+        } else resolve([]);
+      }).withFailureHandler(() => resolve([])).getTrainingCatalog();
+    });
+
+    let pInstructors = new Promise((resolve) => {
+      if (mInstructorsList && mInstructorsList.length > 0) return resolve(mInstructorsList);
+      google.script.run.withSuccessHandler(res => {
+        if (res && res.success) {
+          mInstructorsList = res.data || [];
+          try { localStorage.setItem('PPDInstructorsList', JSON.stringify(mInstructorsList)); } catch(e) {}
+          resolve(mInstructorsList);
+        } else resolve([]);
+      }).withFailureHandler(() => resolve([])).getInstructors();
+    });
+
+    Promise.all([pProfile, pCatalog, pInstructors]).then(([prof, cat, inst]) => {
+      populateUserForm(prof || mCachedUserProfile, cat || mCatalogData, inst || mInstructorsList);
+    });
+  }
 }
 
 function mCloseUserAbsensiForm() {
