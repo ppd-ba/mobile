@@ -5047,7 +5047,8 @@ function mSubmitCutiForm() {
         mShow(false);
         if (res.success) {
           Swal.fire('Berhasil','Pengajuan Cuti tersimpan. Atasan akan melakukan approval.','success').then(() => {
-            mCloseForm(); mLoadHistory(true);
+            window.location.hash = 'tab-home';
+            mLoadHistory(true);
           });
           if (res.pdfTrigger) {
             google.script.run.triggerRegenWrapper(res.pdfTrigger.sheetTarget, res.pdfTrigger.rowTarget, mUser.username);
@@ -5553,7 +5554,8 @@ function mSubmitForm(formType) {
           mShow(false);
           if (res.success) {
             Swal.fire('Berhasil','Pengajuan tersimpan. Atasan akan melakukan approval.','success').then(() => {
-              mCloseForm(); mCloseSubmenu(); mLoadHistory(true);
+              window.location.hash = 'tab-home';
+              mLoadHistory(true);
             });
             if (res.pdfTrigger) {
               google.script.run.withSuccessHandler(() => {
