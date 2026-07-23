@@ -1506,6 +1506,11 @@ html.swal2-shown, body.swal2-shown {
   border-color: #c10f19 !important;
   background-color: #fef2f2 !important;
 }
+.m-form-input.is-invalid, .m-step-val.is-invalid, select.is-invalid, textarea.is-invalid {
+  border-color: #c10f19 !important;
+  background-color: #fef2f2 !important;
+  outline: none;
+}
 .custom-select-trigger.open {
   border-color: #c10f19;
   outline: 0;
@@ -2866,6 +2871,21 @@ $(document).ready(function() {
       mApplyTheme(t);
     }
   }).getAppTheme();
+
+  // Clear validation styling when user interacts with fields
+  $(document).on('input change', '#m-form-content [data-fkey]', function() {
+    let $input = $(this);
+    if ($input.val() && $input.val() !== '') {
+      if ($input.hasClass('custom-select-hidden')) {
+        let trigger = $input.next('.custom-select-container').find('.custom-select-trigger');
+        trigger.removeClass('is-invalid');
+        trigger.next('.m-validation-warning').remove();
+      } else {
+        $input.removeClass('is-invalid');
+        $input.next('.m-validation-warning').remove();
+      }
+    }
+  });
 
   // SPL: Auto-lookup Atasan WhatsApp
   $(document).on('change', 'select[data-fkey="NAMA ATASAN"]', function() {
@@ -4898,28 +4918,44 @@ function mfFmtDate(d) {
 }
 
 function mSubmitCutiForm() {
+  // Clear previous validation styling/warning messages
+  $('#m-form-content .is-invalid').removeClass('is-invalid');
+  $('#m-form-content .custom-select-trigger').removeClass('is-invalid');
+  $('#m-form-content .m-validation-warning').remove();
+
   // Validate required + collect
   let data = {};
   let missing = [];
   $('#m-form-content [data-fkey]').each(function() {
-    let k = $(this).data('fkey');
-    let v = $(this).val();
-    let req = $(this).prop('required');
+    let $input = $(this);
+    let k = $input.data('fkey');
+    let v = $input.val();
+    let req = $input.prop('required');
     
     let isHidden = false;
-    if ($(this).is(':hidden') && $(this).attr('type') !== 'hidden') {
+    if ($input.is(':hidden') && $input.attr('type') !== 'hidden') {
       isHidden = true;
     }
-    if ($(this).closest('.m-form-group').is(':hidden') || $(this).closest('[id^="mf-"]').is(':hidden')) {
+    if ($input.closest('.m-form-group').is(':hidden') || $input.closest('[id^="mf-"]').is(':hidden')) {
       isHidden = true;
     }
     
     let visible = !isHidden;
     if (req && visible && (!v || v === '')) {
       missing.push(k);
+      
+      // Highlight the field and add message
+      if ($input.hasClass('custom-select-hidden')) {
+        let trigger = $input.next('.custom-select-container').find('.custom-select-trigger');
+        trigger.addClass('is-invalid');
+        trigger.after(`<div class="m-validation-warning" style="color: #c10f19; font-size: 0.78em; font-weight: 600; margin-top: 4px;"><i class="fas fa-exclamation-circle mr-1"></i>${k} wajib diisi</div>`);
+      } else {
+        $input.addClass('is-invalid');
+        $input.after(`<div class="m-validation-warning" style="color: #c10f19; font-size: 0.78em; font-weight: 600; margin-top: 4px;"><i class="fas fa-exclamation-circle mr-1"></i>${k} wajib diisi</div>`);
+      }
     }
     // Auto-uppercase
-    if ($(this).data('upper') && v) v = String(v).toUpperCase();
+    if ($input.data('upper') && v) v = String(v).toUpperCase();
     data[k] = v;
   });
 
@@ -4933,13 +4969,25 @@ function mSubmitCutiForm() {
       let v = data[k];
       if (v) {
         let d = new Date(v + 'T00:00:00');
-        if (allowed.indexOf(d.getDay()) < 0) missing.push(k + ' (harus Sen/Rab/Jum)');
+        if (allowed.indexOf(d.getDay()) < 0) {
+          missing.push(k + ' (harus Sen/Rab/Jum)');
+          let $input = $(`#m-form-content [data-fkey="${k}"]`);
+          $input.addClass('is-invalid');
+          if ($input.next('.m-validation-warning').length === 0) {
+            $input.after(`<div class="m-validation-warning" style="color: #c10f19; font-size: 0.78em; font-weight: 600; margin-top: 4px;"><i class="fas fa-exclamation-circle mr-1"></i>Hari keberangkatan/kembali harus Senin, Rabu, atau Jumat</div>`);
+          }
+        }
       }
     });
   }
 
   if (missing.length > 0) {
-    return Swal.fire('Lengkapi','Field belum lengkap:\n• ' + missing.slice(0,5).join('\n• ') + (missing.length>5?'\n• ...':''),'warning');
+    // Scroll first invalid field into view
+    let $firstInvalid = $('#m-form-content .is-invalid').first();
+    if ($firstInvalid.length) {
+      $firstInvalid[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    return;
   }
 
   // Validate travel day and date range errors
@@ -5256,22 +5304,50 @@ function mBuildField(f) {
 }
 
 function mSubmitForm(formType) {
+  // Clear previous validation styling/warning messages
+  $('#m-form-content .is-invalid').removeClass('is-invalid');
+  $('#m-form-content .custom-select-trigger').removeClass('is-invalid');
+  $('#m-form-content .m-validation-warning').remove();
+
   // Collect values
   let data = {};
   let missing = [];
   $('#m-form-content [data-fkey]').each(function() {
-    let k = $(this).data('fkey');
-    let type = $(this).attr('type');
+    let $input = $(this);
+    let k = $input.data('fkey');
+    let type = $input.attr('type');
+    
+    let isHidden = false;
+    if ($input.is(':hidden') && $input.attr('type') !== 'hidden') {
+      isHidden = true;
+    }
+    if ($input.closest('.m-form-group').is(':hidden') || $input.closest('[id^="mf-"]').is(':hidden')) {
+      isHidden = true;
+    }
+    let visible = !isHidden;
+
     if (type === 'file') {
-      let fileEl = $(this)[0];
+      let fileEl = $input[0];
       let file = fileEl.files[0];
-      if ($(this).prop('required') && !file && $(this).is(':visible')) {
+      if ($input.prop('required') && !file && visible) {
         missing.push(k);
+        $input.addClass('is-invalid');
+        $input.after(`<div class="m-validation-warning" style="color: #c10f19; font-size: 0.78em; font-weight: 600; margin-top: 4px;"><i class="fas fa-exclamation-circle mr-1"></i>File ${k} wajib diunggah</div>`);
       }
     } else {
-      let v = $(this).val();
+      let v = $input.val();
       data[k] = v;
-      if ($(this).prop('required') && !v && $(this).is(':visible')) missing.push(k);
+      if ($input.prop('required') && (!v || v === '') && visible) {
+        missing.push(k);
+        if ($input.hasClass('custom-select-hidden')) {
+          let trigger = $input.next('.custom-select-container').find('.custom-select-trigger');
+          trigger.addClass('is-invalid');
+          trigger.after(`<div class="m-validation-warning" style="color: #c10f19; font-size: 0.78em; font-weight: 600; margin-top: 4px;"><i class="fas fa-exclamation-circle mr-1"></i>${k} wajib diisi</div>`);
+        } else {
+          $input.addClass('is-invalid');
+          $input.after(`<div class="m-validation-warning" style="color: #c10f19; font-size: 0.78em; font-weight: 600; margin-top: 4px;"><i class="fas fa-exclamation-circle mr-1"></i>${k} wajib diisi</div>`);
+        }
+      }
     }
   });
   if (formType === 'SURAT PERINTAH LEMBUR') {
@@ -5279,7 +5355,12 @@ function mSubmitForm(formType) {
     if (data['JAM AKHIR'] && data['JAM AKHIR'].split(':').length === 2) data['JAM AKHIR'] += ':00';
   }
   if (missing.length > 0) {
-    return Swal.fire('Lengkapi','Kolom wajib belum diisi: ' + missing.slice(0,3).join(', ') + (missing.length>3?'...':''),'warning');
+    // Scroll first invalid field into view
+    let $firstInvalid = $('#m-form-content .is-invalid').first();
+    if ($firstInvalid.length) {
+      $firstInvalid[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    return;
   }
 
   if (formType === 'IZIN NON RESMI') {
