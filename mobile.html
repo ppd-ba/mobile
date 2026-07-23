@@ -4432,8 +4432,8 @@ function mRenderCutiForm() {
   // Cuti Tahunan (optional)
   html += '<div class="m-cuti-sub">CUTI TAHUNAN <span style="font-size:0.85em; opacity:0.7;">(opsional)</span></div>';
   html += mfRO('SISA CUTI TAHUNAN', 'Sisa Cuti Tahunan', String(sisaCT));
-  html += mfRO('CUTI TAHUNAN (AWAL)', 'Cuti Tahunan Awal', '');
   html += mfStepper('DURASI CUTI TAHUNAN', 'Durasi Cuti Tahunan (hari)', 0, { min:0, max: Math.max(0, sisaCT), onChange:'mCutiOnChange()' });
+  html += mfRO('CUTI TAHUNAN (AWAL)', 'Cuti Tahunan Awal', '');
   html += mfRO('CUTI TAHUNAN (AKHIR)', 'Cuti Tahunan Akhir', '');
 
   html += mfDate('BERANGKAT DARI JOBSITE', 'Berangkat dari Jobsite', '', { req:true, onChange:'mCutiOnChange()' });
