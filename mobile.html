@@ -1964,7 +1964,7 @@ html.swal2-shown, body.swal2-shown {
       </div>
     </div>
     <button class="m-btn-secondary m-btn-block mt-3" onclick="mSwitchTab('home')"><i class="fas fa-arrow-left mr-1"></i> Kembali</button>
-    <p class="m-app-version">PPD Mobile V2.0 · <a href="?view=desktop" target="_blank" style="color:#c10f19;">Versi Desktop</a></p>
+    <p class="m-app-version">PPD Mobile V2.0<span id="m-desktop-link-sep" style="display:none;"> · </span><a id="m-desktop-link" href="https://sites.google.com/view/ppd-ba/ppd-web-portal" target="_blank" style="color:#c10f19; display:none;">Versi Desktop</a></p>
   </main>
 
   <!-- ============ BOTTOM NAVIGATION ============ -->
@@ -3390,6 +3390,16 @@ function mShowApp() {
     $('#m-news-add-btn').show();
   } else {
     $('#m-news-add-btn').hide();
+  }
+
+  // Show desktop version link if user role is MASTER, PPD, SH, DH, or COO
+  const allowedDesktopRoles = ['MASTER', 'PPD', 'SH', 'DH', 'COO'];
+  if (allowedDesktopRoles.includes(role)) {
+    $('#m-desktop-link-sep').show();
+    $('#m-desktop-link').show();
+  } else {
+    $('#m-desktop-link-sep').hide();
+    $('#m-desktop-link').hide();
   }
 
   // Filter pills history
