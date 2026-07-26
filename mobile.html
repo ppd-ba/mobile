@@ -5618,7 +5618,7 @@ function mLoadHistory(force) {
     if (mHistoryList.length === 0) {
       $('#m-history-list').html('<div class="m-empty"><i class="fas fa-exclamation-triangle"></i><p>Gagal memuat</p></div>');
     }
-  }).getMySubmissionList(mUser.nama, mUser.nrp, force === true);
+  }).getMySubmissionList(mUser.nama, mUser.nrp, true);
 }
 
 function mUpdateHeroStats() {
@@ -5714,7 +5714,7 @@ function mLoadApproval(force) {
     if (mApprovalList.length === 0) {
       $('#m-approval-list').html('<div class="m-empty"><i class="fas fa-exclamation-triangle"></i><p>Gagal memuat</p></div>');
     }
-  }).getUserApprovalList(mUser.nama, force === true);
+  }).getUserApprovalList(mUser.nama, true);
 }
 
 function mRenderApprovalList() {
