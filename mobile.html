@@ -6222,6 +6222,7 @@ function mSubmitScoring() {
       const idxBackup = mCurrentAppIdx;
       const removedItem = mApprovalList.splice(idxBackup, 1)[0];
       mRenderApprovalList();
+      try { localStorage.setItem('PPDMobileApproval_' + mUser.nrp, JSON.stringify(mApprovalList)); } catch(e){}
       let cnt = mApprovalList.length;
       $('#m-nav-approval-badge').text(cnt).toggle(cnt > 0);
       $('#m-user-pending').toggle(cnt > 0);
@@ -6239,13 +6240,15 @@ function mSubmitScoring() {
         } else {
           mApprovalList.splice(idxBackup, 0, removedItem);
           mRenderApprovalList();
+          try { localStorage.setItem('PPDMobileApproval_' + mUser.nrp, JSON.stringify(mApprovalList)); } catch(e){}
           Swal.fire('Gagal', res.message, 'error');
         }
       }).withFailureHandler(err => {
         mApprovalList.splice(idxBackup, 0, removedItem);
         mRenderApprovalList();
+        try { localStorage.setItem('PPDMobileApproval_' + mUser.nrp, JSON.stringify(mApprovalList)); } catch(e){}
         Swal.fire('Error', err.message || 'Coba lagi.', 'error');
-      }).processApprovalAction(item.sheetName, item.rowIndex, "SCORING", mUser.username, null, data);
+      }).processApprovalAction(item.sheetName, item.rowIndex, "SCORING", mUser.username, null, data, { nrp: item.nrp, nama: item.nama, tanggal: item.tanggal });
     }
   });
 }
@@ -6270,6 +6273,7 @@ function mRejectPlanova() {
       const idxBackup = mCurrentAppIdx;
       const removedItem = mApprovalList.splice(idxBackup, 1)[0];
       mRenderApprovalList();
+      try { localStorage.setItem('PPDMobileApproval_' + mUser.nrp, JSON.stringify(mApprovalList)); } catch(e){}
       let cnt = mApprovalList.length;
       $('#m-nav-approval-badge').text(cnt).toggle(cnt > 0);
       $('#m-user-pending').toggle(cnt > 0);
@@ -6284,13 +6288,15 @@ function mRejectPlanova() {
         } else {
           mApprovalList.splice(idxBackup, 0, removedItem);
           mRenderApprovalList();
+          try { localStorage.setItem('PPDMobileApproval_' + mUser.nrp, JSON.stringify(mApprovalList)); } catch(e){}
           Swal.fire('Gagal', res.message, 'error');
         }
       }).withFailureHandler(err => {
         mApprovalList.splice(idxBackup, 0, removedItem);
         mRenderApprovalList();
+        try { localStorage.setItem('PPDMobileApproval_' + mUser.nrp, JSON.stringify(mApprovalList)); } catch(e){}
         Swal.fire('Error', err.message, 'error');
-      }).processApprovalAction(item.sheetName, item.rowIndex, "REJECT_SCORING", mUser.username, null, { "Komentar/Masukan": catatanPlanova });
+      }).processApprovalAction(item.sheetName, item.rowIndex, "REJECT_SCORING", mUser.username, null, { "Komentar/Masukan": catatanPlanova }, { nrp: item.nrp, nama: item.nama, tanggal: item.tanggal });
     }
   });
 }
@@ -6349,6 +6355,7 @@ function mSubmitMMPR() {
       const idxBackup = mCurrentAppIdx;
       const removedItem = mApprovalList.splice(idxBackup, 1)[0];
       mRenderApprovalList();
+      try { localStorage.setItem('PPDMobileApproval_' + mUser.nrp, JSON.stringify(mApprovalList)); } catch(e){}
       let cnt = mApprovalList.length;
       $('#m-nav-approval-badge').text(cnt).toggle(cnt > 0);
       $('#m-user-pending').toggle(cnt > 0);
@@ -6366,13 +6373,15 @@ function mSubmitMMPR() {
         } else {
           mApprovalList.splice(idxBackup, 0, removedItem);
           mRenderApprovalList();
+          try { localStorage.setItem('PPDMobileApproval_' + mUser.nrp, JSON.stringify(mApprovalList)); } catch(e){}
           Swal.fire('Gagal', 'Server menolak: ' + res.message, 'error');
         }
       }).withFailureHandler(err => {
         mApprovalList.splice(idxBackup, 0, removedItem);
         mRenderApprovalList();
+        try { localStorage.setItem('PPDMobileApproval_' + mUser.nrp, JSON.stringify(mApprovalList)); } catch(e){}
         Swal.fire('Error', err.message || 'Coba lagi.', 'error');
-      }).processApprovalAction("MMPR", item.rowIndex, "SCORING_MMPR", mUser.username, null, dataMMPR);
+      }).processApprovalAction("MMPR", item.rowIndex, "SCORING_MMPR", mUser.username, null, dataMMPR, { nrp: item.nrp, nama: item.nama, tanggal: item.tanggal });
     }
   });
 }
@@ -6403,6 +6412,7 @@ function mSubmitAppAction(action) {
       const idxBackup = mCurrentAppIdx;
       const removedItem = mApprovalList.splice(idxBackup, 1)[0];
       mRenderApprovalList();
+      try { localStorage.setItem('PPDMobileApproval_' + mUser.nrp, JSON.stringify(mApprovalList)); } catch(e){}
       let cnt = mApprovalList.length;
       $('#m-nav-approval-badge').text(cnt).toggle(cnt > 0);
       $('#m-user-pending').toggle(cnt > 0);
@@ -6420,13 +6430,15 @@ function mSubmitAppAction(action) {
         } else {
           mApprovalList.splice(idxBackup, 0, removedItem);
           mRenderApprovalList();
+          try { localStorage.setItem('PPDMobileApproval_' + mUser.nrp, JSON.stringify(mApprovalList)); } catch(e){}
           Swal.fire('Gagal', 'Server menolak: ' + res.message, 'error');
         }
       }).withFailureHandler(err => {
         mApprovalList.splice(idxBackup, 0, removedItem);
         mRenderApprovalList();
+        try { localStorage.setItem('PPDMobileApproval_' + mUser.nrp, JSON.stringify(mApprovalList)); } catch(e){}
         Swal.fire('Error', err.message || 'Coba lagi.', 'error');
-      }).processApprovalAction(item.sheetName, item.rowIndex, action, mUser.username, editData);
+      }).processApprovalAction(item.sheetName, item.rowIndex, action, mUser.username, editData, null, { nrp: item.nrp, nama: item.nama, tanggal: item.tanggal });
     }
   });
 }
