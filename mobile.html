@@ -6242,6 +6242,7 @@ function mSubmitScoring() {
           if (res.backgroundPdf) {
             google.script.run.triggerRegenWrapper(res.sheetTarget, res.rowTarget, mUser.username);
           }
+          mLoadApproval(true);
         } else {
           mApprovalList.splice(idxBackup, 0, removedItem);
           mRenderApprovalList();
@@ -6290,6 +6291,7 @@ function mRejectPlanova() {
       google.script.run.withSuccessHandler(res => {
         if (res.success) {
           Toast.fire({icon: 'success', title: 'Penilaian telah direject.'});
+          mLoadApproval(true);
         } else {
           mApprovalList.splice(idxBackup, 0, removedItem);
           mRenderApprovalList();
@@ -6375,6 +6377,7 @@ function mSubmitMMPR() {
           if (res.backgroundPdf) {
             google.script.run.triggerRegenWrapper(res.sheetTarget, res.rowTarget, mUser.username);
           }
+          mLoadApproval(true);
         } else {
           mApprovalList.splice(idxBackup, 0, removedItem);
           mRenderApprovalList();
@@ -6432,6 +6435,7 @@ function mSubmitAppAction(action) {
           if (res.backgroundPdf) {
             google.script.run.triggerRegenWrapper(res.sheetTarget, res.rowTarget, mUser.username);
           }
+          mLoadApproval(true);
         } else {
           mApprovalList.splice(idxBackup, 0, removedItem);
           mRenderApprovalList();
