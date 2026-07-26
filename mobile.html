@@ -2979,6 +2979,7 @@ $(document).ready(function() {
       localStorage.setItem("mLastActiveTime", Date.now());
       mShowApp();
       mInitData();
+      mHandleHashChange();
 
       // Restore last open form on refresh
       let hash = window.location.hash || '';
@@ -3414,6 +3415,7 @@ function mShowApp() {
 }
 
 function mInitData() {
+  if (!mUser) return;
   // Load cached history and approvals instantly to populate dashboard counters
   try {
     const cachedHistory = localStorage.getItem('PPDMobileHistory_' + mUser.nrp);
@@ -5590,6 +5592,7 @@ function mSubmitForm(formType) {
 
 // ============== HISTORY ==============
 function mLoadHistory(force) {
+  if (!mUser) return;
   // SWR Pattern: If we have cache, render instantly, but still fetch updates in the background
   if (mHistoryList.length > 0) {
     mRenderHistoryList();
@@ -5619,6 +5622,7 @@ function mLoadHistory(force) {
 }
 
 function mUpdateHeroStats() {
+  if (!mUser) return;
   // Count pengajuan saya yang masih menunggu approval (status WAITING/PROSES/OPEN)
   let pendingMine = (mHistoryList || []).filter(it => {
     let s = String(it.status || '').toUpperCase();
@@ -5678,6 +5682,7 @@ function mLoadMoreHistory() {
 
 // ============== APPROVAL ==============
 function mLoadApproval(force) {
+  if (!mUser) return;
   // SWR Pattern: If we have cache, render instantly, but still fetch updates in the background
   if (mApprovalList.length > 0) {
     mRenderApprovalList();
