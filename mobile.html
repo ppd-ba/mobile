@@ -5306,8 +5306,24 @@ function mBuildField(f) {
          +   '<button type="button" class="m-step-btn" onclick="mfStepperChange(this, 1)" '+btnDisAttr+'>+</button>'
          + '</div>';
   } else if (f.type === 'file') {
-    let acc = f.accept ? `accept="${f.accept}"` : '';
-    html += '<input class="m-form-input" type="file" data-fkey="'+f.key+'" '+acc+' '+(f.req?'required':'')+' '+attr+'>';
+    let acc = f.accept ? `acc="${f.accept}"` : '';
+    let randId = 'file_preview_' + Math.random().toString(36).substring(2, 9);
+    html += `<div class="m-file-upload-wrapper" style="margin-top: 6px; width: 100%;">`
+         +  `  <input class="m-form-input m-file-input" type="file" id="${randId}_input" data-fkey="${f.key}" ${acc} ${f.req?'required':''} ${attr} style="display:none;" onchange="mHandleFileSelect(this, '${randId}')">`
+         +  `  <div id="${randId}_dropzone" class="m-file-dropzone" onclick="$('#${randId}_input').click()" style="border: 2px dashed #cbd5e1; border-radius: 12px; padding: 20px; text-align: center; background: #f8fafc; cursor: pointer; transition: all 0.2s ease; outline: none;">`
+         +  `    <i class="fas fa-cloud-upload-alt fa-2x" style="color: #64748b; margin-bottom: 8px;"></i>`
+         +  `    <div style="font-size: 0.85em; font-weight: 600; color: #475569;">Pilih atau Ambil Foto</div>`
+         +  `    <div style="font-size: 0.72em; color: #94a3b8; margin-top: 2px;">Format: JPG, PNG (Max 10MB)</div>`
+         +  `  </div>`
+         +  `  <div id="${randId}_preview_container" class="m-file-preview-container" style="display:none; align-items:center; gap:12px; padding:12px; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; margin-top: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);">`
+         +  `    <img id="${randId}_thumb" src="" style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover; border: 1px solid #cbd5e1; flex-shrink:0;">`
+         +  `    <div style="flex:1; min-width:0;">`
+         +  `      <div id="${randId}_filename" style="font-size: 0.8em; font-weight: 600; color: #1e293b; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></div>`
+         +  `      <div id="${randId}_filesize" style="font-size: 0.72em; color: #64748b; margin-top: 2px;"></div>`
+         +  `    </div>`
+         +  `    <button type="button" class="btn btn-sm btn-outline-danger" onclick="mClearFileSelect('${randId}')" style="width: 32px; height: 32px; border-radius: 50%; padding:0; display:flex; align-items:center; justify-content:center; flex-shrink:0; border: none; background: #fef2f2; color: #ef4444;"><i class="fas fa-trash-alt"></i></button>`
+         +  `  </div>`
+         +  `</div>`;
   } else {
     let displayType = f.type;
     if (f.readonly && f.type === 'date') {
@@ -5320,11 +5336,74 @@ function mBuildField(f) {
   return html;
 }
 
+function mHandleFileSelect(input, randId) {
+  let file = input.files[0];
+  if (!file) {
+    mClearFileSelect(randId);
+    return;
+  }
+
+  // Check file size (max 10MB)
+  if (file.size > 10 * 1024 * 1024) {
+    Swal.fire('File Terlalu Besar', 'Maksimal ukuran file adalah 10MB.', 'warning');
+    mClearFileSelect(randId);
+    return;
+  }
+
+  // Display filename and size
+  let sizeStr = (file.size / 1024).toFixed(1) + ' KB';
+  if (file.size > 1024 * 1024) {
+    sizeStr = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+  }
+  
+  $(`#${randId}_filename`).text(file.name);
+  $(`#${randId}_filesize`).text(sizeStr);
+
+  // If it's an image, show thumbnail preview
+  if (file.type.startsWith('image/')) {
+    let reader = new FileReader();
+    reader.onload = function(e) {
+      $(`#${randId}_thumb`).attr('src', e.target.result).show();
+    };
+    reader.readAsDataURL(file);
+  } else {
+    // Fallback file icon for non-image files
+    $(`#${randId}_thumb`).attr('src', 'https://cdn-icons-png.flaticon.com/512/2991/2991108.png').show();
+  }
+
+  // Show preview container, hide dropzone
+  $(`#${randId}_dropzone`).hide();
+  $(`#${randId}_preview_container`).css('display', 'flex');
+  
+  // Remove validation warning if exists
+  let $input = $(input);
+  $input.removeClass('is-invalid');
+  
+  let dropzoneId = randId + '_dropzone';
+  let $dropzone = $('#' + dropzoneId);
+  $dropzone.css('border-color', '').css('background', '');
+  $dropzone.nextAll('.m-validation-warning').remove();
+}
+
+function mClearFileSelect(randId) {
+  let input = document.getElementById(randId + '_input');
+  if (input) {
+    input.value = '';
+  }
+  $(`#${randId}_thumb`).attr('src', '');
+  $(`#${randId}_filename`).text('');
+  $(`#${randId}_filesize`).text('');
+  
+  $(`#${randId}_preview_container`).hide();
+  $(`#${randId}_dropzone`).show();
+}
+
 function mSubmitForm(formType) {
   // Clear previous validation styling/warning messages
   $('#m-form-content .is-invalid').removeClass('is-invalid');
   $('#m-form-content .custom-select-trigger').removeClass('is-invalid');
   $('#m-form-content .m-validation-warning').remove();
+  $('#m-form-content .m-file-dropzone').css('border-color', '').css('background', '');
 
   // Collect values
   let data = {};
@@ -5348,8 +5427,10 @@ function mSubmitForm(formType) {
       let file = fileEl.files[0];
       if ($input.prop('required') && !file && visible) {
         missing.push(k);
-        $input.addClass('is-invalid');
-        $input.after(`<div class="m-validation-warning" style="color: #c10f19; font-size: 0.78em; font-weight: 600; margin-top: 4px;"><i class="fas fa-exclamation-circle mr-1"></i>File ${k} wajib diunggah</div>`);
+        let dropzoneId = $input.attr('id').replace('_input', '_dropzone');
+        let $dropzone = $('#' + dropzoneId);
+        $dropzone.css('border-color', '#c10f19').css('background', '#fef2f2');
+        $dropzone.after(`<div class="m-validation-warning" style="color: #c10f19; font-size: 0.78em; font-weight: 600; margin-top: 4px;"><i class="fas fa-exclamation-circle mr-1"></i>File ${k} wajib diunggah</div>`);
       }
     } else {
       let v = $input.val();
@@ -5436,8 +5517,21 @@ function mSubmitForm(formType) {
   let confHtml = '<div style="text-align:left; font-size:0.88em;">';
   confHtml += '<p style="font-size:0.85em; color:#64748b; margin-bottom:10px;">Mohon periksa kembali data pengajuan Anda:</p>';
   fieldsToShow.forEach(f => {
-    let v = data[f.key] || '<span style="color:#94a3b8;">—</span>';
-    v = String(v).replace(/\n/g, '<br>');
+    let v = data[f.key];
+    
+    // Check if this field is a file input
+    let $fileInput = $('#m-form-content input[type="file"][data-fkey="' + f.key + '"]');
+    if ($fileInput.length > 0) {
+      if ($fileInput[0].files && $fileInput[0].files[0]) {
+        v = '<span style="color:#10b981; font-weight:bold;"><i class="fas fa-check-circle mr-1"></i>Terlampir</span>';
+      } else {
+        v = '<span style="color:#94a3b8;">—</span>';
+      }
+    } else {
+      v = v || '<span style="color:#94a3b8;">—</span>';
+      v = String(v).replace(/\n/g, '<br>');
+    }
+    
     confHtml += '<div style="display:flex; justify-content:space-between; gap:10px; padding:6px 0; border-bottom:1px dashed #e2e8f0;">'
               + '<span style="color:#64748b; font-weight:600; flex-shrink:0; max-width:50%;">' + f.label + '</span>'
               + '<span style="color:#0f172a; text-align:right; word-break:break-word; font-weight:500;">' + v + '</span>'
