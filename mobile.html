@@ -5414,8 +5414,14 @@ function mSubmitForm(formType) {
     let type = $input.attr('type');
     
     let isHidden = false;
-    if ($input.is(':hidden') && $input.attr('type') !== 'hidden') {
-      isHidden = true;
+    if (type === 'file') {
+      if ($input.closest('.m-file-upload-wrapper').is(':hidden')) {
+        isHidden = true;
+      }
+    } else {
+      if ($input.is(':hidden') && $input.attr('type') !== 'hidden') {
+        isHidden = true;
+      }
     }
     if ($input.closest('.m-form-group').is(':hidden') || $input.closest('[id^="mf-"]').is(':hidden')) {
       isHidden = true;
@@ -5483,7 +5489,15 @@ function mSubmitForm(formType) {
   if (cfg && cfg.formFields) {
     cfg.formFields.forEach(f => {
       let $el = $('[data-fkey="'+f.key+'"]');
-      if ($el.length === 0 || $el.is(':visible') || f.type === 'hidden') {
+      let isVisible = false;
+      if ($el.length > 0) {
+        if ($el.attr('type') === 'file') {
+          isVisible = $el.closest('.m-file-upload-wrapper').is(':visible');
+        } else {
+          isVisible = $el.is(':visible');
+        }
+      }
+      if ($el.length === 0 || isVisible || f.type === 'hidden') {
         if (f.type !== 'label' && !f.key.startsWith('BENEFIT_')) {
           fieldsToShow.push({ key: f.key, label: f.label });
         }
@@ -5552,11 +5566,15 @@ function mSubmitForm(formType) {
     if (r.isConfirmed) {
       if (formType === 'PLANOVA') {
         let filesToUpload = [];
-        $('#m-form-content input[type="file"]:visible').each(function() {
-          let k = $(this).data('fkey');
-          let file = this.files[0];
-          if (file) {
-            filesToUpload.push({ key: k, file: file });
+        $('#m-form-content input[type="file"]').each(function() {
+          let $el = $(this);
+          let isVisible = $el.closest('.m-file-upload-wrapper').is(':visible');
+          if (isVisible) {
+            let k = $el.data('fkey');
+            let file = this.files[0];
+            if (file) {
+              filesToUpload.push({ key: k, file: file });
+            }
           }
         });
 
