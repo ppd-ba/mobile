@@ -5950,31 +5950,62 @@ function mCloseHistoryDetail() {
 }
 
 function mShowPlanovaTemplates() {
-  $('#m-templates-content').html(
-    '<div class="m-form-loader">' +
-    '  <div class="m-form-loader-spinner">' +
-    '    <span class="m-bounce-dot m-bd-1"></span>' +
-    '    <span class="m-bounce-dot m-bd-2"></span>' +
-    '    <span class="m-bounce-dot m-bd-3"></span>' +
-    '    <span class="m-bounce-dot m-bd-4"></span>' +
-    '    <span class="m-bounce-dot m-bd-5"></span>' +
-    '  </div>' +
-    '  <p class="m-form-loader-text">Loading Templates<span class="m-loader-dots"></span></p>' +
-    '</div>'
-  );
-  $('#m-templates-overlay').show();
-  mPushNav('overlay', 'planova-templates');
-
-  google.script.run.withSuccessHandler(res => {
-    if (res && res.success && res.sheets) {
-      mRenderTemplatesList(res.sheets);
-    } else {
-      let msg = (res && res.message) ? res.message : 'Unknown error';
-      $('#m-templates-content').html('<div class="text-center py-5 text-danger">Gagal load template: ' + msg + '</div>');
+  const cacheKey = 'PPDMobilePlanovaTemplates';
+  let cached = null;
+  try {
+    const stored = localStorage.getItem(cacheKey);
+    if (stored) {
+      const cacheObj = JSON.parse(stored);
+      // Cache for 7 days
+      if (Date.now() - cacheObj.timestamp < 604800000) {
+        cached = cacheObj.data;
+      }
     }
-  }).withFailureHandler(err => {
-    $('#m-templates-content').html('<div class="text-center py-5 text-danger">Gagal load template: ' + (err.message || err) + '</div>');
-  }).getPlanovaTemplates();
+  } catch(e) {}
+
+  if (cached) {
+    // Render instantly from cache
+    mRenderTemplatesList(cached.sheets);
+    $('#m-templates-overlay').show();
+    mPushNav('overlay', 'planova-templates');
+    
+    // Silently fetch and update cache in background
+    google.script.run.withSuccessHandler(res => {
+      if (res && res.success && res.sheets) {
+        if (JSON.stringify(res.sheets) !== JSON.stringify(cached.sheets)) {
+          mRenderTemplatesList(res.sheets);
+        }
+        try { localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data: res })); } catch(e) {}
+      }
+    }).getPlanovaTemplates();
+  } else {
+    $('#m-templates-content').html(
+      '<div class="m-form-loader">' +
+      '  <div class="m-form-loader-spinner">' +
+      '    <span class="m-bounce-dot m-bd-1"></span>' +
+      '    <span class="m-bounce-dot m-bd-2"></span>' +
+      '    <span class="m-bounce-dot m-bd-3"></span>' +
+      '    <span class="m-bounce-dot m-bd-4"></span>' +
+      '    <span class="m-bounce-dot m-bd-5"></span>' +
+      '  </div>' +
+      '  <p class="m-form-loader-text">Loading Templates<span class="m-loader-dots"></span></p>' +
+      '</div>'
+    );
+    $('#m-templates-overlay').show();
+    mPushNav('overlay', 'planova-templates');
+
+    google.script.run.withSuccessHandler(res => {
+      if (res && res.success && res.sheets) {
+        mRenderTemplatesList(res.sheets);
+        try { localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data: res })); } catch(e) {}
+      } else {
+        let msg = (res && res.message) ? res.message : 'Unknown error';
+        $('#m-templates-content').html('<div class="text-center py-5 text-danger">Gagal load template: ' + msg + '</div>');
+      }
+    }).withFailureHandler(err => {
+      $('#m-templates-content').html('<div class="text-center py-5 text-danger">Gagal load template: ' + (err.message || err) + '</div>');
+    }).getPlanovaTemplates();
+  }
 }
 
 function mClosePlanovaTemplates() {
