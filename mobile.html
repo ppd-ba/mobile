@@ -2109,7 +2109,7 @@ html.swal2-shown, body.swal2-shown {
     <button class="m-back-btn" onclick="mClosePlanovaTemplates()"><i class="fas fa-arrow-left"></i></button>
     <h2>Form & Contoh SS/QCC/QCP</h2>
   </header>
-  <div id="m-templates-content" class="m-sub-content" style="padding: 16px;"></div>
+  <div id="m-templates-content" class="m-sub-content" style="padding: 80px 16px 40px 16px;"></div>
 </div>
 
 <!-- ============ PHOTO CROP OVERLAY ============ -->
@@ -2118,7 +2118,7 @@ html.swal2-shown, body.swal2-shown {
     <button class="m-back-btn" onclick="mCloseCrop()"><i class="fas fa-arrow-left"></i></button>
     <h2>Reposisi Foto</h2>
   </header>
-  <div class="m-sub-content d-flex flex-column align-items-center justify-content-between" style="padding: 16px;">
+  <div class="m-sub-content d-flex flex-column align-items-center justify-content-between" style="padding: 80px 16px 40px 16px;">
     
     <div style="font-size:0.82em; color:#64748b; text-align:center; margin-bottom:12px; line-height: 1.4;">
       <i class="fas fa-info-circle text-info mr-1"></i> Gunakan dua jari untuk memperbesar/geser, atau geser foto dengan satu jari/mouse drag agar wajah pas di dalam lingkaran merah.
@@ -2159,7 +2159,7 @@ html.swal2-shown, body.swal2-shown {
     <button class="m-back-btn" onclick="mCloseNewEmpForm()"><i class="fas fa-arrow-left"></i></button>
     <h2>Registrasi Karyawan Baru</h2>
   </header>
-  <div class="m-sub-content" style="padding: 16px; background-color: #f8f9fa;">
+  <div class="m-sub-content" style="padding: 80px 16px 40px 16px; background-color: #f8f9fa;">
     <form id="m-form-register" onsubmit="event.preventDefault(); mSubmitRegister();">
       
       <!-- Section 1: Data Diri -->
@@ -2350,7 +2350,7 @@ html.swal2-shown, body.swal2-shown {
     <button class="m-back-btn" onclick="mCloseAbsensiForm()"><i class="fas fa-arrow-left"></i></button>
     <h2>Absensi Pertemuan / Training</h2>
   </header>
-  <div class="m-sub-content" style="padding: 16px; background-color: #f8f9fa;">
+  <div class="m-sub-content" style="padding: 80px 16px 40px 16px; background-color: #f8f9fa;">
     <form id="m-form-absensi" onsubmit="event.preventDefault(); mSubmitAbsensi();">
       
       <!-- Section 1: Informasi Kegiatan -->
@@ -2499,7 +2499,7 @@ html.swal2-shown, body.swal2-shown {
     <button class="m-back-btn" onclick="mCloseUserAbsensiForm()"><i class="fas fa-arrow-left"></i></button>
     <h2>Absensi Training / Kegiatan</h2>
   </header>
-  <div class="m-sub-content" style="padding: 16px; background-color: #f8f9fa;">
+  <div class="m-sub-content" style="padding: 80px 16px 40px 16px; background-color: #f8f9fa;">
     <form id="m-form-user-absensi" onsubmit="event.preventDefault(); mSubmitUserAbsensi();">
       
       <!-- Section 1: Informasi Kegiatan -->
@@ -5155,17 +5155,17 @@ function mGetFormConfig(formType) {
     ]);
     formFields = [
       { key:'JENIS BERITA ACARA', label:'Jenis BA', type:'select', options:['PERUBAHAN RUTE/WAKTU','PERMINTAAN TIKET TAMBAHAN'], req:true },
-      { key:'TUJUAN 1', label:'Tujuan Keberangkatan', type:'text', req:true, placeholder:'Contoh: SOLO - PALEMBANG, SOC - PLM' },
-      { key:'TANGGAL 1', label:'Tanggal Keberangkatan', type:'date', req:true },
-      { key:'TUJUAN 2', label:'Tujuan Kembali', type:'text', req:true, placeholder:'Contoh: SOLO - PALEMBANG, SOC - PLM' },
-      { key:'TANGGAL 2', label:'Tanggal Kembali', type:'date', req:true },
+      { key:'TUJUAN 1', label:'RUTE BERANGKAT', type:'text', req:true, placeholder:'Contoh: SOLO - PALEMBANG, SOC - PLM' },
+      { key:'TANGGAL 1', label:'TGL BERANGKAT', type:'date', req:true },
+      { key:'TANGGAL 2', label:'RUTE KEMBALI', type:'text', req:true, placeholder:'Contoh: SOLO - PALEMBANG, SOC - PLM' },
+      { key:'TUJUAN 2', label:'TGL KEMBALI', type:'date', req:true },
       { key:'URAIAN/PENJELASAAN', label:'Uraian / Penjelasan', type:'textarea', req:true }
     ];
   } else if (formType === 'RESCHEDULE & REFUND') {
     title = 'Reschedule & Refund Tiket';
     userFields = userFields.concat([{ key:'NO. HANDPHONE', label:'No HP', type:'tel', readonly:true }]);
     formFields = [
-      { key:'JENIS BERITA ACARA', label:'Jenis BA', type:'select', options:['Reschedule','Refund'], req:true },
+      { key:'JENIS BERITA ACARA', label:'Jenis BA', type:'select', options:['RESCHEDULE','REFUND'], req:true },
       { key:'JUMLAH PENUMPANG', label:'Jumlah Penumpang', type:'select', options:['1','2','3','4'], req:true },
       
       // Penumpang 1 (Selalu Tampil)
@@ -5234,16 +5234,16 @@ function mGetFormConfig(formType) {
       
       // Isi Form specific
       { key:'URAIAN MASALAH (Penjelasan kondisi sebelum Improvement, disertai foto/data)', label:'Uraian Masalah (Kondisi Sebelum)', type:'textarea', methodSS:'Isi Form' },
-      { key:'FOTO 1', label:'Foto 1 (Wajib, Sebelum)', type:'file', accept:'image/*', req:true, methodSS:'Isi Form' },
-      { key:'FOTO 2', label:'Foto 2 (Optional, Sebelum)', type:'file', accept:'image/*', methodSS:'Isi Form' },
+      { key:'FOTO 1', label:'Foto 1 (Masalah/Kondisi Sebelum Perbaikan)', type:'file', accept:'image/*', req:true, methodSS:'Isi Form' },
+      { key:'FOTO 2', label:'Foto 2 (Masalah/Kondisi Sebelum Perbaikan)', type:'file', accept:'image/*', methodSS:'Isi Form' },
       
       { key:'IDE YANG DIAJUKAN (Penjelasan ide yang akan dibuat, Disertai foto )', label:'Ide Yang Diajukan', type:'textarea', methodSS:'Isi Form' },
-      { key:'FOTO 3', label:'Foto 3 (Wajib, Ide)', type:'file', accept:'image/*', req:true, methodSS:'Isi Form' },
-      { key:'FOTO 4', label:'Foto 4 (Optional, Ide)', type:'file', accept:'image/*', methodSS:'Isi Form' },
+      { key:'FOTO 3', label:'Foto 1 (Ide yang Diajukan)', type:'file', accept:'image/*', req:true, methodSS:'Isi Form' },
+      { key:'FOTO 4', label:'Foto 2 (Ide yang Diajukan)', type:'file', accept:'image/*', methodSS:'Isi Form' },
       
       { key:'URAIAN PROSES/CARA PENGGUNAAN (Disertai foto)', label:'Uraian Proses / Cara Penggunaan', type:'textarea', methodSS:'Isi Form' },
-      { key:'FOTO 5', label:'Foto 5 (Wajib, Proses)', type:'file', accept:'image/*', req:true, methodSS:'Isi Form' },
-      { key:'FOTO 6', label:'Foto 6 (Optional, Proses)', type:'file', accept:'image/*', methodSS:'Isi Form' },
+      { key:'FOTO 5', label:'Foto 1 (Proses/Cara Penggunaan)', type:'file', accept:'image/*', req:true, methodSS:'Isi Form' },
+      { key:'FOTO 6', label:'Foto 2 (Proses/Cara Penggunaan)', type:'file', accept:'image/*', methodSS:'Isi Form' },
       
       // Manfaat Sub-boxes
       { key:'MANFAAT_HEADER', label:'Manfaat Yang Diperoleh / Perhitungan Benefit:', type:'label', methodSS:'Isi Form' },
@@ -5254,8 +5254,8 @@ function mGetFormConfig(formType) {
       { key:'BENEFIT_MORALE', label:'Morale', type:'text', methodSS:'Isi Form' },
       { key:'BENEFIT_ENVIROMENT', label:'Enviroment', type:'text', methodSS:'Isi Form' },
       
-      { key:'FOTO 8', label:'Foto 8 (Wajib, Setelah)', type:'file', accept:'image/*', req:true, methodSS:'Isi Form' },
-      { key:'FOTO 9', label:'Foto 9 (Optional, Setelah)', type:'file', accept:'image/*', methodSS:'Isi Form' },
+      { key:'FOTO 8', label:'Foto 1 (Manfaat/Kondisi Setelah Perbaikan)', type:'file', accept:'image/*', req:true, methodSS:'Isi Form' },
+      { key:'FOTO 9', label:'Foto 2 (Manfaat/Kondisi Setelah Perbaikan)', type:'file', accept:'image/*', methodSS:'Isi Form' },
       
       { key:'IMPROVEMENT BERSIFAT :', label:'Improvement Bersifat', type:'select', options:['Menciptakan', 'Meningkatkan standar', 'Mencontoh'], req:true }
     ];
