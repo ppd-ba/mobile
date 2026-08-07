@@ -2452,6 +2452,12 @@ html.swal2-shown, body.swal2-shown {
             </select>
           </div>
           
+          <!-- No. Whatsapp -->
+          <div class="form-group mb-2">
+            <label class="font-weight-bold small mb-1">NO. WHATSAPP <span class="text-danger">*</span></label>
+            <input type="text" id="m-abs-wa" class="form-control" placeholder="Contoh: 08123456789" required>
+          </div>
+          
           <!-- Jabatan/Posisi -->
           <div class="form-group mb-2">
             <label class="font-weight-bold small mb-1">JABATAN/POSISI <span class="text-danger">*</span></label>
@@ -7816,6 +7822,7 @@ function mSubmitAbsensi() {
   const nama = $('#m-abs-nama').val().trim().toUpperCase();
   const perusahaan = $('#m-abs-perusahaan').val();
   const department = $('#m-abs-department').val();
+  const noWhatsapp = $('#m-abs-wa').val().trim();
   
   let jabatan = $('#m-abs-jabatan').val();
   if (jabatan === 'Lainnya...') {
@@ -7823,7 +7830,7 @@ function mSubmitAbsensi() {
   }
 
   // Validations
-  if (!jenis || !tanggal || !aktifitas || !tempat || !nama || !perusahaan || !department || !jabatan) {
+  if (!jenis || !tanggal || !aktifitas || !tempat || !nama || !perusahaan || !department || !jabatan || !noWhatsapp) {
     Swal.fire('Peringatan', 'Mohon lengkapi semua field yang wajib diisi (*)', 'warning');
     return;
   }
@@ -7893,6 +7900,7 @@ function mSubmitAbsensi() {
       perusahaan: perusahaan,
       department: department,
       jabatan: jabatan,
+      noWhatsapp: noWhatsapp,
       signatureUrl: sigUrl,
       dokumentasiUrl: docUrl
     };
