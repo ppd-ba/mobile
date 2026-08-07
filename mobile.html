@@ -7870,6 +7870,7 @@ function mSubmitAbsensi() {
     department: department,
     jabatan: jabatan,
     noWhatsapp: noWhatsapp,
+    signatureBase64: signatureBase64,
     signatureUrl: "",
     dokumentasiUrl: ""
   };
@@ -7878,11 +7879,6 @@ function mSubmitAbsensi() {
     .withSuccessHandler(function(res) {
       if (res && !res.success) {
         console.error('Gagal Menyimpan Absensi:', res.message);
-      }
-      // Perform signature upload in background if available
-      if (signatureBase64) {
-        const signatureFilename = `sig_${nama.replace(/\s+/g, '_')}_${Date.now()}.jpg`;
-        google.script.run.uploadFileToDrive(signatureBase64, signatureFilename, "image/jpeg", "ABSENSI");
       }
     })
     .withFailureHandler(function(err) {
@@ -8310,6 +8306,7 @@ function mSubmitUserAbsensi() {
     noWhatsapp: noWhatsapp,
     department: department,
     keterangan: keterangan,
+    signatureBase64: signatureBase64,
     signatureUrl: "",
     dokumentasiUrl: ""
   };
@@ -8318,10 +8315,6 @@ function mSubmitUserAbsensi() {
     .withSuccessHandler(function(res) {
       if (res && !res.success) {
         console.error('Gagal Menyimpan Absensi:', res.message);
-      }
-      if (signatureBase64) {
-        const signatureFilename = `TTD_${nik}_${Date.now()}.jpg`;
-        google.script.run.uploadFileToDrive(signatureBase64, signatureFilename, "image/jpeg", "ABSENSI");
       }
     })
     .withFailureHandler(function(err) {
