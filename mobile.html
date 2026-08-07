@@ -7840,86 +7840,55 @@ function mSubmitAbsensi() {
     return;
   }
 
-  // 1. Immediately close form overlay and show success alert
+  // 1. Capture signature base64 before closing overlay
+  let signatureBase64 = "";
+  try {
+    if (absensiCanvas && absensiHasSigned) {
+      signatureBase64 = absensiCanvas.toDataURL("image/jpeg", 0.7).split(',')[1];
+    }
+  } catch(e) {}
+
+  // 2. Immediately close form overlay and show success alert
   mCloseAbsensiForm();
   
   Swal.fire({
     icon: 'success',
     title: 'Absensi Berhasil!',
-    text: 'Terima kasih, data absensi Anda sedang diunggah di latar belakang.',
+    text: 'Terima kasih, data absensi Anda berhasil dikirim.',
     confirmButtonColor: '#10b981',
     confirmButtonText: 'Selesai'
   });
 
-  // 2. Perform compression, uploads and save in the background
-  setTimeout(() => {
-    let signatureBase64 = "";
-    try {
-      if (absensiCanvas && absensiHasSigned) {
-        signatureBase64 = absensiCanvas.toDataURL("image/jpeg", 0.7).split(',')[1];
+  // 3. Send absensi data and WA notification IMMEDIATELY
+  const absensiData = {
+    jenisPertemuan: jenis,
+    tanggal: mFormatDateToIndo(tanggal),
+    namaAktifitas: aktifitas,
+    tempatPenyelenggaraan: tempat,
+    nama: nama,
+    perusahaan: perusahaan,
+    department: department,
+    jabatan: jabatan,
+    noWhatsapp: noWhatsapp,
+    signatureUrl: "",
+    dokumentasiUrl: ""
+  };
+
+  google.script.run
+    .withSuccessHandler(function(res) {
+      if (res && !res.success) {
+        console.error('Gagal Menyimpan Absensi:', res.message);
       }
-    } catch(e) {}
-
-    const signatureFilename = `sig_${nama.replace(/\s+/g, '_')}_${Date.now()}.jpg`;
-
-    if (signatureBase64) {
-      google.script.run
-        .withSuccessHandler(function(sigRes) {
-          let sigUrl = (sigRes && sigRes.success) ? sigRes.url : "";
-          if (selectedDocFile) {
-            mCompressImage(selectedDocFile, 1000, 1000, 0.6, function(compressedBase64) {
-              const docBase64 = compressedBase64.split(',')[1];
-              const docFilename = `doc_${nama.replace(/\s+/g, '_')}_${Date.now()}.jpg`;
-              
-              google.script.run
-                .withSuccessHandler(function(docRes) {
-                  let docUrl = (docRes && docRes.success) ? docRes.url : "";
-                  submitAbsensiFinalBg(sigUrl, docUrl);
-                })
-                .withFailureHandler(function(err) {
-                  submitAbsensiFinalBg(sigUrl, "");
-                })
-                .uploadFileToDrive(docBase64, docFilename, "image/jpeg", "ABSENSI");
-            });
-          } else {
-            submitAbsensiFinalBg(sigUrl, "");
-          }
-        })
-        .withFailureHandler(function(err) {
-          submitAbsensiFinalBg("", "");
-        })
-        .uploadFileToDrive(signatureBase64, signatureFilename, "image/jpeg", "ABSENSI");
-    } else {
-      submitAbsensiFinalBg("", "");
-    }
-  }, 10);
-
-  function submitAbsensiFinalBg(sigUrl, docUrl) {
-    const absensiData = {
-      jenisPertemuan: jenis,
-      tanggal: mFormatDateToIndo(tanggal),
-      namaAktifitas: aktifitas,
-      tempatPenyelenggaraan: tempat,
-      nama: nama,
-      perusahaan: perusahaan,
-      department: department,
-      jabatan: jabatan,
-      noWhatsapp: noWhatsapp,
-      signatureUrl: sigUrl,
-      dokumentasiUrl: docUrl
-    };
-
-    google.script.run
-      .withSuccessHandler(function(res) {
-        if (res && !res.success) {
-          Swal.fire('Gagal Menyimpan Absensi', res.message || 'Error tidak diketahui', 'error');
-        }
-      })
-      .withFailureHandler(function(err) {
-        Swal.fire('Gagal Menyimpan Absensi', err.toString(), 'error');
-      })
-      .submitAbsensi(absensiData);
-  }
+      // Perform signature upload in background if available
+      if (signatureBase64) {
+        const signatureFilename = `sig_${nama.replace(/\s+/g, '_')}_${Date.now()}.jpg`;
+        google.script.run.uploadFileToDrive(signatureBase64, signatureFilename, "image/jpeg", "ABSENSI");
+      }
+    })
+    .withFailureHandler(function(err) {
+      console.error('Gagal Menyimpan Absensi:', err.toString());
+    })
+    .submitAbsensi(absensiData);
 }
 
 // ================= ABSENSI USER (KARYAWAN) LOGIC =================
@@ -8299,91 +8268,59 @@ function mSubmitUserAbsensi() {
   if (jenis === 'TRAINING' && !penanggungJawab) return Swal.fire('Lengkapi', 'Penanggung Jawab/Instruktur wajib diisi.', 'warning');
   if (!userAbsHasSigned) return Swal.fire('Tanda Tangan', 'Paraf tanda tangan wajib diisi.', 'warning');
 
-  // 1. Immediately close form overlay and show success alert
+  // 1. Capture signature base64 before closing overlay
+  let signatureBase64 = "";
+  try {
+    if (userAbsCanvas && userAbsHasSigned) {
+      signatureBase64 = userAbsCanvas.toDataURL('image/jpeg', 0.7).split(',')[1];
+    }
+  } catch(e) {}
+
+  // 2. Immediately close form overlay and show success alert
   mCloseUserAbsensiForm();
   
   Swal.fire({
     icon: 'success',
     title: 'Absensi Berhasil!',
-    text: 'Terima kasih, data absensi Anda sedang diunggah di latar belakang.',
+    text: 'Terima kasih, data absensi Anda berhasil dikirim.',
     confirmButtonColor: '#05244d',
     confirmButtonText: 'Selesai'
   });
 
-  // 2. Perform compression, uploads and save in the background
-  setTimeout(() => {
-    let signatureBase64 = "";
-    try {
-      if (userAbsCanvas && userAbsHasSigned) {
-        signatureBase64 = userAbsCanvas.toDataURL('image/jpeg', 0.7).split(',')[1];
+  // 3. Send absensi data and WA notification IMMEDIATELY
+  const absensiData = {
+    jenisPertemuan: jenis,
+    tanggal: mFormatDateToIndo(tanggal),
+    namaAktifitas: aktifitas,
+    unitType: unitType,
+    tempatPenyelenggaraan: tempat,
+    penanggungJawab: penanggungJawab,
+    nik: nik,
+    nama: nama,
+    perusahaan: perusahaan,
+    site: site,
+    jabatan: jabatan,
+    noWhatsapp: noWhatsapp,
+    department: department,
+    keterangan: keterangan,
+    signatureUrl: "",
+    dokumentasiUrl: ""
+  };
+
+  google.script.run
+    .withSuccessHandler(function(res) {
+      if (res && !res.success) {
+        console.error('Gagal Menyimpan Absensi:', res.message);
       }
-    } catch(e) {}
-
-    const signatureFilename = `TTD_${nik}_${Date.now()}.jpg`;
-
-    if (signatureBase64) {
-      google.script.run
-        .withSuccessHandler(function(sigRes) {
-          let sigUrl = (sigRes && sigRes.success) ? sigRes.url : "";
-          if (userSelectedDocFile) {
-            mCompressImage(userSelectedDocFile, 1000, 1000, 0.6, function(compressedBase64) {
-              const docBase64 = compressedBase64.split(',')[1];
-              const docFilename = `DOC_${nik}_${Date.now()}.jpg`;
-              
-              google.script.run
-                .withSuccessHandler(function(docRes) {
-                  let docUrl = (docRes && docRes.success) ? docRes.url : "";
-                  submitAbsensiFinalBg(sigUrl, docUrl);
-                })
-                .withFailureHandler(function(err) {
-                  submitAbsensiFinalBg(sigUrl, "");
-                })
-                .uploadFileToDrive(docBase64, docFilename, "image/jpeg", "ABSENSI");
-            });
-          } else {
-            submitAbsensiFinalBg(sigUrl, "");
-          }
-        })
-        .withFailureHandler(function(err) {
-          submitAbsensiFinalBg("", "");
-        })
-        .uploadFileToDrive(signatureBase64, signatureFilename, "image/jpeg", "ABSENSI");
-    } else {
-      submitAbsensiFinalBg("", "");
-    }
-  }, 10);
-
-  function submitAbsensiFinalBg(sigUrl, docUrl) {
-    const absensiData = {
-      jenisPertemuan: jenis,
-      tanggal: mFormatDateToIndo(tanggal),
-      namaAktifitas: aktifitas,
-      unitType: unitType,
-      tempatPenyelenggaraan: tempat,
-      penanggungJawab: penanggungJawab,
-      nik: nik,
-      nama: nama,
-      perusahaan: perusahaan,
-      site: site,
-      jabatan: jabatan,
-      noWhatsapp: noWhatsapp,
-      department: department,
-      keterangan: keterangan,
-      signatureUrl: sigUrl,
-      dokumentasiUrl: docUrl
-    };
-
-    google.script.run
-      .withSuccessHandler(function(res) {
-        if (res && !res.success) {
-          Swal.fire('Gagal Menyimpan Absensi', res.message || 'Error tidak diketahui', 'error');
-        }
-      })
-      .withFailureHandler(function(err) {
-        Swal.fire('Gagal Menyimpan Absensi', err.toString(), 'error');
-      })
-      .submitAbsensi(absensiData);
-  }
+      if (signatureBase64) {
+        const signatureFilename = `TTD_${nik}_${Date.now()}.jpg`;
+        google.script.run.uploadFileToDrive(signatureBase64, signatureFilename, "image/jpeg", "ABSENSI");
+      }
+    })
+    .withFailureHandler(function(err) {
+      console.error('Gagal Menyimpan Absensi:', err.toString());
+    })
+    .submitAbsensi(absensiData);
 }
 
 function mCompressImage(file, maxWidth, maxHeight, quality, callback) {
