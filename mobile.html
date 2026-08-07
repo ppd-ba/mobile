@@ -7853,12 +7853,19 @@ function mSubmitAbsensi() {
 
   // 2. Perform compression, uploads and save in the background
   setTimeout(() => {
-    const signatureBase64 = absensiCanvas.toDataURL("image/jpeg", 0.7).split(',')[1];
+    let signatureBase64 = "";
+    try {
+      if (absensiCanvas && absensiHasSigned) {
+        signatureBase64 = absensiCanvas.toDataURL("image/jpeg", 0.7).split(',')[1];
+      }
+    } catch(e) {}
+
     const signatureFilename = `sig_${nama.replace(/\s+/g, '_')}_${Date.now()}.jpg`;
 
-    google.script.run
-      .withSuccessHandler(function(sigRes) {
-        if (sigRes && sigRes.success) {
+    if (signatureBase64) {
+      google.script.run
+        .withSuccessHandler(function(sigRes) {
+          let sigUrl = (sigRes && sigRes.success) ? sigRes.url : "";
           if (selectedDocFile) {
             mCompressImage(selectedDocFile, 1000, 1000, 0.6, function(compressedBase64) {
               const docBase64 = compressedBase64.split(',')[1];
@@ -7866,28 +7873,25 @@ function mSubmitAbsensi() {
               
               google.script.run
                 .withSuccessHandler(function(docRes) {
-                  if (docRes && docRes.success) {
-                    submitAbsensiFinalBg(sigRes.url, docRes.url);
-                  } else {
-                    Swal.fire('Gagal Unggah Dokumentasi', docRes.message || 'Error tidak diketahui', 'error');
-                  }
+                  let docUrl = (docRes && docRes.success) ? docRes.url : "";
+                  submitAbsensiFinalBg(sigUrl, docUrl);
                 })
                 .withFailureHandler(function(err) {
-                  Swal.fire('Gagal Unggah Dokumentasi', err.toString(), 'error');
+                  submitAbsensiFinalBg(sigUrl, "");
                 })
                 .uploadFileToDrive(docBase64, docFilename, "image/jpeg", "ABSENSI");
             });
           } else {
-            submitAbsensiFinalBg(sigRes.url, "");
+            submitAbsensiFinalBg(sigUrl, "");
           }
-        } else {
-          Swal.fire('Gagal Unggah Paraf', sigRes.message || 'Error tidak diketahui', 'error');
-        }
-      })
-      .withFailureHandler(function(err) {
-        Swal.fire('Gagal Unggah Paraf', err.toString(), 'error');
-      })
-      .uploadFileToDrive(signatureBase64, signatureFilename, "image/jpeg", "ABSENSI");
+        })
+        .withFailureHandler(function(err) {
+          submitAbsensiFinalBg("", "");
+        })
+        .uploadFileToDrive(signatureBase64, signatureFilename, "image/jpeg", "ABSENSI");
+    } else {
+      submitAbsensiFinalBg("", "");
+    }
   }, 10);
 
   function submitAbsensiFinalBg(sigUrl, docUrl) {
