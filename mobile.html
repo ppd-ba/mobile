@@ -8077,7 +8077,13 @@ function mOpenUserAbsensiForm() {
     $('#m-user-abs-perusahaan').val((profile && profile["PERUSAHAAN"]) || 'PPA');
     $('#m-user-abs-site').val((profile && profile["SITE"]) || 'BA');
     $('#m-user-abs-jabatan').val((profile && profile["JABATAN"]) || '');
-    $('#m-user-abs-wa').val((profile && profile["NO. WHATSAPP"]) || '');
+    const userWa = (profile && (profile["NO. WHATSAPP"] || profile["NO WHATSAPP"] || profile["NO. HP"] || profile["NO HP"] || profile["NO HANDPHONE"])) || '';
+    $('#m-user-abs-wa').val(userWa);
+    if (!userWa) {
+      $('#m-user-abs-wa').removeAttr('readonly').attr('placeholder', 'Masukkan No. WhatsApp (cth: 08123456789)');
+    } else {
+      $('#m-user-abs-wa').attr('readonly', 'readonly');
+    }
     $('#m-user-abs-department').val((profile && profile["SECTION"]) || '');
 
     // Populate instructors select dropdown
@@ -8266,6 +8272,7 @@ function mSubmitUserAbsensi() {
   if (!aktifitas) return Swal.fire('Lengkapi', 'Nama Aktifitas wajib diisi.', 'warning');
   if (!tempat) return Swal.fire('Lengkapi', 'Tempat Penyelenggaraan wajib diisi.', 'warning');
   if (jenis === 'TRAINING' && !penanggungJawab) return Swal.fire('Lengkapi', 'Penanggung Jawab/Instruktur wajib diisi.', 'warning');
+  if (!noWhatsapp || noWhatsapp.length < 9) return Swal.fire('Lengkapi No. WhatsApp', 'Nomor WhatsApp wajib diisi (minimal 9 digit).', 'warning');
   if (!userAbsHasSigned) return Swal.fire('Tanda Tangan', 'Paraf tanda tangan wajib diisi.', 'warning');
 
   // 1. Capture signature base64 before closing overlay
