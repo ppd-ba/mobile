@@ -7843,10 +7843,19 @@ function mSubmitAbsensi() {
   // 1. Capture signature base64 before closing overlay
   let signatureBase64 = "";
   try {
-    if (absensiCanvas && absensiHasSigned) {
-      signatureBase64 = absensiCanvas.toDataURL("image/jpeg", 0.7).split(',')[1];
+    const cvs = document.getElementById('m-absensi-signature-canvas') || absensiCanvas;
+    if (cvs && absensiHasSigned) {
+      let dataUrl = cvs.toDataURL("image/png");
+      if (!dataUrl || dataUrl.indexOf(",") === -1) {
+        dataUrl = cvs.toDataURL();
+      }
+      if (dataUrl && dataUrl.indexOf(",") > -1) {
+        signatureBase64 = dataUrl.split(',')[1];
+      }
     }
-  } catch(e) {}
+  } catch(e) {
+    console.error("Signature capture error:", e);
+  }
 
   // 2. Immediately close form overlay and show success alert
   mCloseAbsensiForm();
@@ -8274,10 +8283,19 @@ function mSubmitUserAbsensi() {
   // 1. Capture signature base64 before closing overlay
   let signatureBase64 = "";
   try {
-    if (userAbsCanvas && userAbsHasSigned) {
-      signatureBase64 = userAbsCanvas.toDataURL('image/jpeg', 0.7).split(',')[1];
+    const cvs = document.getElementById('m-user-absensi-signature-canvas') || userAbsCanvas;
+    if (cvs && userAbsHasSigned) {
+      let dataUrl = cvs.toDataURL("image/png");
+      if (!dataUrl || dataUrl.indexOf(",") === -1) {
+        dataUrl = cvs.toDataURL();
+      }
+      if (dataUrl && dataUrl.indexOf(",") > -1) {
+        signatureBase64 = dataUrl.split(',')[1];
+      }
     }
-  } catch(e) {}
+  } catch(e) {
+    console.error("User signature capture error:", e);
+  }
 
   // 2. Immediately close form overlay and show success alert
   mCloseUserAbsensiForm();
