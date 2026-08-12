@@ -7480,18 +7480,112 @@ function mApplyTheme(t) {
   });
 }
 
+function mParseFlexibleDate(val) {
+  if (!val) return null;
+  if (val instanceof Date) {
+    return isNaN(val.getTime()) ? null : val;
+  }
+  let s = String(val).trim();
+  if (!s) return null;
+
+  if (/^\d{5}(\.\d+)?$/.test(s)) {
+    let num = parseFloat(s);
+    let epoch = new Date(1899, 11, 30);
+    return new Date(epoch.getTime() + num * 86400000);
+  }
+
+  let matchDMY = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+  if (matchDMY) {
+    return new Date(parseInt(matchDMY[3], 10), parseInt(matchDMY[2], 10) - 1, parseInt(matchDMY[1], 10));
+  }
+
+  let matchYMD = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+  if (matchYMD) {
+    return new Date(parseInt(matchYMD[1], 10), parseInt(matchYMD[2], 10) - 1, parseInt(matchYMD[3], 10));
+  }
+
+  let mIndoLong  = ["januari", "februari", "maret", "april", "mei", "juni", "juli", "agustus", "september", "oktober", "november", "desember"];
+  let mIndoShort = ["jan", "feb", "mar", "apr", "mei", "jun", "jul", "agt", "sep", "okt", "nov", "des"];
+
+  let words = s.toLowerCase().split(/[\s\-_,]+/);
+  if (words.length >= 3) {
+    let dNum = -1, mIdx = -1, yNum = -1;
+    words.forEach(w => {
+      if (/^\d{1,2}$/.test(w) && dNum === -1) {
+        dNum = parseInt(w, 10);
+      } else if (/^\d{4}$/.test(w) && yNum === -1) {
+        yNum = parseInt(w, 10);
+      } else if (mIdx === -1) {
+        let idx = mIndoLong.findIndex(m => m.startsWith(w.substring(0, 3)));
+        if (idx === -1) {
+          idx = mIndoShort.findIndex(m => m === w.substring(0, 3));
+        }
+        if (idx > -1) mIdx = idx;
+      }
+    });
+    if (dNum > 0 && mIdx > -1 && yNum > 1900) {
+      return new Date(yNum, mIdx, dNum);
+    }
+  }
+
+  let dParsed = new Date(s);
+  if (!isNaN(dParsed.getTime())) return dParsed;
+
+  return null;
+}
+
+function mFormatDateDDMMMYYYY(dateObj) {
+  if (!dateObj || !(dateObj instanceof Date) || isNaN(dateObj.getTime())) return "";
+  const mShort = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sep", "Okt", "Nov", "Des"];
+  const day = String(dateObj.getDate()).padStart(2, '0');
+  const month = mShort[dateObj.getMonth()];
+  const year = dateObj.getFullYear();
+  return `${day} ${month} ${year}`;
+}
+
 function mRenderEventDevelopment(list) {
   let $container = $('#m-eventdev-container');
   if (mEventDevTimer) { clearInterval(mEventDevTimer); mEventDevTimer = null; }
   mEventDevIdx = 0;
 
-  if (!list || list.length === 0) {
+  if (!list || !Array.isArray(list)) list = [];
+
+  const now = new Date();
+  const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+
+  let filteredList = [];
+  list.forEach(p => {
+    let sDate = mParseFlexibleDate(p.start);
+    let eDate = mParseFlexibleDate(p.end) || sDate;
+
+    // Filter: skip past events (where end date is before current month)
+    if (eDate && eDate.getTime() < currentMonthStart.getTime()) {
+      return;
+    }
+
+    let startFormatted = sDate ? mFormatDateDDMMMYYYY(sDate) : (p.start || "");
+    let endFormatted = eDate ? mFormatDateDDMMMYYYY(eDate) : (p.end || "");
+
+    filteredList.push({
+      namaEvent: p.namaEvent || "-",
+      noBed: p.noBed || "-",
+      instruktur: p.instruktur || "-",
+      lokasi: p.lokasi || "-",
+      start: startFormatted,
+      end: endFormatted,
+      startDateMs: sDate ? sDate.getTime() : 0
+    });
+  });
+
+  filteredList.sort((a, b) => a.startDateMs - b.startDateMs);
+
+  if (filteredList.length === 0) {
     $container.html('<div class="m-eventdev-empty"><i class="fas fa-calendar-times mr-1"></i> Tidak ada Event Development untuk anda pada bulan ini.</div>');
     return;
   }
   
   $container.empty();
-  list.forEach((p, i) => {
+  filteredList.forEach((p, i) => {
     let dateStr = (p.start && p.end) ? `${p.start} s/d ${p.end}` : (p.start || p.end || "-");
     let cardHtml = `
       <div class="m-eventdev-card" data-idx="${i}">
@@ -7527,7 +7621,7 @@ function mRenderEventDevelopment(list) {
   });
 
   // Auto-play timer if multiple events
-  if (list.length > 1) {
+  if (filteredList.length > 1) {
     let containerEl = document.getElementById('m-eventdev-container');
     if (containerEl) {
       containerEl.onscroll = function() {
@@ -7539,7 +7633,7 @@ function mRenderEventDevelopment(list) {
 
       mEventDevTimer = setInterval(function() {
         if (!containerEl) return;
-        mEventDevIdx = (mEventDevIdx + 1) % list.length;
+        mEventDevIdx = (mEventDevIdx + 1) % filteredList.length;
         let w = containerEl.clientWidth + 12; // clientWidth + gap 12px
         containerEl.scrollTo({ left: mEventDevIdx * w, behavior: 'smooth' });
       }, 4500);
