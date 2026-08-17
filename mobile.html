@@ -1488,6 +1488,17 @@ html.swal2-shown, body.swal2-shown {
   width: 100%;
   user-select: none;
 }
+.custom-select-container.open {
+  z-index: 1200 !important;
+}
+.form-group.custom-select-open {
+  position: relative !important;
+  z-index: 1200 !important;
+}
+.card.custom-select-card-open {
+  position: relative !important;
+  z-index: 1200 !important;
+}
 .custom-select-trigger {
   display: flex;
   justify-content: space-between;
@@ -1528,11 +1539,11 @@ html.swal2-shown, body.swal2-shown {
   top: 100%;
   left: 0;
   right: 0;
-  z-index: 1050;
+  z-index: 1200;
   background: #ffffff;
   border: 1.5px solid #e2e8f0;
   border-radius: 11px;
-  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15), 0 8px 10px -6px rgba(0,0,0,0.1);
   margin-top: 4px;
   max-height: 220px;
   overflow-y: auto;
@@ -2784,17 +2795,30 @@ $(document).ready(function() {
   $(document).on('click', '.custom-select-trigger', function(e) {
     e.stopPropagation();
     let trigger = $(this);
+    let container = trigger.closest('.custom-select-container');
+    let formGroup = trigger.closest('.form-group');
+    let card = trigger.closest('.card');
     let optionsList = trigger.next('.custom-select-options');
     let isOpen = trigger.hasClass('open');
     
+    // Close any other open dropdowns and reset z-index
     $('.custom-select-trigger').not(trigger).removeClass('open');
+    $('.custom-select-container').not(container).removeClass('open');
+    $('.form-group').not(formGroup).removeClass('custom-select-open');
+    $('.card').not(card).removeClass('custom-select-card-open');
     $('.custom-select-options').not(optionsList).hide();
     
     if (isOpen) {
       trigger.removeClass('open');
+      container.removeClass('open');
+      formGroup.removeClass('custom-select-open');
+      card.removeClass('custom-select-card-open');
       optionsList.hide();
     } else {
       trigger.addClass('open');
+      container.addClass('open');
+      formGroup.addClass('custom-select-open');
+      card.addClass('custom-select-card-open');
       optionsList.show();
     }
   });
@@ -2805,6 +2829,8 @@ $(document).ready(function() {
     let val = optionEl.data('value');
     let text = optionEl.text();
     let container = optionEl.closest('.custom-select-container');
+    let formGroup = container.closest('.form-group');
+    let card = container.closest('.card');
     let trigger = container.find('.custom-select-trigger');
     let optionsList = container.find('.custom-select-options');
     let select = container.prev('select.custom-select-hidden');
@@ -2813,6 +2839,9 @@ $(document).ready(function() {
     optionEl.addClass('selected');
     trigger.find('span').text(text);
     trigger.removeClass('open');
+    container.removeClass('open');
+    formGroup.removeClass('custom-select-open');
+    card.removeClass('custom-select-card-open');
     optionsList.hide();
     
     if (select.length) {
@@ -2823,6 +2852,9 @@ $(document).ready(function() {
   $(document).on('click', function(e) {
     if (!$(e.target).closest('.custom-select-container').length) {
       $('.custom-select-trigger').removeClass('open');
+      $('.custom-select-container').removeClass('open');
+      $('.form-group').removeClass('custom-select-open');
+      $('.card').removeClass('custom-select-card-open');
       $('.custom-select-options').hide();
     }
   });
@@ -8192,6 +8224,10 @@ function mOpenUserAbsensiForm() {
       $inst.append(`<option value="${name}">${name}</option>`);
     });
     $inst.append('<option value="Lainnya...">Lainnya...</option>');
+
+    setTimeout(() => {
+      initCustomMobileSelects('#m-user-absensi-overlay');
+    }, 10);
   }
 
   // Populate immediately with whatever is in cache
@@ -8269,7 +8305,7 @@ function mSelectUserJenisPertemuan(val) {
     
     // Find unique activity names
     const uniqueActs = [];
-    mCatalogData.forEach(item => {
+    (mCatalogData || []).forEach(item => {
       if (item.activity && !uniqueActs.includes(item.activity)) {
         uniqueActs.push(item.activity);
       }
@@ -8303,6 +8339,10 @@ function mSelectUserJenisPertemuan(val) {
     $act.append('<option value="Meeting Vendor">Meeting Vendor</option>');
     $act.append('<option value="Lainnya...">Lainnya...</option>');
   }
+
+  setTimeout(() => {
+    initCustomMobileSelects('#m-user-absensi-overlay');
+  }, 10);
 }
 
 function mOnUserActivityChanged(val) {
@@ -8315,7 +8355,7 @@ function mOnUserActivityChanged(val) {
     const $unit = $('#m-user-abs-unit').empty();
     $unit.append('<option value="">-- Pilih Unit Type --</option>');
     
-    const matching = mCatalogData.filter(item => item.activity === val);
+    const matching = (mCatalogData || []).filter(item => item.activity === val);
     const uniqueUnits = [];
     matching.forEach(item => {
       if (item.unitType && !uniqueUnits.includes(item.unitType)) {
@@ -8326,6 +8366,10 @@ function mOnUserActivityChanged(val) {
     uniqueUnits.forEach(u => {
       $unit.append(`<option value="${u}">${u}</option>`);
     });
+
+    setTimeout(() => {
+      initCustomMobileSelects('#m-user-absensi-overlay');
+    }, 10);
   }
 }
 
