@@ -8194,7 +8194,15 @@ function mOpenUserAbsensiForm() {
     }
     if (!mCatalogData || mCatalogData.length === 0) {
       const catData = localStorage.getItem('PPDCatalogData');
-      if (catData) mCatalogData = JSON.parse(catData);
+      if (catData) {
+        try {
+          const parsed = JSON.parse(catData);
+          mCatalogData = (parsed || []).filter(item => {
+            let actUpper = String(item.activity || '').trim().toUpperCase();
+            return actUpper !== 'TRAINING TYPE' && actUpper !== 'NAMA AKTIFITAS' && actUpper !== 'NAMA KEGIATAN';
+          });
+        } catch(e) {}
+      }
     }
     if (!mInstructorsList || mInstructorsList.length === 0) {
       const instList = localStorage.getItem('PPDInstructorsList');
@@ -8250,7 +8258,10 @@ function mOpenUserAbsensiForm() {
       if (mCatalogData && mCatalogData.length > 0) return resolve(mCatalogData);
       google.script.run.withSuccessHandler(res => {
         if (res && res.success) {
-          mCatalogData = res.data || [];
+          mCatalogData = (res.data || []).filter(item => {
+            let actUpper = String(item.activity || '').trim().toUpperCase();
+            return actUpper !== 'TRAINING TYPE' && actUpper !== 'NAMA AKTIFITAS' && actUpper !== 'NAMA KEGIATAN';
+          });
           try { localStorage.setItem('PPDCatalogData', JSON.stringify(mCatalogData)); } catch(e) {}
           resolve(mCatalogData);
         } else resolve([]);
@@ -8306,7 +8317,8 @@ function mSelectUserJenisPertemuan(val) {
     // Find unique activity names
     const uniqueActs = [];
     (mCatalogData || []).forEach(item => {
-      if (item.activity && !uniqueActs.includes(item.activity)) {
+      let actUpper = String(item.activity || '').trim().toUpperCase();
+      if (item.activity && !uniqueActs.includes(item.activity) && actUpper !== 'TRAINING TYPE' && actUpper !== 'NAMA AKTIFITAS' && actUpper !== 'NAMA KEGIATAN') {
         uniqueActs.push(item.activity);
       }
     });
