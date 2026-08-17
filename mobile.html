@@ -8326,6 +8326,7 @@ function mSelectUserJenisPertemuan(val) {
     uniqueActs.forEach(act => {
       $act.append(`<option value="${act}">${act}</option>`);
     });
+    $act.append('<option value="Lainnya...">Lainnya...</option>');
     
   } else {
     $('#m-btn-user-jenis-nontraining').css({ 'background': '#05244d', 'color': '#fff', 'border-color': '#05244d' });
@@ -8360,24 +8361,27 @@ function mSelectUserJenisPertemuan(val) {
 function mOnUserActivityChanged(val) {
   const jenis = $('#m-user-abs-jenispertemuan').val();
   
-  if (jenis === 'NON TRAINING') {
-    mToggleCustomField(val, 'm-user-abs-aktifitas-custom-wrapper');
-  } else {
+  // Toggle custom text input if 'Lainnya...' is selected
+  mToggleCustomField(val, 'm-user-abs-aktifitas-custom-wrapper');
+
+  if (jenis === 'TRAINING') {
     // Populate Unit Type based on selected activity
     const $unit = $('#m-user-abs-unit').empty();
     $unit.append('<option value="">-- Pilih Unit Type --</option>');
     
-    const matching = (mCatalogData || []).filter(item => item.activity === val);
-    const uniqueUnits = [];
-    matching.forEach(item => {
-      if (item.unitType && !uniqueUnits.includes(item.unitType)) {
-        uniqueUnits.push(item.unitType);
-      }
-    });
+    if (val && val !== 'Lainnya...' && val !== 'Lainnya') {
+      const matching = (mCatalogData || []).filter(item => item.activity === val);
+      const uniqueUnits = [];
+      matching.forEach(item => {
+        if (item.unitType && !uniqueUnits.includes(item.unitType)) {
+          uniqueUnits.push(item.unitType);
+        }
+      });
 
-    uniqueUnits.forEach(u => {
-      $unit.append(`<option value="${u}">${u}</option>`);
-    });
+      uniqueUnits.forEach(u => {
+        $unit.append(`<option value="${u}">${u}</option>`);
+      });
+    }
 
     setTimeout(() => {
       initCustomMobileSelects('#m-user-absensi-overlay');
