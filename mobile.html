@@ -2412,6 +2412,7 @@ html.swal2-shown, body.swal2-shown {
             <!-- Dropdown for NON TRAINING -->
             <select id="m-abs-tempat-select" class="form-control" onchange="mToggleCustomField(this.value, 'm-abs-tempat-custom-wrapper')">
               <option value="" disabled selected>-- Pilih Tempat --</option>
+              <option value="Ruangan Training PPA Site BA">Ruangan Training PPA Site BA</option>
               <option value="Ruang Meeting Office Plant">Ruang Meeting Office Plant</option>
               <option value="Workshop PPA">Workshop PPA</option>
               <option value="KOPPA">KOPPA</option>
@@ -2585,6 +2586,7 @@ html.swal2-shown, body.swal2-shown {
             <!-- Dropdown for NON TRAINING -->
             <select id="m-user-abs-tempat-select" class="form-control" onchange="mToggleCustomField(this.value, 'm-user-abs-tempat-custom-wrapper')">
               <option value="" disabled selected>-- Pilih Tempat --</option>
+              <option value="Ruangan Training PPA Site BA">Ruangan Training PPA Site BA</option>
               <option value="Ruang Meeting Office Plant">Ruang Meeting Office Plant</option>
               <option value="Workshop PPA">Workshop PPA</option>
               <option value="KOPPA">KOPPA</option>
@@ -2720,6 +2722,7 @@ html.swal2-shown, body.swal2-shown {
 function rebuildCustomOptions($select, optionsList, trigger) {
   optionsList.empty();
   
+  let validOptions = [];
   $select.find('option').each(function() {
     let val = $(this).val();
     let text = $(this).text();
@@ -2727,10 +2730,49 @@ function rebuildCustomOptions($select, optionsList, trigger) {
     let isDisabled = $(this).is(':disabled');
     
     if (isDisabled && !val) return;
-    
-    let optionEl = $('<div class="custom-select-option" data-value="' + val + '">' + text + '</div>');
-    if (isSelected) optionEl.addClass('selected');
-    optionsList.append(optionEl);
+    validOptions.push({ val: val, text: text, isSelected: isSelected });
+  });
+
+  let showSearch = validOptions.length > 5;
+  let itemsContainer = optionsList;
+
+  if (showSearch) {
+    let searchWrap = $('<div class="custom-select-search-wrap" style="padding: 6px; position: sticky; top: 0; background: #ffffff; z-index: 5; border-bottom: 1px solid #e2e8f0;"><input type="text" class="custom-select-search-input" placeholder="🔍 Cari..." style="width: 100%; padding: 6px 10px; font-size: 0.85em; border: 1.5px solid #cbd5e1; border-radius: 6px; outline: none; box-sizing: border-box;"></div>');
+    let itemsWrap = $('<div class="custom-select-items-wrap"></div>');
+    optionsList.append(searchWrap).append(itemsWrap);
+    itemsContainer = itemsWrap;
+
+    searchWrap.find('input').on('click', function(e) {
+      e.stopPropagation();
+    }).on('input', function(e) {
+      let q = $(this).val().toLowerCase().trim();
+      let matchCount = 0;
+      itemsWrap.find('.custom-select-option').each(function() {
+        let optText = $(this).text().toLowerCase();
+        if (!q || optText.includes(q)) {
+          $(this).show();
+          matchCount++;
+        } else {
+          $(this).hide();
+        }
+      });
+      let noResult = itemsWrap.find('.custom-select-no-result');
+      if (matchCount === 0) {
+        if (!noResult.length) {
+          itemsWrap.append('<div class="custom-select-no-result p-2 text-muted text-center small" style="font-size: 0.82em;">Tidak ditemukan</div>');
+        } else {
+          noResult.show();
+        }
+      } else if (noResult.length) {
+        noResult.hide();
+      }
+    });
+  }
+
+  validOptions.forEach(opt => {
+    let optionEl = $('<div class="custom-select-option" data-value="' + opt.val + '">' + opt.text + '</div>');
+    if (opt.isSelected) optionEl.addClass('selected');
+    itemsContainer.append(optionEl);
   });
   
   let selectedOpt = $select.find('option:selected');
@@ -2838,6 +2880,14 @@ $(document).ready(function() {
       formGroup.addClass('custom-select-open');
       card.addClass('custom-select-card-open');
       optionsList.show();
+      
+      let searchInput = optionsList.find('.custom-select-search-input');
+      if (searchInput.length) {
+        searchInput.val('');
+        optionsList.find('.custom-select-option').show();
+        optionsList.find('.custom-select-no-result').hide();
+        setTimeout(() => { searchInput.focus(); }, 50);
+      }
     }
   });
 
