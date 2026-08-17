@@ -2387,25 +2387,30 @@ html.swal2-shown, body.swal2-shown {
             <input type="date" id="m-abs-tanggal" class="form-control" required>
           </div>
           
-          <!-- Nama Kegiatan -->
+          <!-- Nama Kegiatan/Aktifitas -->
           <div class="form-group mb-2">
-            <label class="font-weight-bold small mb-1">NAMA KEGIATAN <span class="text-danger">*</span></label>
-            <select id="m-abs-aktifitas" class="form-control" required onchange="mToggleCustomField(this.value, 'm-abs-aktifitas-custom-wrapper')">
+            <label class="font-weight-bold small mb-1">NAMA AKTIFITAS <span class="text-danger">*</span></label>
+            <select id="m-abs-aktifitas" class="form-control" required onchange="mOnAbsensiActivityChanged(this.value)">
               <option value="" disabled selected>-- Pilih Nama Kegiatan --</option>
-              <option value="DMBD (Daily Monitoring Break Down)">DMBD (Daily Monitoring Break Down)</option>
-              <option value="KPI Weekly/Monthly">KPI Weekly/Monthly</option>
-              <option value="Meeting Vendor">Meeting Vendor</option>
-              <option value="Lainnya...">Lainnya...</option>
             </select>
             <div id="m-abs-aktifitas-custom-wrapper" style="display:none;" class="mt-2">
-              <input type="text" id="m-abs-aktifitas-custom" class="form-control" placeholder="Masukkan nama kegiatan lainnya...">
+              <input type="text" id="m-abs-aktifitas-custom" class="form-control" placeholder="Masukkan nama aktifitas lainnya...">
             </div>
           </div>
-          
-          <!-- Tempat -->
+
+          <!-- Unit Type (Jika Training Unit) -->
+          <div id="m-abs-unit-wrapper" class="form-group mb-2" style="display:none;">
+            <label class="font-weight-bold small mb-1">UNIT TYPE (JIKA TRAINING UNIT)</label>
+            <select id="m-abs-unit" class="form-control">
+              <option value="">-- Pilih Unit Type --</option>
+            </select>
+          </div>
+
+          <!-- Tempat Penyelenggaraan -->
           <div class="form-group mb-2">
-            <label class="font-weight-bold small mb-1">TEMPAT <span class="text-danger">*</span></label>
-            <select id="m-abs-tempat" class="form-control" required onchange="mToggleCustomField(this.value, 'm-abs-tempat-custom-wrapper')">
+            <label class="font-weight-bold small mb-1">TEMPAT PENYELENGGARAAN <span class="text-danger">*</span></label>
+            <!-- Dropdown for NON TRAINING -->
+            <select id="m-abs-tempat-select" class="form-control" onchange="mToggleCustomField(this.value, 'm-abs-tempat-custom-wrapper')">
               <option value="" disabled selected>-- Pilih Tempat --</option>
               <option value="Ruang Meeting Office Plant">Ruang Meeting Office Plant</option>
               <option value="Workshop PPA">Workshop PPA</option>
@@ -2414,6 +2419,19 @@ html.swal2-shown, body.swal2-shown {
             </select>
             <div id="m-abs-tempat-custom-wrapper" style="display:none;" class="mt-2">
               <input type="text" id="m-abs-tempat-custom" class="form-control" placeholder="Masukkan tempat lainnya...">
+            </div>
+            <!-- Read-only text input for TRAINING -->
+            <input type="text" id="m-abs-tempat-input" class="form-control" value="Ruangan Training PPA Site BA" readonly style="display:none;">
+          </div>
+
+          <!-- Penanggung Jawab / Instruktur -->
+          <div id="m-abs-instruktur-wrapper" class="form-group mb-2" style="display:none;">
+            <label class="font-weight-bold small mb-1">PENANGGUNG JAWAB/INSTRUKTUR <span class="text-danger">*</span></label>
+            <select id="m-abs-instruktur" class="form-control" onchange="mToggleCustomField(this.value, 'm-abs-instruktur-custom-wrapper')">
+              <option value="" disabled selected>-- Pilih Instruktur --</option>
+            </select>
+            <div id="m-abs-instruktur-custom-wrapper" style="display:none;" class="mt-2">
+              <input type="text" id="m-abs-instruktur-custom" class="form-control" placeholder="Masukkan nama instruktur lainnya...">
             </div>
           </div>
           
@@ -7868,6 +7886,15 @@ function mRemoveDocFile() {
   $('#m-abs-doc-preview').attr('src', '');
 }
 
+function mPopulatePublicInstructors() {
+  const $inst = $('#m-abs-instruktur').empty();
+  $inst.append('<option value="" disabled selected>-- Pilih Instruktur --</option>');
+  (mInstructorsList || []).forEach(name => {
+    $inst.append(`<option value="${name}">${name}</option>`);
+  });
+  $inst.append('<option value="Lainnya...">Lainnya...</option>');
+}
+
 function mOpenAbsensiForm() {
   mPushNav('overlay', 'absensi');
   $('#m-absensi-overlay').show();
@@ -7876,14 +7903,13 @@ function mOpenAbsensiForm() {
   mClearAbsensiSignature();
   mRemoveDocFile();
   
-  // Set default selection
-  mSelectJenisPertemuan('NON TRAINING');
-  
   // Hide custom input wrappers
   $('#m-abs-aktifitas-custom-wrapper').hide();
   $('#m-abs-aktifitas-custom').removeAttr('required').val('');
   $('#m-abs-tempat-custom-wrapper').hide();
   $('#m-abs-tempat-custom').removeAttr('required').val('');
+  $('#m-abs-instruktur-custom-wrapper').hide();
+  $('#m-abs-instruktur-custom').removeAttr('required').val('');
   $('#m-abs-jabatan-custom-wrapper').hide();
   $('#m-abs-jabatan-custom').removeAttr('required').val('');
  
@@ -7895,6 +7921,53 @@ function mOpenAbsensiForm() {
   if (mm < 10) mm = '0' + mm;
   if (dd < 10) dd = '0' + dd;
   $('#m-abs-tanggal').val(yyyy + '-' + mm + '-' + dd);
+
+  // Load catalog and instructors if missing
+  if (!mCatalogData || mCatalogData.length === 0 || !mInstructorsList || mInstructorsList.length === 0) {
+    if (!mCatalogData || mCatalogData.length === 0) {
+      const catData = localStorage.getItem('PPDCatalogData');
+      if (catData) {
+        try {
+          const parsed = JSON.parse(catData);
+          mCatalogData = (parsed || []).filter(item => {
+            let actUpper = String(item.activity || '').trim().toUpperCase();
+            return actUpper !== 'TRAINING TYPE' && actUpper !== 'NAMA AKTIFITAS' && actUpper !== 'NAMA KEGIATAN';
+          });
+        } catch(e) {}
+      }
+    }
+    if (!mInstructorsList || mInstructorsList.length === 0) {
+      const instList = localStorage.getItem('PPDInstructorsList');
+      if (instList) mInstructorsList = JSON.parse(instList);
+    }
+    
+    if (!mCatalogData || mCatalogData.length === 0) {
+      google.script.run.withSuccessHandler(res => {
+        if (res && res.success) {
+          mCatalogData = (res.data || []).filter(item => {
+            let actUpper = String(item.activity || '').trim().toUpperCase();
+            return actUpper !== 'TRAINING TYPE' && actUpper !== 'NAMA AKTIFITAS' && actUpper !== 'NAMA KEGIATAN';
+          });
+          try { localStorage.setItem('PPDCatalogData', JSON.stringify(mCatalogData)); } catch(e) {}
+          if ($('#m-abs-jenispertemuan').val() === 'TRAINING') {
+            mSelectJenisPertemuan('TRAINING');
+          }
+        }
+      }).getTrainingCatalog();
+    }
+    if (!mInstructorsList || mInstructorsList.length === 0) {
+      google.script.run.withSuccessHandler(res => {
+        if (res && res.success) {
+          mInstructorsList = res.data || [];
+          try { localStorage.setItem('PPDInstructorsList', JSON.stringify(mInstructorsList)); } catch(e) {}
+          mPopulatePublicInstructors();
+        }
+      }).getInstructors();
+    }
+  }
+
+  mPopulatePublicInstructors();
+  mSelectJenisPertemuan('NON TRAINING');
  
   // Initialize pad after overlay display
   setTimeout(() => {
@@ -7911,18 +7984,103 @@ function mCloseAbsensiForm() {
 
 function mSelectJenisPertemuan(val) {
   $('#m-abs-jenispertemuan').val(val);
+  
   if (val === 'TRAINING') {
     $('#m-btn-jenis-training').css({ 'background': '#10b981', 'color': '#fff', 'border-color': '#10b981' });
     $('#m-btn-jenis-nontraining').css({ 'background': '#fff', 'color': '#64748b', 'border-color': '#cbd5e1' });
+
+    // 1. Show training fields
+    $('#m-abs-unit-wrapper').show();
+    $('#m-abs-instruktur-wrapper').show();
+    $('#m-abs-instruktur').attr('required', 'required');
+
+    // 2. Adjust Tempat Penyelenggaraan: hide dropdown, show read-only input
+    $('#m-abs-tempat-select').hide().removeAttr('required');
+    $('#m-abs-tempat-custom-wrapper').hide();
+    $('#m-abs-tempat-custom').removeAttr('required').val('');
+    $('#m-abs-tempat-input').show();
+
+    // 3. Populate Nama Aktifitas from Katalog
+    const $act = $('#m-abs-aktifitas').empty();
+    $act.append('<option value="" disabled selected>-- Pilih Nama Kegiatan --</option>');
+    
+    const uniqueActs = [];
+    (mCatalogData || []).forEach(item => {
+      let actUpper = String(item.activity || '').trim().toUpperCase();
+      if (item.activity && !uniqueActs.includes(item.activity) && actUpper !== 'TRAINING TYPE' && actUpper !== 'NAMA AKTIFITAS' && actUpper !== 'NAMA KEGIATAN') {
+        uniqueActs.push(item.activity);
+      }
+    });
+    
+    uniqueActs.forEach(act => {
+      $act.append(`<option value="${act}">${act}</option>`);
+    });
+    $act.append('<option value="Lainnya...">Lainnya...</option>');
+    
   } else {
     $('#m-btn-jenis-nontraining').css({ 'background': '#10b981', 'color': '#fff', 'border-color': '#10b981' });
     $('#m-btn-jenis-training').css({ 'background': '#fff', 'color': '#64748b', 'border-color': '#cbd5e1' });
+
+    // 1. Hide training fields
+    $('#m-abs-unit-wrapper').hide();
+    $('#m-abs-unit').val('');
+    $('#m-abs-instruktur-wrapper').hide();
+    $('#m-abs-instruktur').removeAttr('required').val('');
+    $('#m-abs-instruktur-custom-wrapper').hide();
+    $('#m-abs-instruktur-custom').removeAttr('required').val('');
+
+    // 2. Adjust Tempat Penyelenggaraan: show dropdown, hide read-only input
+    $('#m-abs-tempat-input').hide();
+    $('#m-abs-tempat-select').show().attr('required', 'required').val('');
+
+    // 3. Populate Nama Aktifitas with standard options
+    const $act = $('#m-abs-aktifitas').empty();
+    $act.append('<option value="" disabled selected>-- Pilih Nama Kegiatan --</option>');
+    $act.append('<option value="DMBD (Daily Monitoring Break Down)">DMBD (Daily Monitoring Break Down)</option>');
+    $act.append('<option value="KPI Weekly/Monthly">KPI Weekly/Monthly</option>');
+    $act.append('<option value="Meeting Vendor">Meeting Vendor</option>');
+    $act.append('<option value="Lainnya...">Lainnya...</option>');
+  }
+
+  setTimeout(() => {
+    initCustomMobileSelects('#m-absensi-overlay');
+  }, 10);
+}
+
+function mOnAbsensiActivityChanged(val) {
+  const jenis = $('#m-abs-jenispertemuan').val();
+  
+  // Toggle custom text input if 'Lainnya...' is selected
+  mToggleCustomField(val, 'm-abs-aktifitas-custom-wrapper');
+
+  if (jenis === 'TRAINING') {
+    // Populate Unit Type based on selected activity
+    const $unit = $('#m-abs-unit').empty();
+    $unit.append('<option value="">-- Pilih Unit Type --</option>');
+    
+    if (val && val !== 'Lainnya...' && val !== 'Lainnya') {
+      const matching = (mCatalogData || []).filter(item => item.activity === val);
+      const uniqueUnits = [];
+      matching.forEach(item => {
+        if (item.unitType && !uniqueUnits.includes(item.unitType)) {
+          uniqueUnits.push(item.unitType);
+        }
+      });
+
+      uniqueUnits.forEach(u => {
+        $unit.append(`<option value="${u}">${u}</option>`);
+      });
+    }
+
+    setTimeout(() => {
+      initCustomMobileSelects('#m-absensi-overlay');
+    }, 10);
   }
 }
 
 function mToggleCustomField(val, wrapperId) {
   const customInputId = wrapperId.replace('-wrapper', '');
-  if (val === 'Lainnya...') {
+  if (val === 'Lainnya...' || val === 'Lainnya') {
     $(`#${wrapperId}`).slideDown();
     $(`#${customInputId}`).attr('required', true);
   } else {
@@ -7936,15 +8094,30 @@ function mSubmitAbsensi() {
   const tanggal = $('#m-abs-tanggal').val();
   
   let aktifitas = $('#m-abs-aktifitas').val();
-  if (aktifitas === 'Lainnya...') {
+  if (aktifitas === 'Lainnya...' || aktifitas === 'Lainnya') {
     aktifitas = $('#m-abs-aktifitas-custom').val().trim();
   }
   
-  let tempat = $('#m-abs-tempat').val();
-  if (tempat === 'Lainnya...') {
-    tempat = $('#m-abs-tempat-custom').val().trim();
+  let unitType = $('#m-abs-unit').val();
+
+  let tempat = '';
+  if (jenis === 'TRAINING') {
+    tempat = $('#m-abs-tempat-input').val();
+  } else {
+    tempat = $('#m-abs-tempat-select').val();
+    if (tempat === 'Lainnya...') {
+      tempat = $('#m-abs-tempat-custom').val().trim();
+    }
   }
-  
+
+  let instruktur = '';
+  if (jenis === 'TRAINING') {
+    instruktur = $('#m-abs-instruktur').val();
+    if (instruktur === 'Lainnya...') {
+      instruktur = $('#m-abs-instruktur-custom').val().trim();
+    }
+  }
+
   const nama = $('#m-abs-nama').val().trim().toUpperCase();
   const perusahaan = $('#m-abs-perusahaan').val();
   const department = $('#m-abs-department').val();
@@ -7958,6 +8131,10 @@ function mSubmitAbsensi() {
   // Validations
   if (!jenis || !tanggal || !aktifitas || !tempat || !nama || !perusahaan || !department || !jabatan || !noWhatsapp) {
     Swal.fire('Peringatan', 'Mohon lengkapi semua field yang wajib diisi (*)', 'warning');
+    return;
+  }
+  if (jenis === 'TRAINING' && !instruktur) {
+    Swal.fire('Peringatan', 'Penanggung Jawab / Instruktur wajib dipilih.', 'warning');
     return;
   }
 
@@ -7999,7 +8176,10 @@ function mSubmitAbsensi() {
     jenisPertemuan: jenis,
     tanggal: mFormatDateToIndo(tanggal),
     namaAktifitas: aktifitas,
+    unitType: unitType,
     tempatPenyelenggaraan: tempat,
+    penanggungJawab: instruktur,
+    instruktur: instruktur,
     nama: nama,
     perusahaan: perusahaan,
     department: department,
