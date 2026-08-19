@@ -3082,6 +3082,10 @@ $(document).ready(function() {
   if (stored) {
     try {
       mUser = JSON.parse(stored);
+      if (mUser && (!mUser.nrp || mUser.nrp === '-')) {
+        mUser.nrp = mUser.username || '-';
+        localStorage.setItem('PPDMobileUser', JSON.stringify(mUser));
+      }
       localStorage.setItem("mLastActiveTime", Date.now());
       mShowApp();
       mInitData();
@@ -3461,6 +3465,11 @@ function mChangePass(forced) {
 function mShowApp() {
   localStorage.setItem("mLastActiveTime", Date.now());
   mStartIdleTimer();
+  if (mUser) {
+    if (!mUser.nrp || mUser.nrp === '-') {
+      mUser.nrp = mUser.username || '-';
+    }
+  }
   if (mUser && mUser.mustChangePassword) {
     mChangePass(true);
   }
@@ -3479,7 +3488,7 @@ function mShowApp() {
   // Profile tab
   $('#m-profile-name').text(mUser.nama || '-');
   $('#m-profile-job').text(mUser.jabatan || '-');
-  $('#m-profile-nrp').text(mUser.nrp || '-');
+  $('#m-profile-nrp').text((mUser.nrp && mUser.nrp !== '-') ? mUser.nrp : (mUser.username || '-'));
   $('#m-profile-sec').text(mUser.section || '-');
   $('#m-profile-site').text(mUser.site || '-');
   $('#m-profile-role').text(mUser.role || '-');
@@ -4522,8 +4531,9 @@ function mRenderCutiForm() {
 
   // ===== SECTION: DATA PEMOHON =====
   html += '<div class="m-form-section"><div class="m-form-section-title"><i class="fas fa-user mr-1"></i> Data Pemohon</div>';
+  let effectiveNrp = (mUser.nrp && mUser.nrp !== '-') ? mUser.nrp : (mUser.username || '-');
   html += mfRO('TANGGAL', 'Tanggal Pengajuan', nowStr);
-  html += mfRO('NRP KARYAWAN', 'NRP', mUser.nrp);
+  html += mfRO('NRP KARYAWAN', 'NRP', effectiveNrp);
   html += mfRO('NAMA KARYAWAN', 'Nama Karyawan', mUser.nama);
   html += mfRO('JABATAN', 'Jabatan', mUser.jabatan);
   html += mfRO('SECTION', 'Section', mUser.section);
@@ -5210,10 +5220,10 @@ function mCloseForm() {
 function mGetFormConfig(formType) {
   let isReadOnlyAtasan = ['IZIN NON RESMI', 'BA TIKET', 'RESCHEDULE & REFUND'].includes(formType);
 
-  // User fields shared
+  let effectiveNrp = (mUser.nrp && mUser.nrp !== '-') ? mUser.nrp : (mUser.username || '-');
   let userFields = [
     { key:'NAMA KARYAWAN', label:'Nama', type:'text', value: mUser.nama, req:true, readonly:true },
-    { key:'NRP KARYAWAN', label:'NRP', type:'text', value: mUser.nrp, req:true, readonly:true },
+    { key:'NRP KARYAWAN', label:'NRP', type:'text', value: effectiveNrp, req:true, readonly:true },
     { key:'JABATAN', label:'Jabatan', type:'text', value: mUser.jabatan, readonly:true },
     { key:'SECTION', label:'Section', type:'text', value: mUser.section, readonly:true }
   ];
