@@ -4493,6 +4493,11 @@ function mOpenCutiForm() {
     google.script.run.withSuccessHandler(mp => {
       if (mp && Object.keys(mp).length > 0) {
         try { localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data: mp })); } catch(e) {}
+        if (mFormCurrent.type === 'CUTI') {
+          mFormCurrent.mp = mp;
+          if (mp["NAMA KOORDINATOR GL"]) $('[data-fkey="NAMA ATASAN"]').val(mp["NAMA KOORDINATOR GL"]);
+          if (mp["NO. WA KOORDINATOR"]) $('[data-fkey="WA ATASAN"]').val(mp["NO. WA KOORDINATOR"]);
+        }
       }
     }).getMobileMpDataByNrp(mUser.nrp);
     return;
@@ -8907,15 +8912,13 @@ function mExecuteClearCache() {
     didOpen: () => { Swal.showLoading(); }
   });
 
-  // Clear local storage caches
+  // Clear all PPD local storage caches except user session
   try {
-    if (mUser && mUser.nrp) {
-      localStorage.removeItem('PPDMobileEssentials_' + mUser.nrp);
-      localStorage.removeItem('PPDUserProfile_' + mUser.nrp);
-      localStorage.removeItem('PPDMobileMpData_' + mUser.nrp);
-    }
-    localStorage.removeItem('PPDCatalogData');
-    localStorage.removeItem('PPDInstructorsList');
+    Object.keys(localStorage).forEach(k => {
+      if ((k.indexOf('PPD') === 0 || k.indexOf('mLast') === 0) && k !== 'PPDMobileUser') {
+        localStorage.removeItem(k);
+      }
+    });
   } catch(e) {}
 
   google.script.run.withSuccessHandler(function(res) {
