@@ -4592,11 +4592,11 @@ function mRenderCutiForm() {
   html += mfText('NAMA PENUMPANG 1', 'Nama Penumpang', mUser.nama, { req:true });
   html += mfText('USIA PENUMPANG 1', 'Usia', usia, { req:true });
   html += mfText('HUBUNGAN KELUARGA PENUMPANG 1', 'Hubungan Keluarga', 'KARYAWAN', { req:true });
-  html += mfDate('TANGGAL KEBERANGKATAN PENUMPANG 1', 'Tanggal Keberangkatan', '', { req:true });
+  html += mfDate('TANGGAL KEBERANGKATAN PENUMPANG 1', 'Tanggal Keberangkatan', '', { req:true, onChange:'mCutiOnChange()' });
   html += mfText('BANDARA ASAL PENUMPANG 1', 'Bandara Asal', '', { req:true, upper:true, onInput:'mCutiSyncBandara()' });
   html += mfText('BANDARA TUJUAN PENUMPANG 1', 'Bandara Tujuan', '', { req:true, upper:true, onInput:'mCutiSyncBandara()' });
   html += '<div class="m-cuti-sub-h">Kembali Penumpang 1</div>';
-  html += mfDate('TANGGAL KEMBALI PENUMPANG 2', 'Tanggal Kembali', '', { req:true });
+  html += mfDate('TANGGAL KEMBALI PENUMPANG 2', 'Tanggal Kembali', '', { req:true, onChange:'mCutiOnChange()' });
   html += mfText('BANDARA ASAL PENUMPANG 2', 'Bandara Asal (Kembali)', '', { req:true, upper:true });
   html += mfText('BANDARA TUJUAN PENUMPANG 2', 'Bandara Tujuan (Kembali)', '', { req:true, upper:true });
   html += '</div>';
@@ -4606,11 +4606,11 @@ function mRenderCutiForm() {
   html += mfText('NAMA PENUMPANG 3', 'Nama Penumpang', '', { req:true, upper:true });
   html += mfText('USIA PENUMPANG 3', 'Usia', '', { req:true });
   html += mfDropdown('HUBUNGAN KELUARGA PENUMPANG 3', 'Hubungan Keluarga', ['Istri/Suami Karyawan','Anak Karyawan'], { req:true });
-  html += mfDate('TANGGAL KEBERANGKATAN PENUMPANG 3', 'Tanggal Keberangkatan', '', { req:true });
+  html += mfDate('TANGGAL KEBERANGKATAN PENUMPANG 3', 'Tanggal Keberangkatan', '', { req:true, onChange:'mCutiOnChange()' });
   html += mfText('BANDARA ASAL PENUMPANG 3', 'Bandara Asal', '', { req:true, upper:true });
   html += mfText('BANDARA TUJUAN PENUMPANG 3', 'Bandara Tujuan', '', { req:true, upper:true });
   html += '<div class="m-cuti-sub-h">Kembali Penumpang 2</div>';
-  html += mfDate('TANGGAL KEBERANGKATAN PENUMPANG 4', 'Tanggal Kembali', '', { req:true });
+  html += mfDate('TANGGAL KEBERANGKATAN PENUMPANG 4', 'Tanggal Kembali', '', { req:true, onChange:'mCutiOnChange()' });
   html += mfText('BANDARA ASAL PENUMPANG 4', 'Bandara Asal (Kembali)', '', { req:true, upper:true });
   html += mfText('BANDARA TUJUAN PENUMPANG 4', 'Bandara Tujuan (Kembali)', '', { req:true, upper:true });
   html += '</div>';
@@ -4620,11 +4620,11 @@ function mRenderCutiForm() {
   html += mfText('NAMA PENUMPANG 5', 'Nama Penumpang', '', { req:true, upper:true });
   html += mfText('USIA PENUMPANG 5', 'Usia', '', { req:true });
   html += mfDropdown('HUBUNGAN KELUARGA PENUMPANG 5', 'Hubungan Keluarga', ['Istri/Suami Karyawan','Anak Karyawan'], { req:true });
-  html += mfDate('TANGGAL KEBERANGKATAN PENUMPANG 5', 'Tanggal Keberangkatan', '', { req:true });
+  html += mfDate('TANGGAL KEBERANGKATAN PENUMPANG 5', 'Tanggal Keberangkatan', '', { req:true, onChange:'mCutiOnChange()' });
   html += mfText('BANDARA ASAL PENUMPANG 5', 'Bandara Asal', '', { req:true, upper:true });
   html += mfText('BANDARA TUJUAN PENUMPANG 5', 'Bandara Tujuan', '', { req:true, upper:true });
   html += '<div class="m-cuti-sub-h">Kembali Penumpang 3</div>';
-  html += mfDate('TANGGAL KEBERANGKATAN PENUMPANG 6', 'Tanggal Kembali', '', { req:true });
+  html += mfDate('TANGGAL KEBERANGKATAN PENUMPANG 6', 'Tanggal Kembali', '', { req:true, onChange:'mCutiOnChange()' });
   html += mfText('BANDARA ASAL PENUMPANG 6', 'Bandara Asal (Kembali)', '', { req:true, upper:true });
   html += mfText('BANDARA TUJUAN PENUMPANG 6', 'Bandara Tujuan (Kembali)', '', { req:true, upper:true });
   html += '</div>';
@@ -4927,10 +4927,26 @@ function mCutiOnChange() {
       $ctDur.closest('.m-form-group').append('<div class="m-ct-error-msg" style="color: #c10f19; font-size: 0.78em; margin-top: 4px; font-weight: 500;">Durasi Cuti Tahunan tidak boleh lebih dari Sisa Cuti Tahunan (' + maxCtDur + ')</div>');
     }
 
-    // Sync TANGGAL KEBERANGKATAN P1 ← BERANGKAT JOBSITE (always)
-    safeVal("TANGGAL KEBERANGKATAN PENUMPANG 1", bjs || "");
-    // Sync TANGGAL KEMBALI P2 ← KEMBALI JOBSITE (always)
-    safeVal("TANGGAL KEMBALI PENUMPANG 2", kjs || "");
+    // Default initial auto-fill for Penumpang 1 if fields are empty or match previous auto-sync
+    let $p1Keb = $('input[data-fkey="TANGGAL KEBERANGKATAN PENUMPANG 1"]');
+    let $p1Kem = $('input[data-fkey="TANGGAL KEMBALI PENUMPANG 2"]');
+    if ($p1Keb.length && bjs) {
+      let lastSync = $p1Keb.attr('data-last-sync-bjs') || '';
+      if (!$p1Keb.val() || $p1Keb.val() === lastSync) {
+        safeVal("TANGGAL KEBERANGKATAN PENUMPANG 1", bjs);
+        $p1Keb.attr('data-last-sync-bjs', bjs);
+      }
+    }
+    if ($p1Kem.length && kjs) {
+      let lastSync = $p1Kem.attr('data-last-sync-kjs') || '';
+      if (!$p1Kem.val() || $p1Kem.val() === lastSync) {
+        safeVal("TANGGAL KEMBALI PENUMPANG 2", kjs);
+        $p1Kem.attr('data-last-sync-kjs', kjs);
+      }
+    }
+
+    // Validate passenger flight ticket departure & return date range
+    mCutiValidateFlightDates();
 
     // Calc Jadwal Cuti Selanjutnya = Kembali ke Jobsite + DURASI ONSITE
     if (kjs && mFormCurrent.mp && mFormCurrent.mp["DURASI ONSITE"]) {
@@ -4959,64 +4975,81 @@ function mCutiSyncBandara() {
   $('input[data-fkey="BANDARA TUJUAN PENUMPANG 2"]').val(baP1 || '');
 }
 
-// Validate that ticket departure is not before Jobsite departure, and ticket return is not after Jobsite return.
+// Validate passenger flight ticket departure and return dates
+// Rule 1: Tanggal Keberangkatan >= Berangkat dari Jobsite & <= Kembali ke Jobsite
+// Rule 2: Tanggal Kembali > Tanggal Keberangkatan & <= Kembali ke Jobsite
 function mCutiValidateFlightDates() {
-  $('.m-error-msg').remove();
-  $('input[data-fkey]').css('border-color', '');
+  $('.m-pnp-date-error-msg').remove();
+  let pairs = [
+    { kebKey: 'TANGGAL KEBERANGKATAN PENUMPANG 1', kemKey: 'TANGGAL KEMBALI PENUMPANG 2', wrapId: 'mf-tiket-1' },
+    { kebKey: 'TANGGAL KEBERANGKATAN PENUMPANG 3', kemKey: 'TANGGAL KEBERANGKATAN PENUMPANG 4', wrapId: 'mf-tiket-2' },
+    { kebKey: 'TANGGAL KEBERANGKATAN PENUMPANG 5', kemKey: 'TANGGAL KEBERANGKATAN PENUMPANG 6', wrapId: 'mf-tiket-3' }
+  ];
 
-  let hasError = false;
   let bjsVal = $('input[data-fkey="BERANGKAT DARI JOBSITE"]').val();
   let kjsVal = $('input[data-fkey="KEMBALI KE JOBSITE"]').val();
+  let hasError = false;
+
+  function fmtD(val) {
+    if (!val) return '';
+    let p = mParseFlexibleDate(val);
+    if (p) return mFormatDateDDMMMYYYY(p);
+    return val;
+  }
 
   function showError($el, msg) {
     $el.css('border-color', '#c10f19');
     let $group = $el.closest('.m-form-group');
     if ($group.length) {
-      $group.append('<div class="m-error-msg" style="color: #c10f19; font-size: 0.78em; margin-top: 4px; font-weight: 500;">' + msg + '</div>');
+      $group.find('.m-pnp-date-error-msg').remove();
+      $group.append('<div class="m-pnp-date-error-msg" style="color: #c10f19; font-size: 0.78em; margin-top: 4px; font-weight: 500;">' + msg + '</div>');
     }
     hasError = true;
   }
 
-  function fmtD(val) {
-    if (!val) return '';
-    let p = val.split('-');
-    if (p.length === 3) return p[2] + '/' + p[1] + '/' + p[0];
-    return val;
-  }
+  pairs.forEach(pair => {
+    let $wrap = $('#' + pair.wrapId);
+    if (!$wrap.length || !$wrap.is(':visible')) return;
 
-  if (bjsVal) {
-    let depKeys = [
-      'TANGGAL KEBERANGKATAN PENUMPANG 1',
-      'TANGGAL KEBERANGKATAN PENUMPANG 3',
-      'TANGGAL KEBERANGKATAN PENUMPANG 5'
-    ];
-    depKeys.forEach(k => {
-      let $el = $('input[data-fkey="' + k + '"]');
-      if ($el.length && $el.is(':visible')) {
-        let v = $el.val();
-        if (v && v < bjsVal) {
-          showError($el, 'Tanggal Keberangkatan tidak boleh kurang dari Berangkat dari Jobsite (' + fmtD(bjsVal) + ')');
-        }
-      }
-    });
-  }
+    let $keb = $('input[data-fkey="' + pair.kebKey + '"]');
+    let $kem = $('input[data-fkey="' + pair.kemKey + '"]');
 
-  if (kjsVal) {
-    let retKeys = [
-      'TANGGAL KEMBALI PENUMPANG 2',
-      'TANGGAL KEBERANGKATAN PENUMPANG 4',
-      'TANGGAL KEBERANGKATAN PENUMPANG 6'
-    ];
-    retKeys.forEach(k => {
-      let $el = $('input[data-fkey="' + k + '"]');
-      if ($el.length && $el.is(':visible')) {
-        let v = $el.val();
-        if (v && v > kjsVal) {
-          showError($el, 'Tanggal Kembali tidak boleh lebih dari Kembali ke Jobsite (' + fmtD(kjsVal) + ')');
-        }
+    if ($keb.length) $keb.css('border-color', '');
+    if ($kem.length) $kem.css('border-color', '');
+
+    // Set min & max attributes for HTML date pickers
+    if ($keb.length) {
+      if (bjsVal) $keb.attr('min', bjsVal); else $keb.removeAttr('min');
+      if (kjsVal) $keb.attr('max', kjsVal); else $keb.removeAttr('max');
+    }
+
+    let kebVal = $keb.length ? $keb.val() : '';
+    let kemVal = $kem.length ? $kem.val() : '';
+
+    if ($kem.length) {
+      let minKem = kebVal || bjsVal;
+      if (minKem) $kem.attr('min', minKem); else $kem.removeAttr('min');
+      if (kjsVal) $kem.attr('max', kjsVal); else $kem.removeAttr('max');
+    }
+
+    // 1. Tanggal Keberangkatan: >= Berangkat dari Jobsite & <= Kembali ke Jobsite
+    if (kebVal) {
+      if (bjsVal && kebVal < bjsVal) {
+        showError($keb, 'Tanggal Keberangkatan harus &ge; Berangkat dari Jobsite (' + fmtD(bjsVal) + ')');
+      } else if (kjsVal && kebVal > kjsVal) {
+        showError($keb, 'Tanggal Keberangkatan harus &le; Kembali ke Jobsite (' + fmtD(kjsVal) + ')');
       }
-    });
-  }
+    }
+
+    // 2. Tanggal Kembali: > Tanggal Keberangkatan & <= Kembali ke Jobsite
+    if (kemVal) {
+      if (kebVal && kemVal <= kebVal) {
+        showError($kem, 'Tanggal Kembali harus &gt; Tanggal Keberangkatan (' + fmtD(kebVal) + ')');
+      } else if (kjsVal && kemVal > kjsVal) {
+        showError($kem, 'Tanggal Kembali harus &le; Kembali ke Jobsite (' + fmtD(kjsVal) + ')');
+      }
+    }
+  });
 
   return !hasError;
 }
