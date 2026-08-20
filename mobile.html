@@ -8881,23 +8881,32 @@ function mCompressImage(file, maxWidth, maxHeight, quality, callback) {
 
 // Clear Server Cache (PPD / Admin feature)
 function mConfirmClearCache() {
-  mShowPopup({
-    title: 'Konfirmasi Hapus Cache Server',
-    body: '<div style="text-align: left; font-size: 0.9em; color: #334155; line-height: 1.5;">' +
+  Swal.fire({
+    title: 'Hapus Cache Server?',
+    html: '<div style="text-align: left; font-size: 0.9em; color: #475569; line-height: 1.5;">' +
           '<p>Tindakan ini akan mengosongkan <b>Cache Server Apps Script</b> dan data memori lokal browser untuk database <code>DATABASE MP SIB</code>.</p>' +
           '<p style="margin-top: 8px;">Gunakan fitur ini setelah Anda melakukan perubahan data secara langsung di Google Sheets (seperti merubah Nama Atasan, Nomor WA, Jabatan, dll) agar data terbaru segera aktif di Web & Mobile Portal.</p>' +
           '</div>',
-    okText: 'Ya, Hapus Cache',
-    cancelText: 'Batal',
-    danger: true,
-    onOk: function() {
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: '<i class="fas fa-sync-alt mr-1"></i> Ya, Hapus Cache',
+    cancelButtonText: 'Batal',
+    confirmButtonColor: '#c10f19'
+  }).then(r => {
+    if (r.isConfirmed) {
       mExecuteClearCache();
     }
   });
 }
 
 function mExecuteClearCache() {
-  mShowLoading('Memproses pembersihan cache server...');
+  Swal.fire({
+    title: 'Memproses...',
+    text: 'Memproses pembersihan cache server...',
+    allowOutsideClick: false,
+    didOpen: () => { Swal.showLoading(); }
+  });
+
   // Clear local storage caches
   try {
     if (mUser && mUser.nrp) {
@@ -8910,16 +8919,28 @@ function mExecuteClearCache() {
   } catch(e) {}
 
   google.script.run.withSuccessHandler(function(res) {
-    mHideLoading();
     if (res && res.success) {
-      mShowToast('Cache server berhasil dibersihkan! Memuat ulang data terbaru...', false);
+      Swal.fire({
+        icon: 'success',
+        title: 'Berhasil!',
+        text: 'Cache server berhasil dibersihkan. Memuat ulang data terbaru...',
+        timer: 2000,
+        showConfirmButton: false
+      });
       mInitData();
     } else {
-      mShowPopup({ title: 'Gagal', body: (res ? res.message : 'Gagal mereset cache server.') });
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal',
+        text: (res ? res.message : 'Gagal mereset cache server.')
+      });
     }
   }).withFailureHandler(function(err) {
-    mHideLoading();
-    mShowPopup({ title: 'Error', body: 'Gagal menghubungi server: ' + err.toString() });
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Gagal menghubungi server: ' + err.toString()
+    });
   }).clearDatabaseMpSibCache();
 }
 </script>
