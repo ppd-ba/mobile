@@ -4978,6 +4978,7 @@ function mCutiSyncBandara() {
 // Validate passenger flight ticket departure and return dates
 // Rule 1: Tanggal Keberangkatan >= Berangkat dari Jobsite & <= Kembali ke Jobsite
 // Rule 2: Tanggal Kembali > Tanggal Keberangkatan & <= Kembali ke Jobsite
+// Rule 3: Tanggal Keberangkatan & Tanggal Kembali wajib Senin/Rabu/Jum'at jika Pesan Travel = "PESAN"
 function mCutiValidateFlightDates() {
   $('.m-pnp-date-error-msg').remove();
   let pairs = [
@@ -4988,6 +4989,11 @@ function mCutiValidateFlightDates() {
 
   let bjsVal = $('input[data-fkey="BERANGKAT DARI JOBSITE"]').val();
   let kjsVal = $('input[data-fkey="KEMBALI KE JOBSITE"]').val();
+  let role = String(mUser.role || '').toUpperCase().trim();
+  let isSH_DH_MASTER = ['SH', 'DH', 'MASTER'].includes(role);
+  let pesanTravel = $('input[data-fkey="PESAN TRAVEL/TIDAK"]').val();
+  let isTravelPesanReq = (!isSH_DH_MASTER && pesanTravel === 'PESAN');
+
   let hasError = false;
 
   function fmtD(val) {
@@ -5032,21 +5038,31 @@ function mCutiValidateFlightDates() {
       if (kjsVal) $kem.attr('max', kjsVal); else $kem.removeAttr('max');
     }
 
-    // 1. Tanggal Keberangkatan: >= Berangkat dari Jobsite & <= Kembali ke Jobsite
+    // 1. Tanggal Keberangkatan Penumpang
     if (kebVal) {
       if (bjsVal && kebVal < bjsVal) {
         showError($keb, 'Tanggal Keberangkatan harus &ge; Berangkat dari Jobsite (' + fmtD(bjsVal) + ')');
       } else if (kjsVal && kebVal > kjsVal) {
         showError($keb, 'Tanggal Keberangkatan harus &le; Kembali ke Jobsite (' + fmtD(kjsVal) + ')');
+      } else if (isTravelPesanReq) {
+        let d = new Date(kebVal + 'T00:00:00');
+        if ([1, 3, 5].indexOf(d.getDay()) < 0) {
+          showError($keb, 'Tanggal Keberangkatan harus di hari Senin, Rabu, atau Jum\'at!');
+        }
       }
     }
 
-    // 2. Tanggal Kembali: > Tanggal Keberangkatan & <= Kembali ke Jobsite
+    // 2. Tanggal Kembali Penumpang
     if (kemVal) {
       if (kebVal && kemVal <= kebVal) {
         showError($kem, 'Tanggal Kembali harus &gt; Tanggal Keberangkatan (' + fmtD(kebVal) + ')');
       } else if (kjsVal && kemVal > kjsVal) {
         showError($kem, 'Tanggal Kembali harus &le; Kembali ke Jobsite (' + fmtD(kjsVal) + ')');
+      } else if (isTravelPesanReq) {
+        let d = new Date(kemVal + 'T00:00:00');
+        if ([1, 3, 5].indexOf(d.getDay()) < 0) {
+          showError($kem, 'Tanggal Kembali harus di hari Senin, Rabu, atau Jum\'at!');
+        }
       }
     }
   });
@@ -5132,28 +5148,6 @@ function mSubmitCutiForm() {
     if ($input.data('upper') && v) v = String(v).toUpperCase();
     data[k] = v;
   });
-
-  // Validate day-of-week
-  let lokal = data['CUTI LOKAL/NON LOKAL'];
-  let jab = String(mUser.jabatan || '').toUpperCase().trim();
-  let exemptJab = ['ACT. SECTION HEAD PLANT','SECTION HEAD PLANT','ACT. DEPARTEMEN HEAD','DEPARTEMEN HEAD'];
-  if (lokal === 'NON LOKAL' && exemptJab.indexOf(jab) < 0) {
-    let allowed = [1,3,5];
-    ['BERANGKAT DARI JOBSITE','KEMBALI KE JOBSITE'].forEach(k => {
-      let v = data[k];
-      if (v) {
-        let d = new Date(v + 'T00:00:00');
-        if (allowed.indexOf(d.getDay()) < 0) {
-          missing.push(k + ' (harus Sen/Rab/Jum)');
-          let $input = $(`#m-form-content [data-fkey="${k}"]`);
-          $input.addClass('is-invalid');
-          if ($input.next('.m-validation-warning').length === 0) {
-            $input.after(`<div class="m-validation-warning" style="color: #c10f19; font-size: 0.78em; font-weight: 600; margin-top: 4px;"><i class="fas fa-exclamation-circle mr-1"></i>Hari keberangkatan/kembali harus Senin, Rabu, atau Jumat</div>`);
-          }
-        }
-      }
-    });
-  }
 
   if (missing.length > 0) {
     // Scroll first invalid field into view
