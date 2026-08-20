@@ -2959,6 +2959,7 @@ let mNavStack = [];
 let mIdleInterval;
 const M_AUTO_LOGOUT_TIME = 120 * 60 * 1000; // 120 menit
 let mApprovalList = [];
+const mPendingApprovedKeys = new Set();
 let mHistoryList = [];
 let mHistoryLimit = 15;
 let mHistoryStatusFilter = '';
@@ -6021,7 +6022,8 @@ function mLoadApproval(force) {
   $('#m-stat-mypproval-loading').show();
 
   google.script.run.withSuccessHandler(list => {
-    mApprovalList = list || [];
+    let cleanList = (list || []).filter(it => !mPendingApprovedKeys.has(it.sheetName + '_' + it.rowIndex));
+    mApprovalList = cleanList;
     try { localStorage.setItem('PPDMobileApproval_' + mUser.nrp, JSON.stringify(mApprovalList)); } catch(e){}
     $('#m-stat-mypproval-loading').hide();
     $('#m-stat-mypproval').show();
@@ -6579,6 +6581,8 @@ function mSubmitScoring() {
       mCloseApprovalDetail();
       const idxBackup = mCurrentAppIdx;
       const removedItem = mApprovalList.splice(idxBackup, 1)[0];
+      const itemKey = removedItem ? (removedItem.sheetName + '_' + removedItem.rowIndex) : '';
+      if (itemKey) mPendingApprovedKeys.add(itemKey);
       mRenderApprovalList();
       try { localStorage.setItem('PPDMobileApproval_' + mUser.nrp, JSON.stringify(mApprovalList)); } catch(e){}
       let cnt = mApprovalList.length;
@@ -6596,6 +6600,7 @@ function mSubmitScoring() {
             google.script.run.triggerRegenWrapper(res.sheetTarget, res.rowTarget, mUser.username);
           }
         } else {
+          if (itemKey) mPendingApprovedKeys.delete(itemKey);
           mApprovalList.splice(idxBackup, 0, removedItem);
           mRenderApprovalList();
           try { localStorage.setItem('PPDMobileApproval_' + mUser.nrp, JSON.stringify(mApprovalList)); } catch(e){}
@@ -6606,6 +6611,7 @@ function mSubmitScoring() {
           Swal.fire('Gagal', res.message, 'error');
         }
       }).withFailureHandler(err => {
+        if (itemKey) mPendingApprovedKeys.delete(itemKey);
         mApprovalList.splice(idxBackup, 0, removedItem);
         mRenderApprovalList();
         try { localStorage.setItem('PPDMobileApproval_' + mUser.nrp, JSON.stringify(mApprovalList)); } catch(e){}
@@ -6638,6 +6644,8 @@ function mRejectPlanova() {
       mCloseApprovalDetail();
       const idxBackup = mCurrentAppIdx;
       const removedItem = mApprovalList.splice(idxBackup, 1)[0];
+      const itemKey = removedItem ? (removedItem.sheetName + '_' + removedItem.rowIndex) : '';
+      if (itemKey) mPendingApprovedKeys.add(itemKey);
       mRenderApprovalList();
       try { localStorage.setItem('PPDMobileApproval_' + mUser.nrp, JSON.stringify(mApprovalList)); } catch(e){}
       let cnt = mApprovalList.length;
@@ -6652,6 +6660,7 @@ function mRejectPlanova() {
         if (res.success) {
           Toast.fire({icon: 'success', title: 'Penilaian telah direject.'});
         } else {
+          if (itemKey) mPendingApprovedKeys.delete(itemKey);
           mApprovalList.splice(idxBackup, 0, removedItem);
           mRenderApprovalList();
           try { localStorage.setItem('PPDMobileApproval_' + mUser.nrp, JSON.stringify(mApprovalList)); } catch(e){}
@@ -6662,6 +6671,7 @@ function mRejectPlanova() {
           Swal.fire('Gagal', res.message, 'error');
         }
       }).withFailureHandler(err => {
+        if (itemKey) mPendingApprovedKeys.delete(itemKey);
         mApprovalList.splice(idxBackup, 0, removedItem);
         mRenderApprovalList();
         try { localStorage.setItem('PPDMobileApproval_' + mUser.nrp, JSON.stringify(mApprovalList)); } catch(e){}
@@ -6793,6 +6803,8 @@ function mSubmitAppAction(action) {
       mCloseApprovalDetail();
       const idxBackup = mCurrentAppIdx;
       const removedItem = mApprovalList.splice(idxBackup, 1)[0];
+      const itemKey = removedItem ? (removedItem.sheetName + '_' + removedItem.rowIndex) : '';
+      if (itemKey) mPendingApprovedKeys.add(itemKey);
       mRenderApprovalList();
       try { localStorage.setItem('PPDMobileApproval_' + mUser.nrp, JSON.stringify(mApprovalList)); } catch(e){}
       let cnt = mApprovalList.length;
@@ -6810,6 +6822,7 @@ function mSubmitAppAction(action) {
             google.script.run.triggerRegenWrapper(res.sheetTarget, res.rowTarget, mUser.username);
           }
         } else {
+          if (itemKey) mPendingApprovedKeys.delete(itemKey);
           mApprovalList.splice(idxBackup, 0, removedItem);
           mRenderApprovalList();
           try { localStorage.setItem('PPDMobileApproval_' + mUser.nrp, JSON.stringify(mApprovalList)); } catch(e){}
@@ -6820,6 +6833,7 @@ function mSubmitAppAction(action) {
           Swal.fire('Gagal', 'Server menolak: ' + res.message, 'error');
         }
       }).withFailureHandler(err => {
+        if (itemKey) mPendingApprovedKeys.delete(itemKey);
         mApprovalList.splice(idxBackup, 0, removedItem);
         mRenderApprovalList();
         try { localStorage.setItem('PPDMobileApproval_' + mUser.nrp, JSON.stringify(mApprovalList)); } catch(e){}

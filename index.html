@@ -7085,6 +7085,8 @@ function buildApprovalToolbarHtml(pendingCount) {
     + '</div>';
 }
 
+const pendingApprovedKeys = new Set();
+
 function onApprovalSearchInput(val) {
   approvalSearchQuery = String(val || '').toLowerCase();
   renderApprovalList(currentApprovalList || []);
@@ -7118,8 +7120,9 @@ if(!checkRestrictedMenuAccess(false)) return;
     $('#approval-list-container').html('<div class="col-12 text-center text-muted p-5"><i class="fas fa-sync-alt fa-spin fa-3x text-warning mb-3"></i><h5 class="font-weight-bold">Sinkronisasi Data...</h5></div>');
 
     google.script.run.withSuccessHandler(list => {
-        currentApprovalList = list;
-        renderApprovalList(list);
+        let cleanList = (list || []).filter(it => !pendingApprovedKeys.has(it.sheetName + '_' + it.rowIndex));
+        currentApprovalList = cleanList;
+        renderApprovalList(cleanList);
         if (forceRefresh) {
             Swal.fire({icon: 'success', title: 'Data Diperbarui', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500});
         }
@@ -7256,6 +7259,7 @@ async function submitBulkAction(action) {
         if(res.success) {
             successCount++;
             successIndices.push(tasks[i]);
+            if (item) pendingApprovedKeys.add(item.sheetName + '_' + item.rowIndex);
             // Jika butuh buat PDF background (Cuti, SPL, dll)
             if(res.backgroundPdf) {
                 runGS('triggerRegenWrapper', res.sheetTarget, res.rowTarget, currentUser.username); // Jalan senyap di background
@@ -7439,6 +7443,8 @@ function submitAppAction(action){
         $('#modalApprovalAction').modal('hide');
         const idxBackup = currentAppIdx;
         const removedItem = currentApprovalList.splice(idxBackup, 1)[0];
+        const itemKey = removedItem ? (removedItem.sheetName + '_' + removedItem.rowIndex) : '';
+        if (itemKey) pendingApprovedKeys.add(itemKey);
         renderApprovalList(currentApprovalList);
         const Toast = Swal.mixin({toast:true,position:'top-end',showConfirmButton:false,timer:2500});
         Toast.fire({icon: action==='APPROVE'?'success':'info', title: action+' diproses...'});
@@ -7456,12 +7462,13 @@ function submitAppAction(action){
                     }).triggerRegenWrapper(res.sheetTarget,res.rowTarget,currentUser.username);
                 }
             }else{
-                // Rollback: kembalikan kartu
+                if (itemKey) pendingApprovedKeys.delete(itemKey);
                 currentApprovalList.splice(idxBackup, 0, removedItem);
                 renderApprovalList(currentApprovalList);
                 Swal.fire('Gagal', 'Server menolak: '+res.message, 'error');
             }
         }).withFailureHandler(err=>{
+            if (itemKey) pendingApprovedKeys.delete(itemKey);
             currentApprovalList.splice(idxBackup, 0, removedItem);
             renderApprovalList(currentApprovalList);
             Swal.fire('Error Jaringan', err.message || 'Coba lagi.', 'error');
@@ -7485,6 +7492,8 @@ function submitScoring(){
         $('#modalApprovalAction').modal('hide');
         const idxBackup = currentAppIdx;
         const removedItem = currentApprovalList.splice(idxBackup, 1)[0];
+        const itemKey = removedItem ? (removedItem.sheetName + '_' + removedItem.rowIndex) : '';
+        if (itemKey) pendingApprovedKeys.add(itemKey);
         renderApprovalList(currentApprovalList);
         const Toast = Swal.mixin({toast:true,position:'top-end',showConfirmButton:false,timer:2500});
         Toast.fire({icon: 'success', title: 'Penilaian diproses...'});
@@ -7496,11 +7505,13 @@ function submitScoring(){
                     google.script.run.triggerRegenWrapper(res.sheetTarget, res.rowTarget, currentUser.username);
                 }
             }else{
+                if (itemKey) pendingApprovedKeys.delete(itemKey);
                 currentApprovalList.splice(idxBackup, 0, removedItem);
                 renderApprovalList(currentApprovalList);
                 Swal.fire('Gagal', res.message, 'error');
             }
         }).withFailureHandler(err => {
+            if (itemKey) pendingApprovedKeys.delete(itemKey);
             currentApprovalList.splice(idxBackup, 0, removedItem);
             renderApprovalList(currentApprovalList);
             Swal.fire('Error Jaringan', err.message || 'Coba lagi.', 'error');
@@ -7528,6 +7539,8 @@ function rejectPlanova() {
             $('#modalApprovalAction').modal('hide');
             const idxBackup = currentAppIdx;
             const removedItem = currentApprovalList.splice(idxBackup, 1)[0];
+            const itemKey = removedItem ? (removedItem.sheetName + '_' + removedItem.rowIndex) : '';
+            if (itemKey) pendingApprovedKeys.add(itemKey);
             renderApprovalList(currentApprovalList);
             const Toast = Swal.mixin({toast:true,position:'top-end',showConfirmButton:false,timer:2500});
             Toast.fire({icon: 'info', title: 'Reject diproses...'});
@@ -7536,11 +7549,13 @@ function rejectPlanova() {
                 if (res.success) {
                     Toast.fire({icon: 'success', title: 'Penilaian telah direject.'});
                 } else {
+                    if (itemKey) pendingApprovedKeys.delete(itemKey);
                     currentApprovalList.splice(idxBackup, 0, removedItem);
                     renderApprovalList(currentApprovalList);
                     Swal.fire('Gagal', res.message, 'error');
                 }
             }).withFailureHandler(err => {
+                if (itemKey) pendingApprovedKeys.delete(itemKey);
                 currentApprovalList.splice(idxBackup, 0, removedItem);
                 renderApprovalList(currentApprovalList);
                 Swal.fire('Error Jaringan', err.message || 'Coba lagi.', 'error');
