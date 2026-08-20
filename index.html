@@ -7247,6 +7247,7 @@ async function submitBulkAction(action) {
         google.script.run.withSuccessHandler(res => resolve(res)).withFailureHandler(err => resolve({success:false, message:err.message}))[func](...args);
     });
 
+    let successIndices = [];
     for(let i=0; i<tasks.length; i++) {
         $('#bulk-progress').text(i+1);
         let item = currentApprovalList[tasks[i]];
@@ -7254,6 +7255,7 @@ async function submitBulkAction(action) {
         
         if(res.success) {
             successCount++;
+            successIndices.push(tasks[i]);
             // Jika butuh buat PDF background (Cuti, SPL, dll)
             if(res.backgroundPdf) {
                 runGS('triggerRegenWrapper', res.sheetTarget, res.rowTarget, currentUser.username); // Jalan senyap di background
@@ -7261,8 +7263,13 @@ async function submitBulkAction(action) {
         }
     }
 
+    // Splice from highest index to lowest index so list order stays valid
+    successIndices.sort((a, b) => b - a).forEach(idx => {
+        currentApprovalList.splice(idx, 1);
+    });
+    renderApprovalList(currentApprovalList);
+
     Swal.fire('Selesai', `Berhasil memproses ${successCount} dari ${tasks.length} pengajuan.`, 'success');
-    loadApproval(document.getElementById('nav-approval'), true); // Refresh daftar otomatis
 }
 
 // ==================================================
@@ -7475,21 +7482,28 @@ function submitScoring(){
     
     Swal.fire({title:'Submit Nilai: '+finalScore+'?',text:"Data tidak bisa diubah setelah disubmit.",icon:"question",showCancelButton:true,confirmButtonText:'Ya'}).then((r)=>{
     if(r.isConfirmed){
-        showLoading(true);
+        $('#modalApprovalAction').modal('hide');
+        const idxBackup = currentAppIdx;
+        const removedItem = currentApprovalList.splice(idxBackup, 1)[0];
+        renderApprovalList(currentApprovalList);
+        const Toast = Swal.mixin({toast:true,position:'top-end',showConfirmButton:false,timer:2500});
+        Toast.fire({icon: 'success', title: 'Penilaian diproses...'});
+
         google.script.run.withSuccessHandler(res=>{
-            showLoading(false);
             if(res.success){
-                $('#modalApprovalAction').modal('hide');
-                Swal.fire('Berhasil','Penilaian tersimpan.','success');
+                Toast.fire({icon: 'success', title: 'Penilaian berhasil disimpan!'});
                 if (res.backgroundPdf) {
                     google.script.run.triggerRegenWrapper(res.sheetTarget, res.rowTarget, currentUser.username);
                 }
-                // --> Hilangkan data seketika tanpa refresh server <--
-                currentApprovalList.splice(currentAppIdx, 1);
-                renderApprovalList(currentApprovalList);
             }else{
-                Swal.fire('Gagal',res.message,'error');
+                currentApprovalList.splice(idxBackup, 0, removedItem);
+                renderApprovalList(currentApprovalList);
+                Swal.fire('Gagal', res.message, 'error');
             }
+        }).withFailureHandler(err => {
+            currentApprovalList.splice(idxBackup, 0, removedItem);
+            renderApprovalList(currentApprovalList);
+            Swal.fire('Error Jaringan', err.message || 'Coba lagi.', 'error');
         }).processApprovalAction(item.sheetName,item.rowIndex,"SCORING",currentUser.username,null,data);
     }
     });
@@ -7511,19 +7525,25 @@ function rejectPlanova() {
         confirmButtonColor: '#dc3545'
     }).then((r) => {
         if (r.isConfirmed) {
-            showLoading(true);
+            $('#modalApprovalAction').modal('hide');
+            const idxBackup = currentAppIdx;
+            const removedItem = currentApprovalList.splice(idxBackup, 1)[0];
+            renderApprovalList(currentApprovalList);
+            const Toast = Swal.mixin({toast:true,position:'top-end',showConfirmButton:false,timer:2500});
+            Toast.fire({icon: 'info', title: 'Reject diproses...'});
+
             google.script.run.withSuccessHandler(res => {
-                showLoading(false);
                 if (res.success) {
-                    $('#modalApprovalAction').modal('hide');
-                    Swal.fire('Berhasil', 'Penilaian telah direject.', 'success');
-                    
-                    // --> Hilangkan data seketika tanpa refresh server <--
-                    currentApprovalList.splice(currentAppIdx, 1);
-                    renderApprovalList(currentApprovalList);
+                    Toast.fire({icon: 'success', title: 'Penilaian telah direject.'});
                 } else {
+                    currentApprovalList.splice(idxBackup, 0, removedItem);
+                    renderApprovalList(currentApprovalList);
                     Swal.fire('Gagal', res.message, 'error');
                 }
+            }).withFailureHandler(err => {
+                currentApprovalList.splice(idxBackup, 0, removedItem);
+                renderApprovalList(currentApprovalList);
+                Swal.fire('Error Jaringan', err.message || 'Coba lagi.', 'error');
             }).processApprovalAction(item.sheetName, item.rowIndex, "REJECT_SCORING", currentUser.username, null, { "Komentar/Masukan": catatanPlanova });
         }
     });
