@@ -1974,7 +1974,10 @@ html.swal2-shown, body.swal2-shown {
         </div>
       </div>
     </div>
-    <button class="m-btn-secondary m-btn-block mt-3" onclick="mSwitchTab('home')"><i class="fas fa-arrow-left mr-1"></i> Kembali</button>
+    <button id="m-clear-cache-btn" class="m-btn-secondary m-btn-block mt-3" onclick="mConfirmClearCache()" style="display:none; background-color: #fff1f2; color: #c10f19; border: 1px solid #fecdd3; font-weight: 600;">
+      <i class="fas fa-sync-alt mr-1"></i> Hapus Cache Server (PPD/Admin)
+    </button>
+    <button class="m-btn-secondary m-btn-block mt-2" onclick="mSwitchTab('home')"><i class="fas fa-arrow-left mr-1"></i> Kembali</button>
     <p class="m-app-version">PPD Mobile V2.0<span id="m-desktop-link-sep" style="display:none;"> · </span><a id="m-desktop-link" href="https://sites.google.com/view/ppd-ba/ppd-web-portal" target="_blank" style="color:#c10f19; display:none;">Versi Desktop</a></p>
   </main>
 
@@ -3523,6 +3526,14 @@ function mShowApp() {
   } else {
     $('#m-desktop-link-sep').hide();
     $('#m-desktop-link').hide();
+  }
+
+  // Show Hapus Cache Server button if user role is PPD or MASTER
+  const allowedCacheRoles = ['PPD', 'MASTER'];
+  if (allowedCacheRoles.includes(role)) {
+    $('#m-clear-cache-btn').show();
+  } else {
+    $('#m-clear-cache-btn').hide();
   }
 
   // Filter pills history
@@ -8866,6 +8877,50 @@ function mCompressImage(file, maxWidth, maxHeight, quality, callback) {
   };
   
   img.src = objectUrl;
+}
+
+// Clear Server Cache (PPD / Admin feature)
+function mConfirmClearCache() {
+  mShowPopup({
+    title: 'Konfirmasi Hapus Cache Server',
+    body: '<div style="text-align: left; font-size: 0.9em; color: #334155; line-height: 1.5;">' +
+          '<p>Tindakan ini akan mengosongkan <b>Cache Server Apps Script</b> dan data memori lokal browser untuk database <code>DATABASE MP SIB</code>.</p>' +
+          '<p style="margin-top: 8px;">Gunakan fitur ini setelah Anda melakukan perubahan data secara langsung di Google Sheets (seperti merubah Nama Atasan, Nomor WA, Jabatan, dll) agar data terbaru segera aktif di Web & Mobile Portal.</p>' +
+          '</div>',
+    okText: 'Ya, Hapus Cache',
+    cancelText: 'Batal',
+    danger: true,
+    onOk: function() {
+      mExecuteClearCache();
+    }
+  });
+}
+
+function mExecuteClearCache() {
+  mShowLoading('Memproses pembersihan cache server...');
+  // Clear local storage caches
+  try {
+    if (mUser && mUser.nrp) {
+      localStorage.removeItem('PPDMobileEssentials_' + mUser.nrp);
+      localStorage.removeItem('PPDUserProfile_' + mUser.nrp);
+      localStorage.removeItem('PPDMobileMpData_' + mUser.nrp);
+    }
+    localStorage.removeItem('PPDCatalogData');
+    localStorage.removeItem('PPDInstructorsList');
+  } catch(e) {}
+
+  google.script.run.withSuccessHandler(function(res) {
+    mHideLoading();
+    if (res && res.success) {
+      mShowToast('Cache server berhasil dibersihkan! Memuat ulang data terbaru...', false);
+      mInitData();
+    } else {
+      mShowPopup({ title: 'Gagal', body: (res ? res.message : 'Gagal mereset cache server.') });
+    }
+  }).withFailureHandler(function(err) {
+    mHideLoading();
+    mShowPopup({ title: 'Error', body: 'Gagal menghubungi server: ' + err.toString() });
+  }).clearDatabaseMpSibCache();
 }
 </script>
 
