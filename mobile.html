@@ -4914,8 +4914,7 @@ function mCutiOnChange() {
       }
     }
     // === AUTO-FILL KEMBALI JOBSITE ===
-    thnDurNow = parseInt($('input[data-fkey="DURASI CUTI TAHUNAN"]').val()) || 0;
-    let kjsNew = (thnDurNow > 0 && thnAkhirStr) ? thnAkhirStr : lapAkhirStr;
+    let kjsNew = thnAkhirIso ? thnAkhirIso : lapAkhirIso;
     if (kjsNew) {
       let lastAutofill = $kjs.attr('data-last-autofill') || '';
       if (kjsNew !== lastAutofill) {
