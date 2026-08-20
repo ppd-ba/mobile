@@ -4784,10 +4784,13 @@ function mCutiOnChange() {
     let lapDur = parseInt($('input[data-fkey="DURASI CUTI LAPANGAN"]').val()) || 0;
     let lapAkhirStr = '';
     let thnAkhirStr = '';
+    let lapAkhirIso = '';
+    let thnAkhirIso = '';
     if (lapAwal && lapDur > 0) {
       let d = new Date(lapAwal + 'T00:00:00');
       d.setDate(d.getDate() + lapDur - 1);
       lapAkhirStr = mfFmtDate(d);
+      lapAkhirIso = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
       safeVal("CUTI LAPANGAN (AKHIR)", lapAkhirStr);
       let thnDur = parseInt($('input[data-fkey="DURASI CUTI TAHUNAN"]').val()) || 0;
       if (thnDur > 0) {
@@ -4797,6 +4800,7 @@ function mCutiOnChange() {
         
         let dThnAkhir = new Date(dThn); dThnAkhir.setDate(dThnAkhir.getDate() + thnDur - 1);
         thnAkhirStr = mfFmtDate(dThnAkhir);
+        thnAkhirIso = dThnAkhir.getFullYear() + '-' + String(dThnAkhir.getMonth()+1).padStart(2,'0') + '-' + String(dThnAkhir.getDate()).padStart(2,'0');
         safeVal("CUTI TAHUNAN (AKHIR)", thnAkhirStr);
       } else {
         safeVal("CUTI TAHUNAN (AWAL)", '');
@@ -4805,41 +4809,41 @@ function mCutiOnChange() {
     }
 
     // === DATE RANGE & DAY VALIDATION (NEW REQUIREMENTS) ===
-    let minDate = lapAwal || '';
-    let maxDate = '';
+    let minDateIso = lapAwal || '';
+    let maxDateIso = '';
     let thnDurNow = parseInt($('input[data-fkey="DURASI CUTI TAHUNAN"]').val()) || 0;
     if (thnDurNow > 1) {
-      maxDate = thnAkhirStr || '';
+      maxDateIso = thnAkhirIso || '';
     } else if (thnDurNow === 0) {
-      maxDate = lapAkhirStr || '';
+      maxDateIso = lapAkhirIso || '';
     } else if (thnDurNow === 1) {
-      maxDate = thnAkhirStr || lapAkhirStr || '';
+      maxDateIso = thnAkhirIso || lapAkhirIso || '';
     }
 
     let $bjs = $('input[data-fkey="BERANGKAT DARI JOBSITE"]');
     let $kjs = $('input[data-fkey="KEMBALI KE JOBSITE"]');
 
-    if (minDate) {
-      $bjs.attr('min', minDate);
-      $kjs.attr('min', minDate);
+    if (minDateIso) {
+      $bjs.attr('min', minDateIso);
+      $kjs.attr('min', minDateIso);
     } else {
       $bjs.removeAttr('min');
       $kjs.removeAttr('min');
     }
 
-    if (maxDate) {
-      $bjs.attr('max', maxDate);
-      $kjs.attr('max', maxDate);
+    if (maxDateIso) {
+      $bjs.attr('max', maxDateIso);
+      $kjs.attr('max', maxDateIso);
     } else {
       $bjs.removeAttr('max');
       $kjs.removeAttr('max');
     }
 
-    // Function to format date as dd/mm/yyyy
+    // Function to format date as dd mmm yyyy
     function fmtD(val) {
       if (!val) return '';
-      let p = val.split('-');
-      if (p.length === 3) return p[2] + '/' + p[1] + '/' + p[0];
+      let p = mParseFlexibleDate(val);
+      if (p) return mFormatDateDDMMMYYYY(p);
       return val;
     }
 
@@ -4854,13 +4858,13 @@ function mCutiOnChange() {
       if (!val) return;
 
       // 1. Validate Range
-      if (minDate && val < minDate) {
+      if (minDateIso && val < minDateIso) {
         $el.css('border-color', '#c10f19');
-        $el.closest('.m-form-group').append('<div class="m-range-error-msg" style="color: #c10f19; font-size: 0.78em; margin-top: 4px; font-weight: 500;">Tanggal harus &ge; Cuti Lapangan Awal (' + fmtD(minDate) + ')</div>');
-      } else if (maxDate && val > maxDate) {
+        $el.closest('.m-form-group').append('<div class="m-range-error-msg" style="color: #c10f19; font-size: 0.78em; margin-top: 4px; font-weight: 500;">Tanggal harus &ge; Cuti Lapangan Awal (' + fmtD(minDateIso) + ')</div>');
+      } else if (maxDateIso && val > maxDateIso) {
         $el.css('border-color', '#c10f19');
         let labelMax = (thnDurNow > 1) ? 'Cuti Tahunan Akhir' : 'Cuti Lapangan Akhir';
-        $el.closest('.m-form-group').append('<div class="m-range-error-msg" style="color: #c10f19; font-size: 0.78em; margin-top: 4px; font-weight: 500;">Tanggal harus &le; ' + labelMax + ' (' + fmtD(maxDate) + ')</div>');
+        $el.closest('.m-form-group').append('<div class="m-range-error-msg" style="color: #c10f19; font-size: 0.78em; margin-top: 4px; font-weight: 500;">Tanggal harus &le; ' + labelMax + ' (' + fmtD(maxDateIso) + ')</div>');
       }
 
       // 2. Validate day-of-week (Senin/Rabu/Jumat)
@@ -5046,8 +5050,13 @@ function mInrValidateDepartureDate() {
 }
 
 function mfFmtDate(d) {
-  if (!d || isNaN(d.getTime())) return '';
-  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  if (!d) return '';
+  if (typeof d === 'string') {
+    let p = mParseFlexibleDate(d);
+    if (p) d = p;
+  }
+  if (!(d instanceof Date) || isNaN(d.getTime())) return String(d || '');
+  return mFormatDateDDMMMYYYY(d);
 }
 
 function mSubmitCutiForm() {
@@ -5156,7 +5165,12 @@ function mSubmitCutiForm() {
   let confHtml = '<div style="text-align:left; font-size:0.88em;">';
   confHtml += '<p style="font-size:0.85em; color:#64748b; margin-bottom:10px;">Mohon periksa kembali data pengajuan Anda:</p>';
   confKeys.forEach(([k, l]) => {
-    let v = data[k] || '<span style="color:#94a3b8;">—</span>';
+    let rawV = data[k];
+    let v = rawV || '<span style="color:#94a3b8;">—</span>';
+    if (rawV && typeof rawV === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(rawV.trim())) {
+      let p = mParseFlexibleDate(rawV);
+      if (p) v = mFormatDateDDMMMYYYY(p);
+    }
     confHtml += '<div style="display:flex; justify-content:space-between; gap:10px; padding:6px 0; border-bottom:1px dashed #e2e8f0;">'
               + '<span style="color:#64748b; font-weight:600; flex-shrink:0; max-width:50%;">' + l + '</span>'
               + '<span style="color:#0f172a; text-align:right; word-break:break-word; font-weight:500;">' + v + '</span>'
@@ -5734,7 +5748,12 @@ function mSubmitForm(formType) {
         v = '<span style="color:#94a3b8;">—</span>';
       }
     } else {
+      let rawV = v;
       v = v || '<span style="color:#94a3b8;">—</span>';
+      if (rawV && typeof rawV === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(rawV.trim())) {
+        let p = mParseFlexibleDate(rawV);
+        if (p) v = mFormatDateDDMMMYYYY(p);
+      }
       v = String(v).replace(/\n/g, '<br>');
     }
     
@@ -7449,6 +7468,8 @@ function mSubmitRegister() {
 
 function mFormatDateToIndo(dateStr) {
   if (!dateStr) return "";
+  let parsed = mParseFlexibleDate(dateStr);
+  if (parsed) return mFormatDateDDMMMYYYY(parsed);
   const parts = dateStr.split('-');
   if (parts.length === 3) {
     return `${parts[2]}/${parts[1]}/${parts[0]}`;
@@ -7644,6 +7665,8 @@ function mParseFlexibleDate(val) {
 
   let mIndoLong  = ["januari", "februari", "maret", "april", "mei", "juni", "juli", "agustus", "september", "oktober", "november", "desember"];
   let mIndoShort = ["jan", "feb", "mar", "apr", "mei", "jun", "jul", "agt", "sep", "okt", "nov", "des"];
+  let mEngLong   = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
+  let mEngShort  = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
 
   let words = s.toLowerCase().split(/[\s\-_,]+/);
   if (words.length >= 3) {
@@ -7655,9 +7678,9 @@ function mParseFlexibleDate(val) {
         yNum = parseInt(w, 10);
       } else if (mIdx === -1) {
         let idx = mIndoLong.findIndex(m => m.startsWith(w.substring(0, 3)));
-        if (idx === -1) {
-          idx = mIndoShort.findIndex(m => m === w.substring(0, 3));
-        }
+        if (idx === -1) idx = mIndoShort.findIndex(m => m === w.substring(0, 3));
+        if (idx === -1) idx = mEngLong.findIndex(m => m.startsWith(w.substring(0, 3)));
+        if (idx === -1) idx = mEngShort.findIndex(m => m === w.substring(0, 3));
         if (idx > -1) mIdx = idx;
       }
     });
@@ -7673,7 +7696,12 @@ function mParseFlexibleDate(val) {
 }
 
 function mFormatDateDDMMMYYYY(dateObj) {
-  if (!dateObj || !(dateObj instanceof Date) || isNaN(dateObj.getTime())) return "";
+  if (!dateObj) return "";
+  if (typeof dateObj === "string") {
+    let parsed = mParseFlexibleDate(dateObj);
+    if (parsed) dateObj = parsed;
+  }
+  if (!(dateObj instanceof Date) || isNaN(dateObj.getTime())) return String(dateObj || "");
   const mShort = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sep", "Okt", "Nov", "Des"];
   const day = String(dateObj.getDate()).padStart(2, '0');
   const month = mShort[dateObj.getMonth()];
