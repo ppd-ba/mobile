@@ -4158,7 +4158,8 @@ let mFormCurrent = { type: '', mp: {}, fields: [], state: {} };
 
 // Helper to get employee profile data (MP SIB) from cache or server (SWR model)
 function mGetMpData(callback) {
-  const cacheKey = 'PPDMobileMpData_' + mUser.nrp;
+  let effectiveNrp = (mUser && mUser.nrp && mUser.nrp !== '-') ? mUser.nrp : (mUser ? mUser.username : '');
+  const cacheKey = 'PPDMobileMpData_' + effectiveNrp;
   let cached = null;
   try {
     const stored = localStorage.getItem(cacheKey);
@@ -4178,7 +4179,7 @@ function mGetMpData(callback) {
       if (mp && Object.keys(mp).length > 0) {
         try { localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data: mp })); } catch(e) {}
       }
-    }).getMobileMpDataByNrp(mUser.nrp);
+    }).getMobileMpDataByNrp(effectiveNrp);
   } else {
     // No cache -> call server
     google.script.run.withSuccessHandler(mp => {
@@ -4188,7 +4189,7 @@ function mGetMpData(callback) {
       callback(mp || {});
     }).withFailureHandler(() => {
       callback({});
-    }).getMobileMpDataByNrp(mUser.nrp);
+    }).getMobileMpDataByNrp(effectiveNrp);
   }
 }
 
@@ -4470,8 +4471,9 @@ function mRenderSplForm() {
 // ===== CUTI form khusus =====
 function mOpenCutiForm() {
   $('#m-form-title').text('Pengajuan Cuti');
+  let effectiveNrp = (mUser && mUser.nrp && mUser.nrp !== '-') ? mUser.nrp : (mUser ? mUser.username : '');
 
-  const cacheKey = 'PPDMobileMpData_' + mUser.nrp;
+  const cacheKey = 'PPDMobileMpData_' + effectiveNrp;
   let cached = null;
   try {
     const stored = localStorage.getItem(cacheKey);
@@ -4495,11 +4497,13 @@ function mOpenCutiForm() {
         try { localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data: mp })); } catch(e) {}
         if (mFormCurrent.type === 'CUTI') {
           mFormCurrent.mp = mp;
-          if (mp["NAMA KOORDINATOR GL"]) $('[data-fkey="NAMA ATASAN"]').val(mp["NAMA KOORDINATOR GL"]);
-          if (mp["NO. WA KOORDINATOR"]) $('[data-fkey="WA ATASAN"]').val(mp["NO. WA KOORDINATOR"]);
+          let namaAtasanVal = mp["NAMA KOORDINATOR GL"] || mp["NAMA GROUP LEADER"] || mp["NAMA ATASAN"] || "";
+          let waAtasanVal = mp["NO. WA KOORDINATOR"] || mp["NO. WHATSAPP GL"] || mp["NO. HANDPHONE ATASAN"] || "";
+          if (namaAtasanVal) $('[data-fkey="NAMA ATASAN"]').val(namaAtasanVal);
+          if (waAtasanVal) $('[data-fkey="WA ATASAN"]').val(waAtasanVal);
         }
       }
-    }).getMobileMpDataByNrp(mUser.nrp);
+    }).getMobileMpDataByNrp(effectiveNrp);
     return;
   }
 
