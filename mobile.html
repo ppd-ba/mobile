@@ -3045,6 +3045,13 @@ $(document).ready(function() {
     }
   });
 
+  // CUTI: Real-time re-validation on date inputs
+  $(document).on('change input', '#m-form-content input[type="date"]', function() {
+    if (mFormCurrent && mFormCurrent.type === 'CUTI') {
+      mCutiOnChange();
+    }
+  });
+
   // Reschedule & Refund: Dynamic passenger visibility
   $(document).on('change', '[data-fkey="JUMLAH PENUMPANG"]', function() {
     if (mFormCurrent.type === 'RESCHEDULE & REFUND') {
@@ -4659,7 +4666,7 @@ function mfTextarea(key, label, value) {
 }
 function mfDate(key, label, value, opts) {
   opts = opts || {};
-  let onCh = opts.onChange ? ' onchange="'+opts.onChange+'"' : '';
+  let onCh = opts.onChange ? ' onchange="'+opts.onChange+'" oninput="'+opts.onChange+'"' : '';
   return '<div class="m-form-group"><label class="m-form-label '+(opts.req?'req':'')+'">'+label+'</label><input class="m-form-input" type="date" data-fkey="'+key+'" value="'+(value||'')+'" '+(opts.req?'required':'')+onCh+'></div>';
 }
 function mfDropdown(key, label, options, opts) {
@@ -4847,6 +4854,27 @@ function mCutiOnChange() {
       return val;
     }
 
+    // === AUTO-FILL BERANGKAT JOBSITE ===
+    if (lapAwal) {
+      let lastAutofill = $bjs.attr('data-last-autofill') || '';
+      if (lapAwal !== lastAutofill) {
+        safeVal("BERANGKAT DARI JOBSITE", lapAwal);
+        $bjs.attr('data-last-autofill', lapAwal);
+      }
+    }
+    // === AUTO-FILL KEMBALI JOBSITE ===
+    let kjsNew = thnAkhirIso ? thnAkhirIso : lapAkhirIso;
+    if (kjsNew) {
+      let lastAutofill = $kjs.attr('data-last-autofill') || '';
+      if (kjsNew !== lastAutofill) {
+        safeVal("KEMBALI KE JOBSITE", kjsNew);
+        $kjs.attr('data-last-autofill', kjsNew);
+      }
+    }
+
+    let bjs = $('input[data-fkey="BERANGKAT DARI JOBSITE"]').val();
+    let kjs = $('input[data-fkey="KEMBALI KE JOBSITE"]').val();
+
     // Reset error styling and message
     $bjs.closest('.m-form-group').find('.m-day-error-msg, .m-range-error-msg').remove();
     $kjs.closest('.m-form-group').find('.m-day-error-msg, .m-range-error-msg').remove();
@@ -4899,38 +4927,10 @@ function mCutiOnChange() {
       $ctDur.closest('.m-form-group').append('<div class="m-ct-error-msg" style="color: #c10f19; font-size: 0.78em; margin-top: 4px; font-weight: 500;">Durasi Cuti Tahunan tidak boleh lebih dari Sisa Cuti Tahunan (' + maxCtDur + ')</div>');
     }
 
-    // Validate day-of-week kalau NON LOKAL (kecuali jabatan tertentu)
-    let lokal = $('input[data-fkey="CUTI LOKAL/NON LOKAL"]').val();
-    let jab = String(mUser.jabatan || '').toUpperCase().trim();
-    let exemptJab = ['ACT. SECTION HEAD PLANT','SECTION HEAD PLANT','ACT. DEPARTEMEN HEAD','DEPARTEMEN HEAD'];
-    let mustValidateDay = (lokal === 'NON LOKAL' && exemptJab.indexOf(jab) < 0);
-
-    // === AUTO-FILL BERANGKAT JOBSITE ===
-    if (lapAwal) {
-      let lastAutofill = $bjs.attr('data-last-autofill') || '';
-      if (lapAwal !== lastAutofill) {
-        safeVal("BERANGKAT DARI JOBSITE", lapAwal);
-        $bjs.attr('data-last-autofill', lapAwal);
-      }
-    }
-    // === AUTO-FILL KEMBALI JOBSITE ===
-    let kjsNew = thnAkhirIso ? thnAkhirIso : lapAkhirIso;
-    if (kjsNew) {
-      let lastAutofill = $kjs.attr('data-last-autofill') || '';
-      if (kjsNew !== lastAutofill) {
-        safeVal("KEMBALI KE JOBSITE", kjsNew);
-        $kjs.attr('data-last-autofill', kjsNew);
-      }
-    }
-
-    let bjs = $('input[data-fkey="BERANGKAT DARI JOBSITE"]').val();
-    let kjs = $('input[data-fkey="KEMBALI KE JOBSITE"]').val();
-
     // Sync TANGGAL KEBERANGKATAN P1 ← BERANGKAT JOBSITE (always)
     safeVal("TANGGAL KEBERANGKATAN PENUMPANG 1", bjs || "");
     // Sync TANGGAL KEMBALI P2 ← KEMBALI JOBSITE (always)
     safeVal("TANGGAL KEMBALI PENUMPANG 2", kjs || "");
-    // Removed old popup/clearing logic. Validation is handled inline in checkField.
 
     // Calc Jadwal Cuti Selanjutnya = Kembali ke Jobsite + DURASI ONSITE
     if (kjs && mFormCurrent.mp && mFormCurrent.mp["DURASI ONSITE"]) {
