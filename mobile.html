@@ -3608,7 +3608,10 @@ function mInitData() {
       $('#m-profile-photo').attr('src', thumb);
       $('#m-hero-photo-img').attr('src', thumb);
     }
-    mFormOptions = res.formOptions || { sections: [], atasanList: [], sites: [] };
+    if (res.formOptions) {
+      mFormOptions = res.formOptions;
+      if (!mFormOptions.atasanMap) mFormOptions.atasanMap = {};
+    }
   }
 
   if (cached) {
@@ -4520,6 +4523,16 @@ function mRenderSplForm() {
     // NAMA ATASAN & NO. HANDPHONE ATASAN left empty by default for manual user selection
     $('[data-fkey="NAMA ATASAN"]').val('');
     $('input[data-fkey="NO. HANDPHONE ATASAN"]').val('');
+
+    // Pre-fetch atasanMap in background if not ready yet
+    if (!mFormOptions || !mFormOptions.atasanMap || Object.keys(mFormOptions.atasanMap).length === 0) {
+      google.script.run.withSuccessHandler(opts => {
+        if (opts && opts.atasanMap) {
+          if (!mFormOptions) mFormOptions = opts;
+          else mFormOptions.atasanMap = opts.atasanMap;
+        }
+      }).getMobileFormOptions();
+    }
 
     // Explicitly initialize custom selects
     initCustomMobileSelects('#m-form-content');
