@@ -4353,11 +4353,18 @@ function mRenderGenericForm(formType) {
     cfg.userFields.forEach(f => {
       let val = f.value;
       if (f.key === 'NAMA ATASAN' && mFormCurrent.mp) {
-        val = (formType === 'PLANOVA') ? (mFormCurrent.mp["NAMA GROUP LEADER"] || "") : (mFormCurrent.mp["NAMA KOORDINATOR GL"] || "");
+        let isReadOnly = ['IZIN NON RESMI', 'BA TIKET', 'RESCHEDULE & REFUND'].includes(formType);
+        if (isReadOnly) {
+          val = (formType === 'PLANOVA') ? (mFormCurrent.mp["NAMA GROUP LEADER"] || "") : (mFormCurrent.mp["NAMA KOORDINATOR GL"] || mFormCurrent.mp["NAMA GROUP LEADER"] || mFormCurrent.mp["NAMA ATASAN"] || "");
+        } else {
+          val = ""; // Leave blank for select dropdown
+        }
       } else if (f.key === 'NO. HANDPHONE ATASAN' && mFormCurrent.mp) {
-        val = mFormCurrent.mp["NO. WA KOORDINATOR"] || "";
+        let isReadOnly = ['IZIN NON RESMI', 'BA TIKET', 'RESCHEDULE & REFUND'].includes(formType);
+        val = isReadOnly ? (mFormCurrent.mp["NO. WA KOORDINATOR"] || mFormCurrent.mp["NO. WHATSAPP GL"] || mFormCurrent.mp["NO. HANDPHONE ATASAN"] || "") : "";
       } else if (f.key === 'NO. WHATSAPP ATASAN' && mFormCurrent.mp) {
-        val = mFormCurrent.mp["NO. WHATSAPP GL"] || "";
+        let isReadOnly = ['IZIN NON RESMI', 'BA TIKET', 'RESCHEDULE & REFUND'].includes(formType);
+        val = isReadOnly ? (mFormCurrent.mp["NO. WHATSAPP GL"] || mFormCurrent.mp["NO. WA KOORDINATOR"] || "") : "";
       } else if (f.key === 'NO. HANDPHONE' && mFormCurrent.mp) {
         val = mFormCurrent.mp["NO. WHATSAPP"] || "";
       } else if (f.key === 'NO. WHATSAPP' && mFormCurrent.mp) {
@@ -4375,18 +4382,6 @@ function mRenderGenericForm(formType) {
         $('[data-fkey="'+f.key+'"]').val(val);
       }
     });
-
-    let atasanVal = $('[data-fkey="NAMA ATASAN"]').val();
-    if (atasanVal) {
-      let upperAtasan = String(atasanVal).trim().toUpperCase();
-      let currentWa = $('input[data-fkey="NO. HANDPHONE ATASAN"]').val() || $('input[data-fkey="NO. WHATSAPP ATASAN"]').val();
-      if (!currentWa && mFormOptions && mFormOptions.atasanMap && mFormOptions.atasanMap[upperAtasan]) {
-        let waFromMap = mFormOptions.atasanMap[upperAtasan];
-        $('input[data-fkey="NO. HANDPHONE ATASAN"]').val(waFromMap);
-        $('input[data-fkey="NO. WHATSAPP ATASAN"]').val(waFromMap);
-        $('input[data-fkey="WA ATASAN"]').val(waFromMap);
-      }
-    }
 
     cfg.formFields.forEach(f => {
       let val = f.value;
@@ -4522,19 +4517,9 @@ function mRenderSplForm() {
     let ownWa = mFormCurrent.mp ? mFormCurrent.mp["NO. WHATSAPP"] : "";
     if (ownWa) $('input[data-fkey="NO. HANDPHONE"]').val(ownWa);
     
-    let atasanName = $('[data-fkey="NAMA ATASAN"]').val();
-    if (!atasanName && mFormCurrent.mp) {
-      atasanName = mFormCurrent.mp["NAMA KOORDINATOR GL"] || mFormCurrent.mp["NAMA GROUP LEADER"] || mFormCurrent.mp["NAMA ATASAN"] || "";
-      if (atasanName) $('[data-fkey="NAMA ATASAN"]').val(atasanName);
-    }
-    let atasanWa = $('input[data-fkey="NO. HANDPHONE ATASAN"]').val();
-    if (!atasanWa && mFormCurrent.mp) {
-      atasanWa = mFormCurrent.mp["NO. WA KOORDINATOR"] || mFormCurrent.mp["NO. WHATSAPP GL"] || mFormCurrent.mp["NO. HANDPHONE ATASAN"] || "";
-    }
-    if (atasanName && !atasanWa && mFormOptions && mFormOptions.atasanMap) {
-      atasanWa = mFormOptions.atasanMap[atasanName.trim().toUpperCase()] || "";
-    }
-    if (atasanWa) $('input[data-fkey="NO. HANDPHONE ATASAN"]').val(atasanWa);
+    // NAMA ATASAN & NO. HANDPHONE ATASAN left empty by default for manual user selection
+    $('[data-fkey="NAMA ATASAN"]').val('');
+    $('input[data-fkey="NO. HANDPHONE ATASAN"]').val('');
 
     // Explicitly initialize custom selects
     initCustomMobileSelects('#m-form-content');
