@@ -2281,7 +2281,7 @@
 
 <script>
 
-  // Google Apps Script client API polyfill for static hosting
+  // Google Apps Script client API polyfill for static hosting with automatic retry & backoff
   if (typeof google === 'undefined' || !google.script || !google.script.run) {
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzigOMROOTusIA9OborbcAn6EVmJdxBlxY0Wg-eiqcFU9xfOT0vaOoQMpZLn5vUZgHX/exec";
     console.log("Initializing Apps Script API Polyfill for " + WEB_APP_URL);
@@ -2301,6 +2301,35 @@
       }
     }
 
+    const fetchWithRetry = (url, fetchOptions, maxRetries = 3, delayMs = 1000) => {
+      return new Promise((resolve, reject) => {
+        const attempt = (retriesLeft, currentDelay) => {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 35000);
+
+          fetch(url, { ...fetchOptions, signal: controller.signal })
+            .then(res => {
+              clearTimeout(timeoutId);
+              if (!res.ok) throw new Error("HTTP error " + res.status);
+              return res.json();
+            })
+            .then(data => resolve(data))
+            .catch(err => {
+              clearTimeout(timeoutId);
+              if (retriesLeft > 0) {
+                let actionName = 'request';
+                try { actionName = JSON.parse(fetchOptions.body).action; } catch(e) {}
+                console.warn("[GAS Polyfill] Request to " + actionName + " failed (" + err.message + "). Retrying in " + currentDelay + "ms... (" + retriesLeft + " retries left)");
+                setTimeout(() => attempt(retriesLeft - 1, currentDelay * 1.5), currentDelay);
+              } else {
+                reject(err);
+              }
+            });
+        };
+        attempt(maxRetries, delayMs);
+      });
+    };
+
     const createRunnerProxy = (runner) => {
       return new Proxy(runner, {
         get(target, propKey) {
@@ -2311,7 +2340,7 @@
             };
           }
           return function(...args) {
-            fetch(WEB_APP_URL, {
+            fetchWithRetry(WEB_APP_URL, {
               method: "POST",
               headers: {
                 "Content-Type": "text/plain;charset=utf-8"
@@ -2321,11 +2350,7 @@
                 arguments: args
               }),
               redirect: 'follow'
-            })
-            .then(res => {
-              if (!res.ok) throw new Error("HTTP error " + res.status);
-              return res.json();
-            })
+            }, 3, 1000)
             .then(result => {
               if (result && result.error) {
                 if (target._failureCallback) target._failureCallback(new Error(result.error));
