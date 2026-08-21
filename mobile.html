@@ -2902,23 +2902,26 @@ $(document).ready(function() {
     let val = optionEl.data('value');
     let text = optionEl.text();
     let container = optionEl.closest('.custom-select-container');
-    let formGroup = container.closest('.form-group');
+    let formGroup = container.closest('.form-group, .m-form-group');
     let card = container.closest('.card');
     let trigger = container.find('.custom-select-trigger');
     let optionsList = container.find('.custom-select-options');
-    let select = container.prev('select.custom-select-hidden');
+    
+    let select = container.prev('select');
+    if (!select.length) select = container.siblings('select').first();
+    if (!select.length) select = container.parent().find('select').first();
     
     optionsList.find('.custom-select-option').removeClass('selected');
     optionEl.addClass('selected');
     trigger.find('span').text(text);
     trigger.removeClass('open');
     container.removeClass('open');
-    formGroup.removeClass('custom-select-open');
-    card.removeClass('custom-select-card-open');
+    if (formGroup.length) formGroup.removeClass('custom-select-open');
+    if (card.length) card.removeClass('custom-select-card-open');
     optionsList.hide();
     
     if (select.length) {
-      select.val(val).trigger('change');
+      select.val(val).trigger('change').trigger('input');
     }
   });
 
@@ -5792,6 +5795,18 @@ function mSubmitForm(formType) {
     }
   });
   if (formType === 'SURAT PERINTAH LEMBUR') {
+    let tStart = data['JAM MULAI'] || '';
+    let tEnd = data['JAM AKHIR'] || '';
+    if (tStart && tEnd) {
+      let [h1, m1] = tStart.split(':').map(Number);
+      let [h2, m2] = tEnd.split(':').map(Number);
+      if (!isNaN(h1) && !isNaN(h2)) {
+        let diff = (h2 * 60 + (m2 || 0)) - (h1 * 60 + (m1 || 0));
+        if (diff < 0) diff += 24 * 60;
+        data['DURASI (JAM)'] = String(diff / 60);
+        $('[data-fkey="DURASI (JAM)"]').val(data['DURASI (JAM)']);
+      }
+    }
     if (data['JAM MULAI'] && data['JAM MULAI'].split(':').length === 2) data['JAM MULAI'] += ':00';
     if (data['JAM AKHIR'] && data['JAM AKHIR'].split(':').length === 2) data['JAM AKHIR'] += ':00';
   }
