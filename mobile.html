@@ -3003,17 +3003,30 @@ $(document).ready(function() {
     }
   });
 
-  // SPL: Auto-lookup Atasan WhatsApp
-  $(document).on('change', 'select[data-fkey="NAMA ATASAN"]', function() {
-    if (mFormCurrent.type === 'SURAT PERINTAH LEMBUR') {
-      let name = $(this).val();
-      if (name) {
-        google.script.run.withSuccessHandler(wa => {
-          if (wa) $('input[data-fkey="NO. HANDPHONE ATASAN"]').val(wa);
-        }).getEmployeeWhatsappByName(name);
+  // Auto-lookup Atasan WhatsApp (Instant 0ms lookup from local atasanMap)
+  $(document).on('change input', 'select[data-fkey="NAMA ATASAN"], input[data-fkey="NAMA ATASAN"]', function() {
+    let nameVal = $(this).val();
+    let nameKey = String(nameVal || '').trim().toUpperCase();
+    if (nameKey) {
+      let localWa = (mFormOptions && mFormOptions.atasanMap) ? (mFormOptions.atasanMap[nameKey] || '') : '';
+      if (localWa) {
+        $('input[data-fkey="NO. HANDPHONE ATASAN"]').val(localWa);
+        $('input[data-fkey="NO. WHATSAPP ATASAN"]').val(localWa);
+        $('input[data-fkey="WA ATASAN"]').val(localWa);
       } else {
-        $('input[data-fkey="NO. HANDPHONE ATASAN"]').val('');
+        google.script.run.withSuccessHandler(wa => {
+          if (wa) {
+            $('input[data-fkey="NO. HANDPHONE ATASAN"]').val(wa);
+            $('input[data-fkey="NO. WHATSAPP ATASAN"]').val(wa);
+            $('input[data-fkey="WA ATASAN"]').val(wa);
+            if (mFormOptions && mFormOptions.atasanMap) mFormOptions.atasanMap[nameKey] = wa;
+          }
+        }).getEmployeeWhatsappByName(nameVal);
       }
+    } else {
+      $('input[data-fkey="NO. HANDPHONE ATASAN"]').val('');
+      $('input[data-fkey="NO. WHATSAPP ATASAN"]').val('');
+      $('input[data-fkey="WA ATASAN"]').val('');
     }
   });
 
@@ -4363,6 +4376,18 @@ function mRenderGenericForm(formType) {
       }
     });
 
+    let atasanVal = $('[data-fkey="NAMA ATASAN"]').val();
+    if (atasanVal) {
+      let upperAtasan = String(atasanVal).trim().toUpperCase();
+      let currentWa = $('input[data-fkey="NO. HANDPHONE ATASAN"]').val() || $('input[data-fkey="NO. WHATSAPP ATASAN"]').val();
+      if (!currentWa && mFormOptions && mFormOptions.atasanMap && mFormOptions.atasanMap[upperAtasan]) {
+        let waFromMap = mFormOptions.atasanMap[upperAtasan];
+        $('input[data-fkey="NO. HANDPHONE ATASAN"]').val(waFromMap);
+        $('input[data-fkey="NO. WHATSAPP ATASAN"]').val(waFromMap);
+        $('input[data-fkey="WA ATASAN"]').val(waFromMap);
+      }
+    }
+
     cfg.formFields.forEach(f => {
       let val = f.value;
       if (f.key === 'SISA CUTI TAHUNAN' && mFormCurrent.mp) {
@@ -4497,6 +4522,20 @@ function mRenderSplForm() {
     let ownWa = mFormCurrent.mp ? mFormCurrent.mp["NO. WHATSAPP"] : "";
     if (ownWa) $('input[data-fkey="NO. HANDPHONE"]').val(ownWa);
     
+    let atasanName = $('[data-fkey="NAMA ATASAN"]').val();
+    if (!atasanName && mFormCurrent.mp) {
+      atasanName = mFormCurrent.mp["NAMA KOORDINATOR GL"] || mFormCurrent.mp["NAMA GROUP LEADER"] || mFormCurrent.mp["NAMA ATASAN"] || "";
+      if (atasanName) $('[data-fkey="NAMA ATASAN"]').val(atasanName);
+    }
+    let atasanWa = $('input[data-fkey="NO. HANDPHONE ATASAN"]').val();
+    if (!atasanWa && mFormCurrent.mp) {
+      atasanWa = mFormCurrent.mp["NO. WA KOORDINATOR"] || mFormCurrent.mp["NO. WHATSAPP GL"] || mFormCurrent.mp["NO. HANDPHONE ATASAN"] || "";
+    }
+    if (atasanName && !atasanWa && mFormOptions && mFormOptions.atasanMap) {
+      atasanWa = mFormOptions.atasanMap[atasanName.trim().toUpperCase()] || "";
+    }
+    if (atasanWa) $('input[data-fkey="NO. HANDPHONE ATASAN"]').val(atasanWa);
+
     // Explicitly initialize custom selects
     initCustomMobileSelects('#m-form-content');
   }, 100);
