@@ -682,11 +682,13 @@ button { font-family: inherit; cursor: pointer; }
 
 /* ===== SUBMENU OVERLAY ===== */
 .m-submenu-overlay {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
+  height: 100%;
+  height: 100dvh;
   z-index: 200;
   background: #f1f5f9;
   display: flex;
@@ -4195,13 +4197,22 @@ function mGetMpData(callback) {
 }
 
 function mScrollFormToTop() {
-  $('#m-form-overlay').scrollTop(0);
-  $('.m-submenu-overlay').scrollTop(0);
-  if ($('#m-form-content').length) $('#m-form-content').scrollTop(0);
-  if ($('.m-sub-content').length) $('.m-sub-content').scrollTop(0);
-  window.scrollTo(0, 0);
-  if (document.documentElement) document.documentElement.scrollTop = 0;
-  if (document.body) document.body.scrollTop = 0;
+  const doScroll = () => {
+    $('#m-form-overlay').scrollTop(0);
+    $('#m-submenu-overlay').scrollTop(0);
+    $('#m-approval-overlay').scrollTop(0);
+    $('#m-history-overlay').scrollTop(0);
+    $('.m-submenu-overlay').scrollTop(0);
+    if ($('#m-form-content').length) $('#m-form-content').scrollTop(0);
+    if ($('.m-sub-content').length) $('.m-sub-content').scrollTop(0);
+    window.scrollTo(0, 0);
+    if (document.documentElement) document.documentElement.scrollTop = 0;
+    if (document.body) document.body.scrollTop = 0;
+  };
+  doScroll();
+  setTimeout(doScroll, 50);
+  setTimeout(doScroll, 150);
+  setTimeout(doScroll, 300);
 }
 
 function mOpenForm(formType) {
