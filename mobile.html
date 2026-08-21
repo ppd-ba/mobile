@@ -5757,11 +5757,11 @@ function mSubmitForm(formType) {
         isHidden = true;
       }
     } else {
-      if ($input.is(':hidden') && $input.attr('type') !== 'hidden') {
+      if ($input.is(':hidden') && $input.attr('type') !== 'hidden' && !$input.hasClass('custom-select-hidden')) {
         isHidden = true;
       }
     }
-    if ($input.closest('.m-form-group').is(':hidden') || $input.closest('[id^="mf-"]').is(':hidden')) {
+    if (($input.closest('.m-form-group').is(':hidden') || $input.closest('[id^="mf-"]').is(':hidden')) && !$input.hasClass('custom-select-hidden')) {
       isHidden = true;
     }
     let visible = !isHidden;
@@ -5830,6 +5830,8 @@ function mSubmitForm(formType) {
       if ($el.length > 0) {
         if ($el.attr('type') === 'file') {
           isVisible = $el.closest('.m-file-upload-wrapper').is(':visible');
+        } else if ($el.hasClass('custom-select-hidden')) {
+          isVisible = !$el.closest('.m-form-group').is(':hidden') && !$el.closest('[id^="mf-"]').is(':hidden');
         } else {
           isVisible = $el.is(':visible');
         }
