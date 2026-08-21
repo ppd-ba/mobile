@@ -4194,7 +4194,18 @@ function mGetMpData(callback) {
   }
 }
 
+function mScrollFormToTop() {
+  $('#m-form-overlay').scrollTop(0);
+  $('.m-submenu-overlay').scrollTop(0);
+  if ($('#m-form-content').length) $('#m-form-content').scrollTop(0);
+  if ($('.m-sub-content').length) $('.m-sub-content').scrollTop(0);
+  window.scrollTo(0, 0);
+  if (document.documentElement) document.documentElement.scrollTop = 0;
+  if (document.body) document.body.scrollTop = 0;
+}
+
 function mOpenForm(formType) {
+  mScrollFormToTop();
   localStorage.setItem('mLastOpenFormType', formType);
   mFormCurrent = { type: formType, mp: {}, state: {} };
   window.mFormFiles = {};
@@ -4266,6 +4277,7 @@ function mOpenForm(formType) {
 
 
 function mRenderGenericForm(formType) {
+  mScrollFormToTop();
   let cfg = mGetFormConfig(formType);
 
   if (formType === 'IZIN NON RESMI') {
@@ -4303,6 +4315,14 @@ function mRenderGenericForm(formType) {
            + '<button class="m-btn-primary m-btn-block mt-2" onclick="mSubmitForm(\''+formType+'\')"><i class="fas fa-paper-plane"></i> Submit Pengajuan</button>'
            + '<button class="m-btn-secondary m-btn-block mt-2" onclick="mCloseForm()"><i class="fas fa-times"></i> Batal</button>';
   $('#m-form-content').html(html);
+  mScrollFormToTop();
+
+  if (formType === 'IZIN NON RESMI') {
+    let dTomorrow = new Date();
+    dTomorrow.setDate(dTomorrow.getDate() + 1);
+    let tomorrowStr = dTomorrow.getFullYear() + '-' + String(dTomorrow.getMonth() + 1).padStart(2, '0') + '-' + String(dTomorrow.getDate()).padStart(2, '0');
+    $('[data-fkey="TANGGAL BERANGKAT"]').attr('min', tomorrowStr);
+  }
 
   // Pre-fill user data and lookup values from mFormCurrent.mp
   setTimeout(() => {
@@ -4390,6 +4410,7 @@ function mRenderGenericForm(formType) {
 
 // ===== SURAT PERINTAH LEMBUR form khusus =====
 function mOpenSplForm() {
+  mScrollFormToTop();
   $('#m-form-title').text('Pengajuan Lembur');
 
   const cacheKey = 'PPDMobileMpData_' + mUser.nrp;
@@ -4454,6 +4475,7 @@ function mRenderSplForm() {
            + '<button class="m-btn-primary m-btn-block mt-2" onclick="mSubmitForm(\'SURAT PERINTAH LEMBUR\')"><i class="fas fa-paper-plane"></i> Submit Pengajuan</button>'
            + '<button class="m-btn-secondary m-btn-block mt-2" onclick="mCloseForm()"><i class="fas fa-times"></i> Batal</button>';
   $('#m-form-content').html(html);
+  mScrollFormToTop();
 
   // Pre-fill user data
   setTimeout(() => {
@@ -4471,6 +4493,7 @@ function mRenderSplForm() {
 
 // ===== CUTI form khusus =====
 function mOpenCutiForm() {
+  mScrollFormToTop();
   $('#m-form-title').text('Pengajuan Cuti');
   let effectiveNrp = (mUser && mUser.nrp && mUser.nrp !== '-') ? mUser.nrp : (mUser ? mUser.username : '');
 
@@ -4588,9 +4611,13 @@ function mRenderCutiForm() {
   html += '<div id="mf-mess-name-wrap" style="display:none;">' + mfText('NAMA MESS', 'Nama Mess', '', { req:true, upper:true }) + '</div>';
   html += mfRO('JENIS CUTI', 'Jenis Cuti', 'Cuti Lapangan & Cuti Tahunan');
 
+  let dTomorrow = new Date();
+  dTomorrow.setDate(dTomorrow.getDate() + 1);
+  let tomorrowStr = dTomorrow.getFullYear() + '-' + String(dTomorrow.getMonth() + 1).padStart(2, '0') + '-' + String(dTomorrow.getDate()).padStart(2, '0');
+
   // Cuti Lapangan
   html += '<div class="m-cuti-sub">CUTI LAPANGAN</div>';
-  html += mfDate('CUTI LAPANGAN (AWAL)', 'Cuti Lapangan Awal', '', { req:true, onChange:'mCutiOnChange()' });
+  html += mfDate('CUTI LAPANGAN (AWAL)', 'Cuti Lapangan Awal', '', { req:true, min: tomorrowStr, onChange:'mCutiOnChange()' });
   html += mfStepper('DURASI CUTI LAPANGAN', 'Durasi Cuti Lapangan (hari)', 14, { min:10, max:15, req:true, onChange:'mCutiOnChange()' });
   html += mfRO('CUTI LAPANGAN (AKHIR)', 'Cuti Lapangan Akhir', '');
 
@@ -4665,6 +4692,7 @@ function mRenderCutiForm() {
   html += '<button class="m-btn-secondary m-btn-block mt-2" onclick="mCloseForm()"><i class="fas fa-times"></i> Batal</button>';
 
   $('#m-form-content').html(html);
+  mScrollFormToTop();
   // Trigger initial calc and initialize/refresh custom selects
   setTimeout(() => {
     mCutiOnChange();
@@ -5320,11 +5348,14 @@ function mGetFormConfig(formType) {
     ];
   } else if (formType === 'IZIN NON RESMI') {
     title = 'Izin Non Resmi';
+    let dTomorrow = new Date();
+    dTomorrow.setDate(dTomorrow.getDate() + 1);
+    let minDateInr = dTomorrow.getFullYear() + '-' + String(dTomorrow.getMonth() + 1).padStart(2, '0') + '-' + String(dTomorrow.getDate()).padStart(2, '0');
     userFields = userFields.concat([{ key:'NO. HANDPHONE', label:'No HP', type:'tel', readonly:true }]);
     formFields = [
       { key:'SISA CUTI TAHUNAN', label:'Sisa Cuti Tahunan', type:'text', readonly:true },
       { key:'TUJUAN/ALAMAT', label:'Tujuan / Alamat', type:'text', req:true },
-      { key:'TANGGAL BERANGKAT', label:'Tanggal Berangkat', type:'date', req:true },
+      { key:'TANGGAL BERANGKAT', label:'Tanggal Berangkat', type:'date', req:true, min: minDateInr },
       { key:'JUMLAH HARI', label:'Jumlah Hari', type:'stepper', min:1, req:true },
       { key:'TANGGAL KEMBALI', label:'Tanggal Kembali', type:'date', req:true, readonly:true },
       { key:'ALASAN/URAIAN', label:'Alasan / Uraian', type:'textarea', req:true }
@@ -5512,7 +5543,9 @@ function mBuildField(f) {
       displayType = 'text';
     }
     let plc = f.placeholder ? `placeholder="${f.placeholder}"` : '';
-    html += '<input class="m-form-input" type="'+displayType+'" data-fkey="'+f.key+'" value="'+val+'" '+attr+' '+(f.req?'required':'')+' '+plc+'>';
+    let minAttr = f.min ? `min="${f.min}"` : '';
+    let maxAttr = f.max ? `max="${f.max}"` : '';
+    html += '<input class="m-form-input" type="'+displayType+'" data-fkey="'+f.key+'" value="'+val+'" '+attr+' '+(f.req?'required':'')+' '+minAttr+' '+maxAttr+' '+plc+'>';
   }
   html += '</div>';
   return html;
@@ -6078,6 +6111,7 @@ function mBuildHistoryPhotoBanner(item) {
 }
 
 function mOpenHistoryDetail(idx) {
+  mScrollFormToTop();
   let f = $('#m-history-filter .m-pill-active').data('f') || '';
   let filtered = f ? mHistoryList.filter(x => x.sheetName === f) : mHistoryList;
   if (typeof mHistoryStatusFilter !== 'undefined' && mHistoryStatusFilter === 'PENDING') {
@@ -6326,6 +6360,7 @@ function mGetVal(details, keyword) {
 }
 
 function mOpenApprovalDetail(idx) {
+  mScrollFormToTop();
   mCurrentAppIdx = idx;
   const item = mApprovalList[idx];
   if (!item) return;
