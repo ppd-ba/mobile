@@ -5839,7 +5839,7 @@ function mSubmitForm(formType) {
   });
   if (formType === 'SURAT PERINTAH LEMBUR') {
     let tStart = data['JAM MULAI'] || '';
-    let tEnd = data['JAM AKHIR'] || '';
+    let tEnd = data['JAM AKHIR'] || data['JAM SELESAI'] || '';
     if (tStart && tEnd) {
       let [h1, m1] = tStart.split(':').map(Number);
       let [h2, m2] = tEnd.split(':').map(Number);
@@ -5852,6 +5852,14 @@ function mSubmitForm(formType) {
     }
     if (data['JAM MULAI'] && data['JAM MULAI'].split(':').length === 2) data['JAM MULAI'] += ':00';
     if (data['JAM AKHIR'] && data['JAM AKHIR'].split(':').length === 2) data['JAM AKHIR'] += ':00';
+    // Duplicate alias keys so any sheet header receives values
+    if (data['JAM AKHIR']) data['JAM SELESAI'] = data['JAM AKHIR'];
+    if (data['ALASAN/URAIAN']) {
+      data['KEPERLUAN'] = data['ALASAN/URAIAN'];
+      data['ALASAN'] = data['ALASAN/URAIAN'];
+      data['URAIAN'] = data['ALASAN/URAIAN'];
+    }
+    if (data['DURASI (JAM)']) data['DURASI'] = data['DURASI (JAM)'];
   }
   if (missing.length > 0) {
     // Scroll first invalid field into view
