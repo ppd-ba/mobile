@@ -310,8 +310,7 @@ button { font-family: inherit; cursor: pointer; }
   display: grid; grid-template-columns: 1fr; gap: 8px;
   margin-top: 14px; width: 100%; box-sizing: border-box;
 }
-.m-hero-stats.has-approver,
-.m-hero-stats:has(.m-hero-stat-approver:not([style*="display: none"])) {
+.m-hero-stats.has-approver {
   grid-template-columns: 1fr 1fr;
 }
 .m-hero-stat {
@@ -1806,7 +1805,7 @@ html.swal2-shown, body.swal2-shown {
             <small>menunggu approval</small>
           </div>
         </div>
-        <div class="m-hero-stat m-hero-stat-approver" id="m-hero-stat-approver" style="display:none;" onclick="mSwitchTab('approval')">
+        <div class="m-hero-stat m-hero-stat-approver d-none" id="m-hero-stat-approver" style="display:none;" onclick="mSwitchTab('approval')">
           <div class="m-hs-label">APPROVAL ANDA</div>
           <div class="m-hs-value">
             <span id="m-stat-mypproval">0</span>
@@ -6133,11 +6132,11 @@ function mUpdateHeroStats() {
   // Approver count = mApprovalList.length
   let role = String(mUser.role || '').toUpperCase().trim();
   if (M_APPROVER_ROLES.includes(role)) {
-    $('#m-hero-stat-approver').show();
+    $('#m-hero-stat-approver').removeClass('d-none').show();
     $('.m-hero-stats').addClass('has-approver');
     $('#m-stat-mypproval').text(mApprovalList.length);
   } else {
-    $('#m-hero-stat-approver').hide();
+    $('#m-hero-stat-approver').addClass('d-none').hide();
     $('.m-hero-stats').removeClass('has-approver');
   }
 }
