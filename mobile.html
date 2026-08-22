@@ -6040,7 +6040,7 @@ function mSubmitForm(formType) {
             if (res.pdfTrigger) {
               google.script.run.withSuccessHandler(() => {
                 console.log("PDF Generation triggered successfully");
-              }).triggerRegenWrapper(res.pdfTrigger.sheetTarget, res.pdfTrigger.rowTarget, mUser.username);
+              }).triggerRegenWrapper(res.pdfTrigger.sheetTarget, res.pdfTrigger.rowTarget, mUser.username, data);
             }
           } else {
             Swal.fire('Gagal', res.message || 'Submit gagal', 'error');
