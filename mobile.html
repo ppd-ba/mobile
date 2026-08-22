@@ -5868,6 +5868,25 @@ function mSubmitForm(formType) {
       data['URAIAN'] = data['ALASAN/URAIAN'];
     }
     if (data['DURASI (JAM)']) data['DURASI'] = data['DURASI (JAM)'];
+
+    // Strict validation for SPL required fields
+    if (!data['JAM AKHIR'] || data['JAM AKHIR'] === '') {
+      missing.push('JAM AKHIR');
+      let $input = $('[data-fkey="JAM AKHIR"]');
+      let trigger = $input.next('.custom-select-container').find('.custom-select-trigger');
+      trigger.addClass('is-invalid');
+      if (trigger.next('.m-validation-warning').length === 0) {
+        trigger.after(`<div class="m-validation-warning" style="color: #c10f19; font-size: 0.78em; font-weight: 600; margin-top: 4px;"><i class="fas fa-exclamation-circle mr-1"></i>Jam Akhir wajib diisi</div>`);
+      }
+    }
+    if (!data['ALASAN/URAIAN'] || data['ALASAN/URAIAN'] === '') {
+      missing.push('ALASAN/URAIAN');
+      let $input = $('[data-fkey="ALASAN/URAIAN"]');
+      $input.addClass('is-invalid');
+      if ($input.next('.m-validation-warning').length === 0) {
+        $input.after(`<div class="m-validation-warning" style="color: #c10f19; font-size: 0.78em; font-weight: 600; margin-top: 4px;"><i class="fas fa-exclamation-circle mr-1"></i>Alasan / Uraian wajib diisi</div>`);
+      }
+    }
   }
   if (missing.length > 0) {
     // Scroll first invalid field into view
