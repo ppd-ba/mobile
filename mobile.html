@@ -5671,69 +5671,93 @@ function mHandleFileSelect(input, randId) {
   $(`#${randId}_filename`).text(file.name);
   $(`#${randId}_filesize`).text(sizeStr + ' (Memproses...)');
 
-  // If it's an image, show thumbnail preview and compress immediately
-  if (file.type.startsWith('image/')) {
-    let reader = new FileReader();
-    reader.onload = function(e) {
-      // Set preview thumbnail
-      $(`#${randId}_thumb`).attr('src', e.target.result).show();
+  let isImage = (file.type && file.type.startsWith('image/')) || /\.(jpg|jpeg|png|webp|heic|heif|gif|bmp)$/i.test(file.name);
+
+  if (isImage) {
+    let objectUrl = null;
+    try {
+      objectUrl = URL.createObjectURL(file);
+      $(`#${randId}_thumb`).attr('src', objectUrl).show();
+    } catch(eObj) {}
+
+    let img = new Image();
+    img.onload = function() {
+      if (objectUrl) {
+        try { URL.revokeObjectURL(objectUrl); } catch(eRev){}
+      }
+      let canvas = document.createElement('canvas');
+      let maxWidth = 1200;
+      let maxHeight = 1200;
+      let width = img.width;
+      let height = img.height;
+
+      if (width > height) {
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+      } else {
+        if (height > maxHeight) {
+          width = Math.round((width * maxHeight) / height);
+          height = maxHeight;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      let ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+
+      let base64 = canvas.toDataURL('image/jpeg', 0.85);
+      let base64Clean = base64.split(',')[1];
       
-      // Perform compression
-      let img = new Image();
-      img.onload = function() {
-        let canvas = document.createElement('canvas');
-        let maxWidth = 1200;
-        let maxHeight = 1200;
-        let width = img.width;
-        let height = img.height;
+      // Calculate compressed size for information
+      let compSize = Math.round((base64Clean.length * 3) / 4);
+      let compSizeStr = (compSize / 1024).toFixed(1) + ' KB';
+      if (compSize > 1024 * 1024) {
+        compSizeStr = (compSize / (1024 * 1024)).toFixed(2) + ' MB';
+      }
+      $(`#${randId}_filesize`).text(`${sizeStr} (Kompresi: ${compSizeStr})`);
 
-        if (width > height) {
-          if (width > maxWidth) {
-            height = Math.round((height * maxWidth) / width);
-            width = maxWidth;
-          }
-        } else {
-          if (height > maxHeight) {
-            width = Math.round((width * maxHeight) / height);
-            height = maxHeight;
-          }
-        }
+      // Update thumbnail to compressed image
+      $(`#${randId}_thumb`).attr('src', base64).show();
 
-        canvas.width = width;
-        canvas.height = height;
-        let ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
-
-        let base64 = canvas.toDataURL('image/jpeg', 0.85);
-        let base64Clean = base64.split(',')[1];
-        
-        // Calculate compressed size for information
-        let compSize = Math.round((base64Clean.length * 3) / 4);
-        let compSizeStr = (compSize / 1024).toFixed(1) + ' KB';
-        if (compSize > 1024 * 1024) {
-          compSizeStr = (compSize / (1024 * 1024)).toFixed(2) + ' MB';
-        }
-        $(`#${randId}_filesize`).text(`${sizeStr} (Kompresi: ${compSizeStr})`);
-
-        window.mFormFiles[fkey] = {
-          base64: base64Clean,
-          mime: 'image/jpeg',
-          ext: 'jpg'
-        };
+      window.mFormFiles[fkey] = {
+        base64: base64Clean,
+        mime: 'image/jpeg',
+        ext: 'jpg'
       };
-      img.onerror = function() {
+    };
+
+    img.onerror = function() {
+      if (objectUrl) {
+        try { URL.revokeObjectURL(objectUrl); } catch(eRev){}
+      }
+      // FileReader fallback
+      let reader = new FileReader();
+      reader.onload = function(e) {
+        $(`#${randId}_thumb`).attr('src', e.target.result).show();
         let rawBase64 = e.target.result.split(',')[1];
         let ext = file.name.split('.').pop() || 'jpg';
         window.mFormFiles[fkey] = {
           base64: rawBase64,
-          mime: file.type,
+          mime: file.type || 'image/jpeg',
           ext: ext
         };
-        $(`#${randId}_filesize`).text(sizeStr);
+        $(`#${randId}_filesize`).text(sizeStr + ' (Siap)');
       };
-      img.src = e.target.result;
+      reader.readAsDataURL(file);
     };
-    reader.readAsDataURL(file);
+
+    if (objectUrl) {
+      img.src = objectUrl;
+    } else {
+      let reader = new FileReader();
+      reader.onload = function(e) {
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
   } else {
     // Non-image files: read raw base64
     $(`#${randId}_thumb`).attr('src', 'https://cdn-icons-png.flaticon.com/512/2991/2991108.png').show();
@@ -5743,10 +5767,10 @@ function mHandleFileSelect(input, randId) {
       let ext = file.name.split('.').pop() || 'dat';
       window.mFormFiles[fkey] = {
         base64: base64,
-        mime: file.type,
+        mime: file.type || 'application/octet-stream',
         ext: ext
       };
-      $(`#${randId}_filesize`).text(sizeStr);
+      $(`#${randId}_filesize`).text(sizeStr + ' (Siap)');
     };
     reader.readAsDataURL(file);
   }
