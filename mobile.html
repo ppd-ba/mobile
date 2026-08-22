@@ -308,8 +308,9 @@ button { font-family: inherit; cursor: pointer; }
 .m-hero-stats {
   position: relative; z-index: 2;
   display: grid; grid-template-columns: 1fr; gap: 8px;
-  margin-top: 14px;
+  margin-top: 14px; width: 100%; box-sizing: border-box;
 }
+.m-hero-stats.has-approver,
 .m-hero-stats:has(.m-hero-stat-approver:not([style*="display: none"])) {
   grid-template-columns: 1fr 1fr;
 }
@@ -6133,9 +6134,11 @@ function mUpdateHeroStats() {
   let role = String(mUser.role || '').toUpperCase().trim();
   if (M_APPROVER_ROLES.includes(role)) {
     $('#m-hero-stat-approver').show();
+    $('.m-hero-stats').addClass('has-approver');
     $('#m-stat-mypproval').text(mApprovalList.length);
   } else {
     $('#m-hero-stat-approver').hide();
+    $('.m-hero-stats').removeClass('has-approver');
   }
 }
 
