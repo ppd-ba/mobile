@@ -4230,30 +4230,31 @@ function mGetMpData(callback) {
     const stored = localStorage.getItem(cacheKey);
     if (stored) {
       const cacheObj = JSON.parse(stored);
-      // Valid for 24 hours (profile data changes very rarely)
       if (Date.now() - cacheObj.timestamp < 86400000) {
         cached = cacheObj.data;
       }
     }
   } catch(e) {}
 
-  if (cached) {
-    callback(cached);
-    // Background validation to silently keep the cache updated
+  let fallbackMp = {
+    "NAMA KARYAWAN": (mUser && mUser.nama) || "",
+    "NRP": effectiveNrp,
+    "JABATAN": (mUser && mUser.jabatan) || "",
+    "SECTION": (mUser && mUser.section) || "",
+    "PERUSAHAAN": (mUser && mUser.perusahaan) || "PPA",
+    "SITE": (mUser && mUser.site) || "BA",
+    "NO. WHATSAPP": (mUser && (mUser.noWa || mUser.wa)) || ""
+  };
+
+  // Instant response (zero loader waiting)
+  callback(cached || fallbackMp);
+
+  // Background validation to silently keep the cache updated
+  if (effectiveNrp) {
     google.script.run.withSuccessHandler(mp => {
       if (mp && Object.keys(mp).length > 0) {
         try { localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data: mp })); } catch(e) {}
       }
-    }).getMobileMpDataByNrp(effectiveNrp);
-  } else {
-    // No cache -> call server
-    google.script.run.withSuccessHandler(mp => {
-      if (mp && Object.keys(mp).length > 0) {
-        try { localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data: mp })); } catch(e) {}
-      }
-      callback(mp || {});
-    }).withFailureHandler(() => {
-      callback({});
     }).getMobileMpDataByNrp(effectiveNrp);
   }
 }
@@ -4291,59 +4292,12 @@ function mOpenForm(formType) {
   if (['IZIN NON RESMI', 'BA TIKET', 'RESCHEDULE & REFUND', 'PLANOVA'].includes(formType)) {
     $('#m-form-title').text(mGetFormConfig(formType).title);
     
-    // Attempt cache load first for instant opening
-    const cacheKey = 'PPDMobileMpData_' + mUser.nrp;
-    let cached = null;
-    try {
-      const stored = localStorage.getItem(cacheKey);
-      if (stored) {
-        const cacheObj = JSON.parse(stored);
-        if (Date.now() - cacheObj.timestamp < 86400000) { // 24 hours
-          cached = cacheObj.data;
-        }
-      }
-    } catch(e) {}
-
-    if (cached) {
-      mFormCurrent = { type: formType, mp: cached, state: {} };
+    mGetMpData(mp => {
+      mFormCurrent = { type: formType, mp: mp || {}, state: {} };
       mRenderGenericForm(formType);
       $('#m-form-overlay').show();
       mPushNav('overlay', 'form');
-      
-      // Update cache silently in background
-      google.script.run.withSuccessHandler(mp => {
-        if (mp && Object.keys(mp).length > 0) {
-          try { localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data: mp })); } catch(e) {}
-        }
-      }).getMobileMpDataByNrp(mUser.nrp);
-      return;
-    }
-
-    // Default loader fallback if no cache
-    $('#m-form-content').html(
-      '<div class="m-form-loader">' +
-      '  <div class="m-form-loader-spinner">' +
-      '    <span class="m-bounce-dot m-bd-1"></span>' +
-      '    <span class="m-bounce-dot m-bd-2"></span>' +
-      '    <span class="m-bounce-dot m-bd-3"></span>' +
-      '    <span class="m-bounce-dot m-bd-4"></span>' +
-      '    <span class="m-bounce-dot m-bd-5"></span>' +
-      '  </div>' +
-      '  <p class="m-form-loader-text">Prepare Your Form<span class="m-loader-dots"></span></p>' +
-      '</div>'
-    );
-    $('#m-form-overlay').show();
-    mPushNav('overlay', 'form');
-
-    google.script.run.withSuccessHandler(mp => {
-      if (mp && Object.keys(mp).length > 0) {
-        try { localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data: mp })); } catch(e) {}
-      }
-      mFormCurrent = { type: formType, mp: mp || {}, state: {} };
-      mRenderGenericForm(formType);
-    }).withFailureHandler(err => {
-      $('#m-form-content').html('<div class="text-center py-5 text-danger">Gagal load data MP: '+(err.message||err)+'</div>');
-    }).getMobileMpDataByNrp(mUser.nrp);
+    });
   }
 }
 
@@ -4491,54 +4445,13 @@ function mRenderGenericForm(formType) {
 // ===== SURAT PERINTAH LEMBUR form khusus =====
 function mOpenSplForm() {
   mScrollFormToTop();
-  $('#m-form-title').text('Pengajuan Lembur');
-
-  const cacheKey = 'PPDMobileMpData_' + mUser.nrp;
-  let cached = null;
-  try {
-    const stored = localStorage.getItem(cacheKey);
-    if (stored) {
-      const cacheObj = JSON.parse(stored);
-      if (Date.now() - cacheObj.timestamp < 86400000) {
-        cached = cacheObj.data;
-      }
-    }
-  } catch(e) {}
-
-  if (cached) {
-    mFormCurrent = { type: 'SURAT PERINTAH LEMBUR', mp: cached, state: {} };
-    mRenderSplForm();
-    $('#m-form-overlay').show();
-    mPushNav('overlay', 'form');
-    
-    // Refresh cache silently in the background
-    google.script.run.withSuccessHandler(mp => {
-      if (mp && Object.keys(mp).length > 0) {
-        try { localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data: mp })); } catch(e) {}
-      }
-    }).getMobileMpDataByNrp(mUser.nrp);
-    return;
-  }
-
-  // No cache -> show loader and fetch
-  $('#m-form-content').html(
-    '<div class="m-form-loader">' +
-    '  <div class="m-form-loader-spinner">' +
-    '    <span class="m-bounce-dot m-bd-1"></span>' +
-    '    <span class="m-bounce-dot m-bd-2"></span>' +
-    '    <span class="m-bounce-dot m-bd-3"></span>' +
-    '    <span class="m-bounce-dot m-bd-4"></span>' +
-    '    <span class="m-bounce-dot m-bd-5"></span>' +
-    '  </div>' +
-    '  <p class="m-form-loader-text">Prepare Your Form<span class="m-loader-dots"></span></p>' +
-    '</div>'
-  );
-  $('#m-form-overlay').show();
-  mPushNav('overlay', 'form');
+  $('#m-form-title').text('Surat Perintah Lembur');
 
   mGetMpData(mp => {
     mFormCurrent = { type: 'SURAT PERINTAH LEMBUR', mp: mp, state: {} };
     mRenderSplForm();
+    $('#m-form-overlay').show();
+    mPushNav('overlay', 'form');
   });
 }
 
@@ -4589,61 +4502,12 @@ function mRenderSplForm() {
 function mOpenCutiForm() {
   mScrollFormToTop();
   $('#m-form-title').text('Pengajuan Cuti');
-  let effectiveNrp = (mUser && mUser.nrp && mUser.nrp !== '-') ? mUser.nrp : (mUser ? mUser.username : '');
-
-  const cacheKey = 'PPDMobileMpData_' + effectiveNrp;
-  let cached = null;
-  try {
-    const stored = localStorage.getItem(cacheKey);
-    if (stored) {
-      const cacheObj = JSON.parse(stored);
-      if (Date.now() - cacheObj.timestamp < 86400000) {
-        cached = cacheObj.data;
-      }
-    }
-  } catch(e) {}
-
-  if (cached) {
-    mFormCurrent = { type: 'CUTI', mp: cached, state: {} };
-    mRenderCutiForm();
-    $('#m-form-overlay').show();
-    mPushNav('overlay', 'form');
-    
-    // Refresh cache silently in the background
-    google.script.run.withSuccessHandler(mp => {
-      if (mp && Object.keys(mp).length > 0) {
-        try { localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data: mp })); } catch(e) {}
-        if (mFormCurrent.type === 'CUTI') {
-          mFormCurrent.mp = mp;
-          let namaAtasanVal = mp["NAMA KOORDINATOR GL"] || mp["NAMA GROUP LEADER"] || mp["NAMA ATASAN"] || "";
-          let waAtasanVal = mp["NO. WA KOORDINATOR"] || mp["NO. WHATSAPP GL"] || mp["NO. HANDPHONE ATASAN"] || "";
-          if (namaAtasanVal) $('[data-fkey="NAMA ATASAN"]').val(namaAtasanVal);
-          if (waAtasanVal) $('[data-fkey="WA ATASAN"]').val(waAtasanVal);
-        }
-      }
-    }).getMobileMpDataByNrp(effectiveNrp);
-    return;
-  }
-
-  // No cache -> show loader and fetch
-  $('#m-form-content').html(
-    '<div class="m-form-loader">' +
-    '  <div class="m-form-loader-spinner">' +
-    '    <span class="m-bounce-dot m-bd-1"></span>' +
-    '    <span class="m-bounce-dot m-bd-2"></span>' +
-    '    <span class="m-bounce-dot m-bd-3"></span>' +
-    '    <span class="m-bounce-dot m-bd-4"></span>' +
-    '    <span class="m-bounce-dot m-bd-5"></span>' +
-    '  </div>' +
-    '  <p class="m-form-loader-text">Prepare Your Form<span class="m-loader-dots"></span></p>' +
-    '</div>'
-  );
-  $('#m-form-overlay').show();
-  mPushNav('overlay', 'form');
 
   mGetMpData(mp => {
     mFormCurrent = { type: 'CUTI', mp: mp, state: {} };
     mRenderCutiForm();
+    $('#m-form-overlay').show();
+    mPushNav('overlay', 'form');
   });
 }
 
@@ -5669,111 +5533,74 @@ function mHandleFileSelect(input, randId) {
   }
   
   $(`#${randId}_filename`).text(file.name);
-  $(`#${randId}_filesize`).text(sizeStr + ' (Memproses...)');
+  $(`#${randId}_filesize`).text(sizeStr + ' (Membaca...)');
 
   let isImage = (file.type && file.type.startsWith('image/')) || /\.(jpg|jpeg|png|webp|heic|heif|gif|bmp)$/i.test(file.name);
 
-  if (isImage) {
-    let objectUrl = null;
-    try {
-      objectUrl = URL.createObjectURL(file);
-      $(`#${randId}_thumb`).attr('src', objectUrl).show();
-    } catch(eObj) {}
-
-    let img = new Image();
-    img.onload = function() {
-      if (objectUrl) {
-        try { URL.revokeObjectURL(objectUrl); } catch(eRev){}
-      }
-      let canvas = document.createElement('canvas');
-      let maxWidth = 1200;
-      let maxHeight = 1200;
-      let width = img.width;
-      let height = img.height;
-
-      if (width > height) {
-        if (width > maxWidth) {
-          height = Math.round((height * maxWidth) / width);
-          width = maxWidth;
-        }
-      } else {
-        if (height > maxHeight) {
-          width = Math.round((width * maxHeight) / height);
-          height = maxHeight;
-        }
-      }
-
-      canvas.width = width;
-      canvas.height = height;
-      let ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, width, height);
-
-      let base64 = canvas.toDataURL('image/jpeg', 0.85);
-      let base64Clean = base64.split(',')[1];
-      
-      // Calculate compressed size for information
-      let compSize = Math.round((base64Clean.length * 3) / 4);
-      let compSizeStr = (compSize / 1024).toFixed(1) + ' KB';
-      if (compSize > 1024 * 1024) {
-        compSizeStr = (compSize / (1024 * 1024)).toFixed(2) + ' MB';
-      }
-      $(`#${randId}_filesize`).text(`${sizeStr} (Kompresi: ${compSizeStr})`);
-
-      // Update thumbnail to compressed image
-      $(`#${randId}_thumb`).attr('src', base64).show();
-
-      window.mFormFiles[fkey] = {
-        base64: base64Clean,
-        mime: 'image/jpeg',
-        ext: 'jpg'
-      };
+  // Instant FileReader setup so form is ready to submit immediately
+  let reader = new FileReader();
+  reader.onload = function(e) {
+    let rawBase64 = e.target.result.split(',')[1];
+    let ext = file.name.split('.').pop() || (isImage ? 'jpg' : 'dat');
+    window.mFormFiles[fkey] = {
+      base64: rawBase64,
+      mime: file.type || (isImage ? 'image/jpeg' : 'application/octet-stream'),
+      ext: ext
     };
 
-    img.onerror = function() {
-      if (objectUrl) {
-        try { URL.revokeObjectURL(objectUrl); } catch(eRev){}
-      }
-      // FileReader fallback
-      let reader = new FileReader();
-      reader.onload = function(e) {
-        $(`#${randId}_thumb`).attr('src', e.target.result).show();
-        let rawBase64 = e.target.result.split(',')[1];
-        let ext = file.name.split('.').pop() || 'jpg';
-        window.mFormFiles[fkey] = {
-          base64: rawBase64,
-          mime: file.type || 'image/jpeg',
-          ext: ext
-        };
-        $(`#${randId}_filesize`).text(sizeStr + ' (Siap)');
-      };
-      reader.readAsDataURL(file);
-    };
-
-    if (objectUrl) {
-      img.src = objectUrl;
-    } else {
-      let reader = new FileReader();
-      reader.onload = function(e) {
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
-  } else {
-    // Non-image files: read raw base64
-    $(`#${randId}_thumb`).attr('src', 'https://cdn-icons-png.flaticon.com/512/2991/2991108.png').show();
-    let reader = new FileReader();
-    reader.onload = function(e) {
-      let base64 = e.target.result.split(',')[1];
-      let ext = file.name.split('.').pop() || 'dat';
-      window.mFormFiles[fkey] = {
-        base64: base64,
-        mime: file.type || 'application/octet-stream',
-        ext: ext
-      };
+    if (isImage) {
+      $(`#${randId}_thumb`).attr('src', e.target.result).show();
       $(`#${randId}_filesize`).text(sizeStr + ' (Siap)');
-    };
-    reader.readAsDataURL(file);
-  }
+
+      // Background compression to save memory & storage bandwidth
+      let img = new Image();
+      img.onload = function() {
+        let canvas = document.createElement('canvas');
+        let maxWidth = 1200;
+        let maxHeight = 1200;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        let ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        let base64 = canvas.toDataURL('image/jpeg', 0.85);
+        let base64Clean = base64.split(',')[1];
+        
+        let compSize = Math.round((base64Clean.length * 3) / 4);
+        let compSizeStr = (compSize / 1024).toFixed(1) + ' KB';
+        if (compSize > 1024 * 1024) {
+          compSizeStr = (compSize / (1024 * 1024)).toFixed(2) + ' MB';
+        }
+        $(`#${randId}_filesize`).text(`${sizeStr} (Kompresi: ${compSizeStr})`);
+
+        window.mFormFiles[fkey] = {
+          base64: base64Clean,
+          mime: 'image/jpeg',
+          ext: 'jpg'
+        };
+      };
+      img.src = e.target.result;
+    } else {
+      $(`#${randId}_thumb`).attr('src', 'https://cdn-icons-png.flaticon.com/512/2991/2991108.png').show();
+      $(`#${randId}_filesize`).text(sizeStr + ' (Siap)');
+    }
+  };
+  reader.readAsDataURL(file);
 
   // Show preview container, hide dropzone
   $(`#${randId}_dropzone`).hide();
