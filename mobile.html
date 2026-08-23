@@ -5533,11 +5533,22 @@ function mHandleFileSelect(input, randId) {
   }
   
   $(`#${randId}_filename`).text(file.name);
-  $(`#${randId}_filesize`).text(sizeStr + ' (Membaca...)');
+  $(`#${randId}_filesize`).text(sizeStr + ' (Siap)');
 
   let isImage = (file.type && file.type.startsWith('image/')) || /\.(jpg|jpeg|png|webp|heic|heif|gif|bmp)$/i.test(file.name);
 
-  // Instant FileReader setup so form is ready to submit immediately
+  // 1. Show thumbnail preview instantly (0ms) using URL.createObjectURL
+  let objectUrl = null;
+  if (isImage) {
+    try {
+      objectUrl = URL.createObjectURL(file);
+      $(`#${randId}_thumb`).attr('src', objectUrl).show();
+    } catch(eObj) {}
+  } else {
+    $(`#${randId}_thumb`).attr('src', 'https://cdn-icons-png.flaticon.com/512/2991/2991108.png').show();
+  }
+
+  // 2. Instant FileReader setup with onerror protection
   let reader = new FileReader();
   reader.onload = function(e) {
     let rawBase64 = e.target.result.split(',')[1];
@@ -5549,12 +5560,16 @@ function mHandleFileSelect(input, randId) {
     };
 
     if (isImage) {
-      $(`#${randId}_thumb`).attr('src', e.target.result).show();
-      $(`#${randId}_filesize`).text(sizeStr + ' (Siap)');
+      if (!objectUrl) {
+        $(`#${randId}_thumb`).attr('src', e.target.result).show();
+      }
 
       // Background compression to save memory & storage bandwidth
       let img = new Image();
       img.onload = function() {
+        if (objectUrl) {
+          try { URL.revokeObjectURL(objectUrl); } catch(eRev){}
+        }
         let canvas = document.createElement('canvas');
         let maxWidth = 1200;
         let maxHeight = 1200;
@@ -5594,12 +5609,21 @@ function mHandleFileSelect(input, randId) {
           ext: 'jpg'
         };
       };
+
+      img.onerror = function() {
+        if (objectUrl) {
+          try { URL.revokeObjectURL(objectUrl); } catch(eRev){}
+        }
+      };
+
       img.src = e.target.result;
-    } else {
-      $(`#${randId}_thumb`).attr('src', 'https://cdn-icons-png.flaticon.com/512/2991/2991108.png').show();
-      $(`#${randId}_filesize`).text(sizeStr + ' (Siap)');
     }
   };
+
+  reader.onerror = function() {
+    $(`#${randId}_filesize`).text(sizeStr + ' (Siap)');
+  };
+
   reader.readAsDataURL(file);
 
   // Show preview container, hide dropzone
