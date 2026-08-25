@@ -5533,7 +5533,7 @@ function mHandleFileSelect(input, randId) {
   }
   
   $(`#${randId}_filename`).text(file.name);
-  $(`#${randId}_filesize`).text(sizeStr + ' (Siap)');
+  $(`#${randId}_filesize`).text(sizeStr + ' (Membaca...)');
 
   let isImage = (file.type && file.type.startsWith('image/')) || /\.(jpg|jpeg|png|webp|heic|heif|gif|bmp)$/i.test(file.name);
 
@@ -5548,83 +5548,81 @@ function mHandleFileSelect(input, randId) {
     $(`#${randId}_thumb`).attr('src', 'https://cdn-icons-png.flaticon.com/512/2991/2991108.png').show();
   }
 
-  // 2. Instant FileReader setup with onerror protection
-  let reader = new FileReader();
-  reader.onload = function(e) {
-    let rawBase64 = e.target.result.split(',')[1];
-    let ext = file.name.split('.').pop() || (isImage ? 'jpg' : 'dat');
-    window.mFormFiles[fkey] = {
-      base64: rawBase64,
-      mime: file.type || (isImage ? 'image/jpeg' : 'application/octet-stream'),
-      ext: ext
-    };
-
-    if (isImage) {
-      if (!objectUrl) {
+  function readRawFileFallback() {
+    let reader = new FileReader();
+    reader.onload = function(e) {
+      let rawBase64 = e.target.result.split(',')[1];
+      let ext = file.name.split('.').pop() || (isImage ? 'jpg' : 'dat');
+      window.mFormFiles[fkey] = {
+        base64: rawBase64,
+        mime: file.type || (isImage ? 'image/jpeg' : 'application/octet-stream'),
+        ext: ext
+      };
+      $(`#${randId}_filesize`).text(sizeStr + ' (Siap ✓)');
+      if (isImage && !$('#' + randId + '_thumb').attr('src')) {
         $(`#${randId}_thumb`).attr('src', e.target.result).show();
       }
+    };
+    reader.onerror = function() {
+      $(`#${randId}_filesize`).text(sizeStr + ' (Siap ✓)');
+    };
+    reader.readAsDataURL(file);
+  }
 
-      // Background compression to save memory & storage bandwidth
-      let img = new Image();
-      img.onload = function() {
-        if (objectUrl) {
-          try { URL.revokeObjectURL(objectUrl); } catch(eRev){}
+  // 2. High-speed canvas compression directly from objectUrl (Ultra fast on HP Mobile)
+  if (isImage && objectUrl) {
+    let img = new Image();
+    img.onload = function() {
+      let canvas = document.createElement('canvas');
+      let maxWidth = 1200;
+      let maxHeight = 1200;
+      let width = img.width;
+      let height = img.height;
+
+      if (width > height) {
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
         }
-        let canvas = document.createElement('canvas');
-        let maxWidth = 1200;
-        let maxHeight = 1200;
-        let width = img.width;
-        let height = img.height;
-
-        if (width > height) {
-          if (width > maxWidth) {
-            height = Math.round((height * maxWidth) / width);
-            width = maxWidth;
-          }
-        } else {
-          if (height > maxHeight) {
-            width = Math.round((width * maxHeight) / height);
-            height = maxHeight;
-          }
+      } else {
+        if (height > maxHeight) {
+          width = Math.round((width * maxHeight) / height);
+          height = maxHeight;
         }
+      }
 
-        canvas.width = width;
-        canvas.height = height;
-        let ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
+      canvas.width = width;
+      canvas.height = height;
+      let ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
 
-        let base64 = canvas.toDataURL('image/jpeg', 0.85);
-        let base64Clean = base64.split(',')[1];
-        
-        let compSize = Math.round((base64Clean.length * 3) / 4);
-        let compSizeStr = (compSize / 1024).toFixed(1) + ' KB';
-        if (compSize > 1024 * 1024) {
-          compSizeStr = (compSize / (1024 * 1024)).toFixed(2) + ' MB';
-        }
-        $(`#${randId}_filesize`).text(`${sizeStr} (Kompresi: ${compSizeStr})`);
+      let base64 = canvas.toDataURL('image/jpeg', 0.85);
+      let base64Clean = base64.split(',')[1];
+      
+      let compSize = Math.round((base64Clean.length * 3) / 4);
+      let compSizeStr = (compSize / 1024).toFixed(1) + ' KB';
+      if (compSize > 1024 * 1024) {
+        compSizeStr = (compSize / (1024 * 1024)).toFixed(2) + ' MB';
+      }
+      $(`#${randId}_filesize`).text(`${sizeStr} (Terkompresi: ${compSizeStr} ✓)`);
 
-        window.mFormFiles[fkey] = {
-          base64: base64Clean,
-          mime: 'image/jpeg',
-          ext: 'jpg'
-        };
+      window.mFormFiles[fkey] = {
+        base64: base64Clean,
+        mime: 'image/jpeg',
+        ext: 'jpg'
       };
+      
+      try { URL.revokeObjectURL(objectUrl); } catch(eRev){}
+    };
 
-      img.onerror = function() {
-        if (objectUrl) {
-          try { URL.revokeObjectURL(objectUrl); } catch(eRev){}
-        }
-      };
+    img.onerror = function() {
+      readRawFileFallback();
+    };
 
-      img.src = e.target.result;
-    }
-  };
-
-  reader.onerror = function() {
-    $(`#${randId}_filesize`).text(sizeStr + ' (Siap)');
-  };
-
-  reader.readAsDataURL(file);
+    img.src = objectUrl;
+  } else {
+    readRawFileFallback();
+  }
 
   // Show preview container, hide dropzone
   $(`#${randId}_dropzone`).hide();
