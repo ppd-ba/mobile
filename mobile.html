@@ -1341,7 +1341,7 @@ html.swal2-shown, body.swal2-shown {
   scroll-snap-align: center;
 }
 .m-birthday-card::before {
-  content: '🎉';
+  content: '';
   position: absolute;
   top: 10px;
   left: 15px;
@@ -1350,7 +1350,7 @@ html.swal2-shown, body.swal2-shown {
   animation: bounceConfetti-m 2s infinite ease-in-out;
 }
 .m-birthday-card::after {
-  content: '🎈';
+  content: '';
   position: absolute;
   top: 10px;
   right: 15px;
@@ -1786,7 +1786,7 @@ html.swal2-shown, body.swal2-shown {
 
       <div class="m-hero-top">
         <div class="m-hero-text">
-          <div class="m-hero-greet" id="m-hero-greet">Selamat datang 👋</div>
+          <div class="m-hero-greet" id="m-hero-greet">Selamat datang </div>
           <div class="m-hero-name" id="m-user-name">User</div>
           <span class="m-hero-job-pill" id="m-user-job">Jabatan</span>
         </div>
@@ -2023,7 +2023,7 @@ html.swal2-shown, body.swal2-shown {
       <i class="fas fa-sync-alt mr-1"></i> Hapus Cache Server (PPD/Admin)
     </button>
     <button class="m-btn-secondary m-btn-block mt-2" onclick="mSwitchTab('home')"><i class="fas fa-arrow-left mr-1"></i> Kembali</button>
-    <p class="m-app-version">PPD Mobile V2.0<span id="m-desktop-link-sep" style="display:none;"> · </span><a id="m-desktop-link" href="https://sites.google.com/view/ppd-ba/ppd-web-portal" target="_blank" style="color:#c10f19; display:none;">Versi Desktop</a></p>
+    <p class="m-app-version">PPD Mobile V2.0<span id="m-desktop-link-sep" style="display:none;"> - </span><a id="m-desktop-link" href="https://sites.google.com/view/ppd-ba/ppd-web-portal" target="_blank" style="color:#c10f19; display:none;">Versi Desktop</a></p>
   </main>
 
   <!-- ============ BOTTOM NAVIGATION ============ -->
@@ -2785,7 +2785,7 @@ function rebuildCustomOptions($select, optionsList, trigger) {
   let itemsContainer = optionsList;
 
   if (showSearch) {
-    let searchWrap = $('<div class="custom-select-search-wrap" style="padding: 6px; position: sticky; top: 0; background: #ffffff; z-index: 5; border-bottom: 1px solid #e2e8f0;"><input type="text" class="custom-select-search-input" placeholder="🔍 Cari..." style="width: 100%; padding: 6px 10px; font-size: 0.85em; border: 1.5px solid #cbd5e1; border-radius: 6px; outline: none; box-sizing: border-box;"></div>');
+    let searchWrap = $('<div class="custom-select-search-wrap" style="padding: 6px; position: sticky; top: 0; background: #ffffff; z-index: 5; border-bottom: 1px solid #e2e8f0;"><input type="text" class="custom-select-search-input" placeholder=" Cari..." style="width: 100%; padding: 6px 10px; font-size: 0.85em; border: 1.5px solid #cbd5e1; border-radius: 6px; outline: none; box-sizing: border-box;"></div>');
     let itemsWrap = $('<div class="custom-select-items-wrap"></div>');
     optionsList.append(searchWrap).append(itemsWrap);
     itemsContainer = itemsWrap;
@@ -3555,7 +3555,7 @@ function mShowApp() {
 
   // Fill user info
   $('#m-user-name').text(mUser.nama || mUser.username);
-  $('#m-user-job').text((mUser.jabatan || '-') + ' · ' + (mUser.section || '-'));
+  $('#m-user-job').text((mUser.jabatan || '-') + ' - ' + (mUser.section || '-'));
 
   // Profile tab
   $('#m-profile-name').text(mUser.nama || '-');
@@ -3934,7 +3934,7 @@ function mOpenNewsForm() {
       + '<div style="text-align:left; margin: 14px 3px 0 3px;">'
       + '  <label style="font-size:0.85em; font-weight:600; color:#475569; display:block; margin-bottom:6px;">Upload Gambar (PNG/JPG):</label>'
       + '  <input id="mn-file" type="file" accept="image/*" style="font-size:0.85em; width:100%; border: 1.5px solid #e2e8f0; padding: 8px; border-radius: 8px;">'
-      + '  <div style="font-size:0.75em; text-align:center; color:#94a3b8; margin: 8px 0;">— ATAU MASUKKAN LINK DRIVE —</div>'
+      + '  <div style="font-size:0.75em; text-align:center; color:#94a3b8; margin: 8px 0;">- ATAU MASUKKAN LINK DRIVE -</div>'
       + '</div>'
       + '<input id="mn-img" class="swal2-input" style="margin-top:0;" placeholder="Link gambar Drive (opsional)">'
       + '<p style="font-size:0.78em; color:#64748b; margin-top:6px;">Upload file foto atau paste url link Drive share "Anyone with link" di atas.</p>',
@@ -4009,7 +4009,7 @@ function mOpenNewsEditForm(idx) {
       + '<div style="text-align:left; margin: 14px 3px 0 3px;">'
       + '  <label style="font-size:0.85em; font-weight:600; color:#475569; display:block; margin-bottom:6px;">Ganti Gambar (PNG/JPG):</label>'
       + '  <input id="mne-file" type="file" accept="image/*" style="font-size:0.85em; width:100%; border: 1.5px solid #e2e8f0; padding: 8px; border-radius: 8px;">'
-      + '  <div style="font-size:0.75em; text-align:center; color:#94a3b8; margin: 8px 0;">— ATAU MASUKKAN LINK DRIVE —</div>'
+      + '  <div style="font-size:0.75em; text-align:center; color:#94a3b8; margin: 8px 0;">- ATAU MASUKKAN LINK DRIVE -</div>'
       + '</div>'
       + '<input id="mne-img" class="swal2-input" style="margin-top:0;" placeholder="Link gambar Drive (opsional)" value="' + imgUrl.replace(/"/g, '&quot;') + '">',
     confirmButtonText: 'Simpan', confirmButtonColor: '#05244d', showCancelButton: true,
@@ -4682,7 +4682,7 @@ function mfDate(key, label, value, opts) {
 }
 function mfDropdown(key, label, options, opts) {
   opts = opts || {};
-  let opts_html = '<option value="">— Pilih —</option>' + options.map(o => '<option value="'+o+'">'+o+'</option>').join('');
+  let opts_html = '<option value="">- Pilih -</option>' + options.map(o => '<option value="'+o+'">'+o+'</option>').join('');
   return '<div class="m-form-group"><label class="m-form-label '+(opts.req?'req':'')+'">'+label+'</label><select class="m-form-select" data-fkey="'+key+'" '+(opts.req?'required':'')+'>'+opts_html+'</select></div>';
 }
 function mfBtnGroup(key, label, options, opts) {
@@ -4699,7 +4699,7 @@ function mfStepper(key, label, value, opts) {
   let onCh = opts.onChange ? ' data-onchange="'+opts.onChange+'"' : '';
   return '<div class="m-form-group"><label class="m-form-label '+(opts.req?'req':'')+'">'+label+'</label>'
        + '<div class="m-stepper" data-min="'+mn+'" data-max="'+mx+'"'+onCh+'>'
-       +   '<button type="button" class="m-step-btn" onclick="mfStepperChange(this, -1)">−</button>'
+       +   '<button type="button" class="m-step-btn" onclick="mfStepperChange(this, -1)">-</button>'
        +   '<input class="m-step-val" type="number" data-fkey="'+key+'" value="'+v+'" min="'+mn+'" max="'+mx+'" oninput="mfStepperClamp(this)" '+(opts.req?'required':'')+'>'
        +   '<button type="button" class="m-step-btn" onclick="mfStepperChange(this, 1)">+</button>'
        + '</div></div>';
@@ -4973,12 +4973,12 @@ function mCutiOnChange() {
   }
 }
 
-// Validasi hari saat user pilih tanggal BJS/KJS — kalau NON LOKAL & jabatan non-exempt
+// Validasi hari saat user pilih tanggal BJS/KJS - kalau NON LOKAL & jabatan non-exempt
 function mCutiValidateDay(inpEl) {
   // Handled inline in mCutiOnChange
 }
 
-// Sync Bandara P2 (asal/tujuan terbalik dari P1) — dipanggil oninput field P1
+// Sync Bandara P2 (asal/tujuan terbalik dari P1) - dipanggil oninput field P1
 function mCutiSyncBandara() {
   let baP1 = $('input[data-fkey="BANDARA ASAL PENUMPANG 1"]').val();
   let btP1 = $('input[data-fkey="BANDARA TUJUAN PENUMPANG 1"]').val();
@@ -5203,7 +5203,7 @@ function mSubmitCutiForm() {
   confHtml += '<p style="font-size:0.85em; color:#64748b; margin-bottom:10px;">Mohon periksa kembali data pengajuan Anda:</p>';
   confKeys.forEach(([k, l]) => {
     let rawV = data[k];
-    let v = rawV || '<span style="color:#94a3b8;">—</span>';
+    let v = rawV || '<span style="color:#94a3b8;">-</span>';
     if (rawV && typeof rawV === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(rawV.trim())) {
       let p = mParseFlexibleDate(rawV);
       if (p) v = mFormatDateDDMMMYYYY(p);
@@ -5382,7 +5382,7 @@ function mGetFormConfig(formType) {
       { key:'ALASAN/URAIAN', label:'Alasan / Uraian', type:'textarea', req:true }
     ];
   } else if (formType === 'PLANOVA') {
-    title = 'PLANOVA — Plant Innovation';
+    title = 'PLANOVA - Plant Innovation';
     userFields = [
       { key:'NAMA KARYAWAN', label:'Nama Karyawan', type:'text', value: mUser.nama, req:true, readonly:true },
       { key:'NRP KARYAWAN', label:'NRP Karyawan', type:'text', value: mUser.nrp, req:true, readonly:true },
@@ -5472,7 +5472,7 @@ function mBuildField(f) {
     let disAttr = f.disabled ? 'disabled style="background:#f1f5f9; color:#94a3b8; pointer-events:none;"' : '';
     let btnDisAttr = f.disabled ? 'disabled style="opacity:0.5; pointer-events:none;"' : '';
     html += '<div class="m-stepper" data-min="'+mn+'" data-max="'+mx+'">'
-         +   '<button type="button" class="m-step-btn" onclick="mfStepperChange(this, -1)" '+btnDisAttr+'>−</button>'
+         +   '<button type="button" class="m-step-btn" onclick="mfStepperChange(this, -1)" '+btnDisAttr+'>-</button>'
          +   '<input class="m-step-val" type="number" data-fkey="'+f.key+'" value="'+val+'" min="'+mn+'" max="'+mx+'" oninput="mfStepperClamp(this)" '+(f.req?'required':'')+' '+disAttr+'>'
          +   '<button type="button" class="m-step-btn" onclick="mfStepperChange(this, 1)" '+btnDisAttr+'>+</button>'
          + '</div>';
@@ -5845,11 +5845,11 @@ function mSubmitForm(formType) {
       if (hasFile) {
         v = '<span style="color:#10b981; font-weight:bold;"><i class="fas fa-check-circle mr-1"></i>Terlampir</span>';
       } else {
-        v = '<span style="color:#94a3b8;">—</span>';
+        v = '<span style="color:#94a3b8;">-</span>';
       }
     } else {
       let rawV = v;
-      v = v || '<span style="color:#94a3b8;">—</span>';
+      v = v || '<span style="color:#94a3b8;">-</span>';
       if (rawV && typeof rawV === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(rawV.trim())) {
         let p = mParseFlexibleDate(rawV);
         if (p) v = mFormatDateDDMMMYYYY(p);
@@ -7942,13 +7942,13 @@ function mRenderBirthdays(list) {
       <div class="m-birthday-card" data-idx="${i}">
         <div class="m-birthday-avatar-wrap">
           <img src="${p.foto}" class="m-birthday-avatar" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png';">
-          <span class="m-birthday-hat">👑</span>
+          <span class="m-birthday-hat"></span>
         </div>
         <div class="m-birthday-name">${p.nama}</div>
         <div class="m-birthday-job">${p.jabatan}</div>
         <div class="m-birthday-sec">${p.section}</div>
         <div class="m-birthday-wish">
-          <span>🎂 Selamat Ulang Tahun! 🎉</span>
+          <span> Selamat Ulang Tahun! </span>
         </div>
       </div>
     `;
