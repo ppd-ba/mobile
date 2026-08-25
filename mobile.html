@@ -5558,13 +5558,13 @@ function mHandleFileSelect(input, randId) {
         mime: file.type || (isImage ? 'image/jpeg' : 'application/octet-stream'),
         ext: ext
       };
-      $(`#${randId}_filesize`).text(sizeStr + ' (Siap ✓)');
+      $(`#${randId}_filesize`).text(sizeStr + ' (Siap \u2713)');
       if (isImage && !$('#' + randId + '_thumb').attr('src')) {
         $(`#${randId}_thumb`).attr('src', e.target.result).show();
       }
     };
     reader.onerror = function() {
-      $(`#${randId}_filesize`).text(sizeStr + ' (Siap ✓)');
+      $(`#${randId}_filesize`).text(sizeStr + ' (Siap \u2713)');
     };
     reader.readAsDataURL(file);
   }
@@ -5604,7 +5604,7 @@ function mHandleFileSelect(input, randId) {
       if (compSize > 1024 * 1024) {
         compSizeStr = (compSize / (1024 * 1024)).toFixed(2) + ' MB';
       }
-      $(`#${randId}_filesize`).text(`${sizeStr} (Terkompresi: ${compSizeStr} ✓)`);
+      $(`#${randId}_filesize`).text(`${sizeStr} (Terkompresi: ${compSizeStr} \u2713)`);
 
       window.mFormFiles[fkey] = {
         base64: base64Clean,
